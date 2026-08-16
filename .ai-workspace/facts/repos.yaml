@@ -41,7 +41,7 @@ repositories:
     default_branch: main               # 已通过 git 确认
     branches:
       - name: main
-      - name: codex/native-compose-filament   # 功能分支（native Compose + Filament）
+      - name: codex/native-compose-filament   # 功能分支：推测为 native Compose + Filament 重写（WebView→原生渲染），尚未分析（网络受限）
     tech_stack: [android, kotlin, jetpack-compose, react, typescript, roslib, three.js]
     status: CONFIRMED
     clone_cmd: "git clone https://github.com/electech6/SLAMIBotApp.git"

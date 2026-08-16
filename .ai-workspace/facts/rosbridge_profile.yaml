@@ -6,14 +6,14 @@
 rosbridge:
   package: rosbridge_server             # ros-noetic-rosbridge-server
   transport: websocket                  # rosbridge_websocket
-  websocket_port: 19090                 # CONFIRMED：D360 容器 rosrun rosbridge_websocket _port:=19090
+  websocket_port: 19090                 # 当前实际端口（临时）
+  target_port: 9090                     # 目标端口（用户 2026-08-17 确认）
   websocket_host: 127.0.0.1             # 容器内；对外经 --network host 暴露
-  port_discrepancy: NEEDS_CONFIRMATION
   port_note: |
-    ⚠️ 端口不一致：D360 容器 rosbridge=19090（docker-entrypoint.sh），
-    但 SLAMIBotApp web 默认连 ws://<ip>:9090（web/src/App.tsx 等）。
-    D360 提交历史「改为了19090」暗示端口从 9090 改到 19090，APP 端可能未同步。
-    需人工确认实际对接端口（9090 还是 19090），这是前端↔ROS 关键边界，禁止猜测。
+    端口现状（用户 2026-08-17 确认）：当前 rosbridge 临时跑在 19090，
+    因为 D360 后端端口相关代码尚未改完；目标端口是 9090。
+    SLAMIBotApp web 端连 ws://<ip>:9090 与目标一致，属正常。
+    待后端端口代码改完后应切回 9090，届时同步更新本文件与 App 配置。
 
   # 前端订阅/发布的 Topic（来自 SLAMIBotApp msg.md 与 web/src，逐条回填）
   topics:
