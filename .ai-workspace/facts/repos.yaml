@@ -21,7 +21,7 @@ repositories:
 
   - id: navigation-ros2-go2-3d
     name: KN 导航工作区（3d_nav）
-    role: Go2 / Go2-W 机器狗 3D 导航（ROS2，独立产品线，非 Scout mini 迁移）
+    role: 自研 3D 导航：Go2 / Go2-W 机器狗（ROS2，独立产品线，非 Scout mini 迁移）
     remote_url: https://gitee.com/lion-king2025/3d_nav.git
     remote_host: gitee
     local_path: "F:\\3d_nav"
@@ -31,6 +31,16 @@ repositories:
     tech_stack: [ros2, humble, ubuntu-22.04]
     status: CONFIRMED
     clone_cmd: "git clone https://gitee.com/lion-king2025/3d_nav.git"
+
+  - id: navigation-3d-external
+    name: 外协 3D 导航（第三方/外包）
+    role: 外协开发的 3D 导航（与自研 3d_nav 区分，两条不同来源）
+    remote_url: UNKNOWN                # 可能在 Jetson 板内，未同步云端
+    local_path: UNKNOWN
+    default_branch: UNKNOWN
+    tech_stack: UNKNOWN                # 待确认 ROS1/ROS2、Ubuntu 版本
+    status: UNKNOWN
+    note: 代码在 Jetson 板内，待连接板子后只读分析补充
 
   - id: frontend-app
     name: SLAMIBotApp（前端 APP）

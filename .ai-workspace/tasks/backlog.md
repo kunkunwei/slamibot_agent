@@ -25,4 +25,15 @@
   validation: [事实源回填完成]
   status: backlog
 
+- id: TASK-NEXT-003
+  goal: 连接 Jetson，只读分析板内代码（含外协 3D 导航），补充事实源
+  project: workspace
+  technology: mixed
+  lifecycle: CURRENT
+  scope: [只读查看 Jetson 文件/容器/ROS 环境，回填 facts/ 与 repos.yaml]
+  forbidden: [不修改 Jetson 任何代码/环境/容器]
+  validation: [外协 3D 导航与自研 3d_nav 事实源补充完成]
+  status: backlog
+  notes: 用户上班后连板子；默认 READ_ONLY 权限。
+
 <!-- 在此追加新任务 -->
