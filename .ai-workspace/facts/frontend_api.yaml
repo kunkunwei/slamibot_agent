@@ -1,32 +1,31 @@
-# 事实源：前端接口
+# 事实源：前端接口（SLAMIBotApp）
 # 状态取值：CONFIRMED / NEEDS_CONFIRMATION / UNKNOWN / TODO
-# 来源：2026-08-16 分析 d360_nav2D/frontend + docker-entrypoint.sh
+# 来源：2026-08-17 分析 SLAMIBotApp 仓库（README / package.json / web/src / msg.md）
 
 frontend:
-  # 说明：存在两层前端，关系待进一步确认
-  #   1) Web 前端（React + Vite + TS）：位于 d360_nav2D/frontend/，构建产物由 nginx 提供（端口 80，/app/）
-  #   2) SLAMIBotApp（Android App）：独立仓库，推测为 WebView 加载上述 Web 前端
+  repo: https://github.com/electech6/SLAMIBotApp.git
+  local_path: "F:\\SLAMIBotApp"
+  version: "web/package.json 1.6.3；version.properties VERSION_NAME=1.5.0"
 
-  web_frontend:
-    repo: d360_nav2D（frontend/ 目录）
-    framework: React + Vite + TypeScript     # 依据 package.json / vite.config.ts / tsconfig
-    build: npm run build                      # 产物 dist/，拷贝至容器 nginx /usr/share/nginx/html/app
-    serve: nginx（端口 80，路径 /app/）
-    local_path: "F:\\d360_nav2D\\frontend"
+  web:
+    framework: React 19 + TypeScript + Vite
+    rosbridge_client: roslib 2.1          # 连接 ws://<ip>:9090
+    render: Three.js（@react-three/fiber + drei）+ react-konva + antd + zustand
+    nav_ui: 私有包 @npu-chenlin/slamibot-navigation-ui（GitHub Packages，构建需 PACKAGES_TOKEN）
+    build: npm ci && npm run build:release
+    serve: 由 Android WebView 加载；或 nginx 托管
 
   app:
-    repo: https://github.com/electech6/SLAMIBotApp.git
-    platform: Android（推测 WebView）        # 依据 CORS 注释「Android WebView 通过 appassets 安全域加载本地前端」
-    local_path: UNKNOWN                      # 待 clone
-    assets_origin: https://appassets.androidplatform.net
+    platform: Android
+    framework: Kotlin + Jetpack Compose + WebView（壳 + 原生能力）
+    build: ./build.sh debug|release（Gradle；JDK17 + Android SDK 项目级，见 scripts/setup-android-env.sh）
 
-  backend_base_url: http://<jetson-ip>:5000
-  rosbridge_url: ws://<jetson-ip>:19090       # 见 rosbridge_profile.yaml
+  ros_server: 192.168.117.6（.env.production）；127.0.0.1（.env.development）
+  rosbridge_port: 9090                   # App 端默认；注意与 D360 容器内 19090 不一致（见 rosbridge_profile.yaml）
 
-  # 页面/功能（待确认，从 frontend/src 回填）
-  features:
-    - 2D 导航控制面板
-    - 点云订阅（CBOR 编码，见 commits）
-    - 语音（opus）
-  endpoints: []                               # TODO
-  status: NEEDS_CONFIRMATION
+  # 前端经 rosbridge 通信的 topic（来自 msg.md 与 web/src 组件）
+  topics:
+    - /rtk/gga       # std_msgs/String（NMEA GPGGA）
+    - /rtcm/data     # std_msgs/UInt8MultiArray（RTCM 差分数据）
+    - 点云（CBOR 压缩）、里程计、电池/存储/驱动状态、关键帧图像等 —— topic 名待从 web/src 组件回填
+  status: CONFIRMED

@@ -34,17 +34,18 @@ repositories:
 
   - id: frontend-app
     name: SLAMIBotApp（前端 APP）
-    role: 前端控制/监控 APP，通过 rosbridge 与导航通信
+    role: 前端控制/监控 APP（Android WebView 壳 + React Web），经 rosbridge 与 ROS 通信
     remote_url: https://github.com/electech6/SLAMIBotApp.git
     remote_host: github
-    local_path: UNKNOWN                # 本机尚未 clone
-    default_branch: main               # 已通过 git ls-remote 确认
-    branches:                          # 已通过 git ls-remote 确认
+    local_path: "F:\\SLAMIBotApp"
+    default_branch: main               # 已通过 git 确认
+    branches:
       - name: main
-      - name: codex/native-compose-filament   # 提示：可能为 Android Jetpack Compose + Filament 渲染，待 clone 确认
-    tech_stack: [app, rosbridge-client]  # 框架待 clone 后确认
-    status: NEEDS_CONFIRMATION
+      - name: codex/native-compose-filament   # 功能分支（native Compose + Filament）
+    tech_stack: [android, kotlin, jetpack-compose, react, typescript, roslib, three.js]
+    status: CONFIRMED
     clone_cmd: "git clone https://github.com/electech6/SLAMIBotApp.git"
+    note: "Web：React19+TS+Vite+ROSLib(rosbridge)+Three.js；App：Kotlin+Compose+WebView 壳"
 
   - id: stm32
     name: slamibot_stm32（STM32 固件）

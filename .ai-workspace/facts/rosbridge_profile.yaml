@@ -6,12 +6,20 @@
 rosbridge:
   package: rosbridge_server             # ros-noetic-rosbridge-server
   transport: websocket                  # rosbridge_websocket
-  websocket_port: 19090                 # CONFIRMED：rosrun rosbridge_server rosbridge_websocket _port:=19090
+  websocket_port: 19090                 # CONFIRMED：D360 容器 rosrun rosbridge_websocket _port:=19090
   websocket_host: 127.0.0.1             # 容器内；对外经 --network host 暴露
-  # 注意：默认 rosbridge 端口是 9090，本项目改为 19090（与语音/FastAPI 端口调整同批提交）
+  port_discrepancy: NEEDS_CONFIRMATION
+  port_note: |
+    ⚠️ 端口不一致：D360 容器 rosbridge=19090（docker-entrypoint.sh），
+    但 SLAMIBotApp web 默认连 ws://<ip>:9090（web/src/App.tsx 等）。
+    D360 提交历史「改为了19090」暗示端口从 9090 改到 19090，APP 端可能未同步。
+    需人工确认实际对接端口（9090 还是 19090），这是前端↔ROS 关键边界，禁止猜测。
 
-  # 前端订阅/发布的 Topic（逐条回填）
-  topics: []                            # TODO：名称 + 消息类型 + 方向(pub/sub)
+  # 前端订阅/发布的 Topic（来自 SLAMIBotApp msg.md 与 web/src，逐条回填）
+  topics:
+    - { name: /rtk/gga,    msg_type: std_msgs/String,          note: NMEA GPGGA }
+    - { name: /rtcm/data,  msg_type: std_msgs/UInt8MultiArray, note: RTCM 差分数据 }
+    - { name: NEEDS_CONFIRMATION, note: 点云（CBOR 压缩）、里程计、电池/存储/驱动状态、关键帧图像等，topic 名待从 web/src 组件回填 }
   services: []                          # TODO
   params: []                            # TODO
 
