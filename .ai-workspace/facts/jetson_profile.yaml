@@ -9,18 +9,31 @@ jetson:
   ssh_config: "~/.ssh/config"       # 已确认存在该 Host 条目
   connection: ssh                    # 本机通过 SSH 访问
 
-  os: UNKNOWN                        # NEEDS_CONFIRMATION：Ubuntu 20.04
-  ros1_distro: UNKNOWN               # NEEDS_CONFIRMATION
-  ros2_distro: UNKNOWN               # 可能未装或为迁移准备
+  os: Ubuntu 20.04.6 LTS             # 宿主机（aarch64）；自研3D 容器内为 Ubuntu 22.04
+  ros1_distro: noetic                # 宿主机 ROS1（跑雷达驱动 + 2D/外协3D 导航）
+  ros2_distro: humble                # 自研 3D 导航容器内 ROS2
 
   docker:
-    present: UNKNOWN
-    images: []                       # TODO：docker images 回填
-    compose_files: []                # TODO
+    present: true
+    images:
+      - scout-nav:latest             # 2D 导航（ROS1）
+      - kn_nav:v1                    # 自研 3D 导航（ROS2）
+      - registry.cn-shanghai.aliyuncs.com/slamibot/nav3d_d360:1.0   # 外协 3D 导航（ROS1 二进制镜像）
+      - ros:foxy-ros1-bridge         # ROS1/ROS2 桥接
+    containers: [core, firmware-sensors, scout-nav, ota_web, kn_nav_container, d360_navigation_container]
 
   workspaces:
-    ros1_ws: UNKNOWN                 # 远端 catkin_ws 路径
-    ros2_ws: UNKNOWN                 # 远端 colcon_ws 路径
+    ros1_ws: /home/jetson/Scout_mini_navigation      # 2D 导航（ROS1）
+    ros2_ws: /home/jetson/kn_nav                     # 自研 3D 导航（ROS2）
+    external_3d: /home/jetson/docker_ws_backup       # 外协 3D 导航（ROS1 镜像内）
+
+  network:                            # 来自同事文档
+    go2_ip: 192.168.123.161           # Unitree Go2（STA / WebRTC）
+    mid360_ip: 192.168.123.120        # Livox MID-360 雷达
+    host_livox_ip: 192.168.123.164    # 主机接收雷达网卡 IP
+    web_2d: http://192.168.31.132/app/
+    web_3d_external: http://192.168.31.132:9000
+    claude_proxy: http://127.0.0.1:7890   # Claude Code 走 ssh 反向代理到本机
 
   # 权限分级（默认只允许 READ_ONLY）
   access_levels:

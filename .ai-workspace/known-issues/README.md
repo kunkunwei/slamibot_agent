@@ -13,5 +13,6 @@ Docker 网络问题、Jetson 特定问题、ROS1/ROS2 差异。
 
 ## 索引
 - [d360-handover-2026-08.md](./d360-handover-2026-08.md) —— D360 2D 导航交接文档汇总（导航坑 + 6 项未解决问题）
+- [3d-nav-issues-2026-08.md](./3d-nav-issues-2026-08.md) —— 3D 导航问题汇总（自研 + 外协）
 - [map-icon-direction.md](./map-icon-direction.md) —— 地图机器人图标方向不对
 - [point-marking-ime-s.md](./point-marking-ime-s.md) —— 标记点位时英文输入法无法输入字母 s
