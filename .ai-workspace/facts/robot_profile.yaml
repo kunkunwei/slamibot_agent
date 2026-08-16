@@ -23,7 +23,7 @@ robot_profile:
 
     # 传感器（来自 d360_nav2D 仓库分析，部分确认）
     sensors:
-      lidar: Livox（livox_ros_driver2；3D 点云经 pointcloud_to_laserscan 转 2D 激光）
+      lidar: Livox MID-360（livox_ros_driver2；3D 点云经 pointcloud_to_laserscan 转 2D 激光）
       imu: Livox 内置 IMU（topic /livox/imu）
       camera: UNKNOWN
       odometry: UNKNOWN                # 底盘里程计，经 CAN（can0 500k）

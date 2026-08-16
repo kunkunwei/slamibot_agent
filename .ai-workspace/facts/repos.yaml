@@ -18,6 +18,7 @@ repositories:
     tech_stack: [ros1, noetic, ubuntu-20.04]
     status: CONFIRMED
     clone_cmd: "git clone https://gitee.com/electech6/d360_nav2D.git"
+    note: "交接文档提示：2D 仓库代码未完全上传云端，部分改动仍在 Jetson 板内"
 
   - id: navigation-ros2-go2-3d
     name: KN 导航工作区（3d_nav）

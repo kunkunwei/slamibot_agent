@@ -12,7 +12,6 @@ Docker 网络问题、Jetson 特定问题、ROS1/ROS2 差异。
 - 新问题先记录再修复，避免重复踩坑。
 
 ## 索引
-<!-- 例如：
-- [nav-planner-timeout.md](./nav-planner-timeout.md) —— 走廊场景 Planner 超时
--->
-（暂无，待实际开发中回填。）
+- [d360-handover-2026-08.md](./d360-handover-2026-08.md) —— D360 2D 导航交接文档汇总（导航坑 + 6 项未解决问题）
+- [map-icon-direction.md](./map-icon-direction.md) —— 地图机器人图标方向不对
+- [point-marking-ime-s.md](./point-marking-ime-s.md) —— 标记点位时英文输入法无法输入字母 s

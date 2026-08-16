@@ -56,5 +56,14 @@ navigation_ros1:
     - ros-noetic-tf / tf2-sensor-msgs
     - livox_ros_driver2
     - scout_ros / ugv_sdk
+  lidar: Livox MID-360                  # 交接文档确认（3D 点云 → pointcloud_to_laserscan → 2D 激光）
+  paths:                                # 来自交接文档
+    maps: /home/jetson/Scout_mini_navigation/src/my_nav/maps/api_map
+    params: /home/jetson/Scout_mini_navigation/src/my_nav/config/tuned2
+    pcd: /home/jetson/Scout_mini_navigation/src/FAST_LIO_gravity_align/PCD
+    db: /home/jetson/Scout_mini_navigation/src/nav_api/db/nav_api.db
+  start_script: src/my_nav/script/start_nav.sh    # 单独启动导航（与前后端无关）
+  web_entry: http://192.168.31.132/app/           # 前端入口（示例 IP）
+  data_convention: "/data/project1/YYYYMMDD_场景/；bag 命名 日期_场景_是否成功.bag；中间结果放 debug/"
   status: CONFIRMED
   note: "CURRENT 稳定基线。完整 Node/Topic/TF/参数清单待后续 Explorer 深读 launch 与 config 回填。"
