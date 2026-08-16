@@ -36,12 +36,16 @@ repositories:
     clone_cmd: "git clone https://github.com/electech6/SLAMIBotApp.git"
 
   - id: stm32
-    name: slamibot_stm32（STM32 固件 / IAP）
+    name: slamibot_stm32（STM32 固件）
     role: 底层固件 / 下位机
     remote_url: https://github.com/electech6/slamibot_stm32.git
     remote_host: github
     local_path: "F:\\slamibot_stm32"
-    current_branch: bootloader
+    branches:
+      - name: bootloader
+        role: IAP 在线升级
+      - name: d360
+        role: 产品主要功能
     tech_stack: [embedded, stm32, c]
     status: CONFIRMED
 
@@ -60,23 +64,3 @@ repositories:
     local_path: UNKNOWN
     tech_stack: [docker]
     status: UNKNOWN
-
-# ---- 扫描中观察到的其它仓库（非 D360 主链路，供参考）----
-observed_repositories:
-  - id: measuring-robot
-    name: Mearsuring_robot（STM32 测量机器人）
-    remote_url: https://github.com/kunkunwei/Mearsuring_robot.git
-    local_path: "E:\\Mearsuring_robot"
-    current_branch: ly_branch
-    tech_stack: [embedded, stm32]
-    status: CONFIRMED
-    note: 与 D360 无关的另一产品线
-
-  - id: pipe-measurement-nav
-    name: pipe-measurement-nav（测量机器人导航）
-    remote_url: https://github.com/Mar-Ding/pipe-measurement-nav
-    local_path: "E:\\Mearsuring_robot\\PC\\pipe-measurement-nav"
-    current_branch: main
-    tech_stack: [ros2, nav2, sllidar]
-    status: CONFIRMED
-    note: ROS2 (nav2) 项目，非 D360 主链路；可作为 ROS2 参考实现

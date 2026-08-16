@@ -7,7 +7,9 @@
 - name: slamibot_stm32
 - repo: https://github.com/electech6/slamibot_stm32.git
 - local_path: "F:\\slamibot_stm32"
-- current_branch: bootloader（扫描时）
+- branches:
+  - bootloader：IAP 在线升级
+  - d360：产品主要功能
 - lifecycle: CURRENT
 - tech_stack: [embedded, stm32, c]
 
