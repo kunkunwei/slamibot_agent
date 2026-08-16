@@ -1,34 +1,67 @@
-# 事实源：ROS2 导航（TARGET / 迁移目标）
+# 事实源：ROS2 导航 —— Go2 / Go2-W 机器狗 3D 导航（3d_nav）
 # 状态取值：CONFIRMED / NEEDS_CONFIRMATION / UNKNOWN / TODO
-# 本文件只记录 ROS2 事实；与 ROS1 物理隔离。
+# 本文件只记录 ROS2 事实；ROS1 事实见 navigation_ros1_profile.yaml，禁止混写。
+# 来源：2026-08-16 只读分析 3d_nav 仓库（README / src/service.md / web_api/）
 
 navigation_ros2:
-  ubuntu: 22.04
-  ros_distro: UNKNOWN            # NEEDS_CONFIRMATION：Humble（Ubuntu 22.04 对应 Humble）
-  build_tool: colcon
-  workspace: UNKNOWN             # colcon_ws 路径
+  project: KN 导航工作区（3d_nav）
+  ubuntu: "22.04"                          # CONFIRMED：README「基于 Ubuntu 22.04 / ROS 2 Humble」
+  ros_distro: humble                        # CONFIRMED
+  build_tool: "colcon build --symlink-install"
+  workspace: "~/xq/code/work_space/kn_nav_ws"   # README 示例路径
+  robot: [Unitree Go2, Go2-W]               # 机器狗（四足）
 
-  nodes: []                      # TODO
-  topics: []                     # TODO
-  services: []                   # TODO
-  actions: []                    # TODO
-  tf_tree: []                    # TODO
+  # 规划链路
+  global_planner: pct_planner               # PCT 三维全局规划（依赖 GTSAM）
+  local_planner: [scan_planner, pure_pursuit_planner]  # SCAN-Planner 局部避障 / Pure Pursuit 跟踪（测试链路）
 
-  parameters: {}                 # TODO：Nav2 参数
+  # 定位 / 里程计
+  localization: [fast_lio, open3d_loc]
+
+  # 关键 Topic（CONFIRMED，来自 service.md）
+  topics:
+    - { name: /pct_path,                   note: PCT 全局路径 }
+    - { name: /pct_scan_navigation/status, note: 导航链路状态 }
+    - { name: /navigation_status,          note: 导航状态（唯一可信源 scan_planner_node） }
+    - { name: /current_map,                note: 当前地图（transient local，state=LOADED 等） }
+    - { name: /localization_status,        note: 定位状态（TRACKING/TRACKING_LOST/INIT_SUCCESS） }
+  nodes: []                                # TODO：从 launch 文件回填
+  services:                                # CONFIRMED，来自 src/service.md 总览表
+    - { name: /switch_map,                    type: pct_scan_navigation/srv/SwitchMap,          node: nav_manager_node }
+    - { name: /restart_navigation,            type: pct_scan_navigation/srv/RestartNavigation,  node: nav_manager_node }
+    - { name: /open3d_loc/relocalize,         type: open3d_loc/srv/Relocalize,                  node: localization_service_node }
+    - { name: /open3d_loc/get_pose,           type: open3d_loc/srv/GetPose,                     node: localization_service_node }
+    - { name: /open3d_loc/publish_goal,       type: open3d_loc/srv/PublishGoal,                 node: localization_service_node }
+    - { name: /open3d_loc/pose_deviation,     type: open3d_loc/srv/PoseDeviation,               node: localization_service_node }
+    - { name: /global_localization_node/load_map, type: pct_scan_navigation/srv/LoadLocalizationMap }
+    - { name: /pct_global_planner/load_tomogram, type: pct_scan_navigation/srv/LoadTomogram }
+    - { name: /scan_planner_node/reset_navigation, type: std_srvs/srv/Trigger }
+    - { name: /map_save,                      type: std_srvs/srv/Trigger,                      node: fastlio_mapping }
+    - { name: /go2_cmd_vel_bridge/enable,     type: std_srvs/srv/SetBool,                      node: go2_cmd_vel_bridge }
+  tf_frame: map                            # 位姿接口均使用 map 坐标系，四元数 qx/qy/qz/qw
+  nav_states: [WAITING_GOAL, IDLE, NAVIGATING, AVOIDING, GOAL_REACHED, BLOCKED, FAILED, MAP_SWITCHING]
 
   launch:
-    bringup: UNKNOWN             # *.launch.py
-    navigation: UNKNOWN
+    local: ros2 launch pct_scan_navigation local_pct_scan_navigation.launch.py
+    go2: ros2 launch pct_scan_navigation unitree_go2_pct_scan_navigation.launch.py
+    go2w: ros2 launch pct_scan_navigation unitree_go2w_pct_scan_navigation.launch.py
+    test: ros2 launch pct_scan_navigation global_path_follow_test.launch.py
 
-  dds_rmw: UNKNOWN               # FastDDS / CycloneDDS
+  dds_rmw: UNKNOWN                         # TODO
+  web_api: src/web_api/ros2_service_api.py # HTTP/RPC 层；接口文档 web_api/API.md + STARTUP.md
+  interface_docs: [src/service.md, src/web_api/API.md]   # 仓库自带接口文档（权威来源）
 
   docker:
+    dir: docker/amd/                       # Dockerfile + run_container.sh + README
     image: UNKNOWN
-    compose_file: UNKNOWN
-    notes: UNKNOWN
 
-  dependencies: []               # TODO
-  status: UNKNOWN
+  dependencies:
+    - livox_ros_driver2
+    - unitree_sdk2（/opt/unitree_robotics）
+    - open3d（C++ SDK）
+    - pcl / eigen / boost
+    - gtsam（PCT 内嵌 3rdparty）
+  status: CONFIRMED
   note: |
-    未来目标架构。仅允许在明确 migration 设计/开发任务中修改。
-    不得因普通 ROS1 开发任务触碰本文件或 ROS2 环境。
+    独立 ROS2 产品线（Go2 机器狗 3D 导航），非 Scout mini 的迁移结果。
+    与 ROS1（Scout mini 2D）严格隔离。完整接口以仓库 service.md / web_api/API.md 为准。

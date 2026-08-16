@@ -43,3 +43,16 @@ robot_profile:
     note: |
       D360 为当前导航项目（CURRENT）。本 profile 大部分字段待从
       d360_nav2D 仓库（launch/参数/urdf）与 Jetson 实机回填。
+
+  go2:
+    name: Go2 / Go2-W（宇树 Unitree 机器狗）
+    vendor: 宇树（Unitree）
+    type: 四足机器狗
+    navigation: 3D 导航（3d_nav，ROS2 Humble + Ubuntu 22.04）
+    status: CONFIRMED
+    note: 3D 导航主平台；驱动经 unitree_sdk2，速度桥 /go2_cmd_vel_bridge（见 navigation_ros2_profile.yaml）
+    sensors:
+      lidar: Livox（livox_ros_driver2）
+      imu: UNKNOWN
+    frames:
+      map_frame: map      # 位姿接口统一使用 map 坐标系

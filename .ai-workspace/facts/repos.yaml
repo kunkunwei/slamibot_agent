@@ -19,14 +19,18 @@ repositories:
     status: CONFIRMED
     clone_cmd: "git clone https://gitee.com/electech6/d360_nav2D.git"
 
-  - id: navigation-ros2
-    name: 导航（ROS2，未来目标）
-    role: 未来目标架构（TARGET）
-    remote_url: UNKNOWN
-    local_path: UNKNOWN
-    default_branch: UNKNOWN
-    tech_stack: [ros2, ubuntu-22.04]
-    status: UNKNOWN
+  - id: navigation-ros2-go2-3d
+    name: KN 导航工作区（3d_nav）
+    role: Go2 / Go2-W 机器狗 3D 导航（ROS2，独立产品线，非 Scout mini 迁移）
+    remote_url: https://gitee.com/lion-king2025/3d_nav.git
+    remote_host: gitee
+    local_path: "F:\\3d_nav"
+    default_branch: master               # 已通过 git 确认
+    branches:
+      - name: master
+    tech_stack: [ros2, humble, ubuntu-22.04]
+    status: CONFIRMED
+    clone_cmd: "git clone https://gitee.com/lion-king2025/3d_nav.git"
 
   - id: frontend-app
     name: SLAMIBotApp（前端 APP）
