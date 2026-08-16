@@ -12,8 +12,9 @@ rosbridge:
   port_note: |
     端口现状（用户 2026-08-17 确认）：当前 rosbridge 临时跑在 19090，
     因为 D360 后端端口相关代码尚未改完；目标端口是 9090。
-    SLAMIBotApp web 端连 ws://<ip>:9090 与目标一致，属正常。
     待后端端口代码改完后应切回 9090，届时同步更新本文件与 App 配置。
+    App 分支差异：main 分支连 9090；codex/native-compose-filament 分支已改为 19090
+    （提交「将默认 rosbridge 端口从 9090 改为 19090」），与当前临时端口一致。
 
   # 前端订阅/发布的 Topic（来自 SLAMIBotApp msg.md 与 web/src，逐条回填）
   topics:

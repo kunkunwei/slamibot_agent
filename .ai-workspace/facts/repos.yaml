@@ -41,7 +41,7 @@ repositories:
     default_branch: main               # 已通过 git 确认
     branches:
       - name: main
-      - name: codex/native-compose-filament   # 功能分支：推测为 native Compose + Filament 重写（WebView→原生渲染），尚未分析（网络受限）
+      - name: codex/native-compose-filament   # 原生重写分支：删除 web/，改为 Kotlin+Compose+Filament 原生 App（D360 专属），G20 手柄、CBOR 点云、rosbridge 19090
     tech_stack: [android, kotlin, jetpack-compose, react, typescript, roslib, three.js]
     status: CONFIRMED
     clone_cmd: "git clone https://github.com/electech6/SLAMIBotApp.git"

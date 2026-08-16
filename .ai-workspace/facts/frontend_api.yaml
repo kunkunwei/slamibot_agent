@@ -1,31 +1,51 @@
 # 事实源：前端接口（SLAMIBotApp）
 # 状态取值：CONFIRMED / NEEDS_CONFIRMATION / UNKNOWN / TODO
-# 来源：2026-08-17 分析 SLAMIBotApp 仓库（README / package.json / web/src / msg.md）
+# 来源：2026-08-17 分析 SLAMIBotApp 仓库（main + codex/native-compose-filament 两分支）
 
 frontend:
   repo: https://github.com/electech6/SLAMIBotApp.git
   local_path: "F:\\SLAMIBotApp"
-  version: "web/package.json 1.6.3；version.properties VERSION_NAME=1.5.0"
 
+  # 两个分支是两套 App 实现
+  branches:
+    - name: main                            # 旧实现：Android WebView 壳 + React Web（web/）
+      stack: [android-webview, react, typescript, roslib, three.js]
+      rosbridge_port: 9090
+      status: CONFIRMED
+    - name: codex/native-compose-filament   # 新实现：原生 Kotlin+Compose+Filament（删除 web/）
+      stack: [android, kotlin, jetpack-compose, filament]
+      rosbridge_port: 19090                 # 提交「将默认 rosbridge 端口从 9090 改为 19090」
+      status: CONFIRMED
+      note: D360 专属（D360ApiClient / D360Topics）；G20 手柄+外接手柄；点云 CBOR 直传（C++ 解码）；Filament 渲染；MJPEG 相机流；蓝牙耳机双向喊话；RTK/固件/项目管理原生页面
+
+  # main 分支 Web 前端
   web:
     framework: React 19 + TypeScript + Vite
-    rosbridge_client: roslib 2.1          # 连接 ws://<ip>:9090
+    rosbridge_client: roslib 2.1
     render: Three.js（@react-three/fiber + drei）+ react-konva + antd + zustand
     nav_ui: 私有包 @npu-chenlin/slamibot-navigation-ui（GitHub Packages，构建需 PACKAGES_TOKEN）
     build: npm ci && npm run build:release
-    serve: 由 Android WebView 加载；或 nginx 托管
+    topics:
+      - /rtk/gga（std_msgs/String，NMEA GPGGA）
+      - /rtcm/data（std_msgs/UInt8MultiArray，RTCM 差分）
+      - 点云（CBOR）、里程计、电池/存储/驱动状态、关键帧图像
 
+  # codex 分支原生 App（D360 专属）
   app:
     platform: Android
-    framework: Kotlin + Jetpack Compose + WebView（壳 + 原生能力）
-    build: ./build.sh debug|release（Gradle；JDK17 + Android SDK 项目级，见 scripts/setup-android-env.sh）
+    package: com.example.metacam
+    framework: Kotlin + Jetpack Compose + Filament
+    renderer: Filament（唯一生产渲染器，ENABLE_FILAMENT_POINT_CLOUD=true）
+    point_cloud: CBOR 直传 + C++ 解码（app/src/main/cpp/point_cloud_decoder.cpp）
+    inputs: G20 手柄 + 外接手柄（G20InputController / AndroidGamepadController）
+    camera: MJPEG 流（MjpegStreamClient）
+    sdk: rcsdk-v1.9.2.aar
 
   ros_server: 192.168.117.6（.env.production）；127.0.0.1（.env.development）
-  rosbridge_port: 9090                   # App 端默认；注意与 D360 容器内 19090 不一致（见 rosbridge_profile.yaml）
 
-  # 前端经 rosbridge 通信的 topic（来自 msg.md 与 web/src 组件）
-  topics:
-    - /rtk/gga       # std_msgs/String（NMEA GPGGA）
-    - /rtcm/data     # std_msgs/UInt8MultiArray（RTCM 差分数据）
-    - 点云（CBOR 压缩）、里程计、电池/存储/驱动状态、关键帧图像等 —— topic 名待从 web/src 组件回填
+  rosbridge_port:
+    current: 19090        # 临时（D360 容器实际端口）
+    target: 9090          # 目标（后端端口代码改完后）
+    main_branch: 9090
+    codex_branch: 19090
   status: CONFIRMED
