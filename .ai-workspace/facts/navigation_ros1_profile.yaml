@@ -1,36 +1,60 @@
-# 事实源：ROS1 导航（CURRENT）
+# 事实源：ROS1 导航（CURRENT）—— Scout mini 2D 导航
 # 状态取值：CONFIRMED / NEEDS_CONFIRMATION / UNKNOWN / TODO
 # 本文件只记录 ROS1 事实；ROS2 事实见 navigation_ros2_profile.yaml，禁止混写。
+# 来源：2026-08-16 只读分析 d360_nav2D 仓库（README/Dockerfile/docker-entrypoint.sh/快速操作手册.md）
 
 navigation_ros1:
-  ubuntu: 20.04
-  ros_distro: UNKNOWN            # NEEDS_CONFIRMATION：Noetic（Ubuntu 20.04 对应 Noetic）
-  build_tool: catkin_make        # 或 catkin build，clone 后确认
-  workspace: UNKNOWN             # catkin_ws 路径（本机或 Jetson）
+  project: Scout_mini_navigation
+  ubuntu: "20.04"                         # CONFIRMED：Dockerfile 注释「Ubuntu 20.04 + ROS Noetic」
+  ros_distro: noetic                      # CONFIRMED：Dockerfile FROM ros:noetic-ros-base
+  build_tool: "catkin_make install"       # CONFIRMED：快速操作手册「catkin_make install -j6」
+  workspace: /Scout_mini_navigation       # 容器内路径；宿主机 /home/jetson/Scout_mini_navigation
 
-  nodes: []                      # TODO：从 launch 文件回填
-  topics: []                     # TODO：关键 Topic 及其消息类型
-  services: []                   # TODO
-  actions: []                    # TODO
-  tf_tree: []                    # TODO：关键 TF 父子关系
+  # 定位 / 规划 / 建图
+  localization: [amcl, fastlio_gravity_align]  # FAST_LIO/FAST_LIO_SAM/FAST_LIO_LOCALIZATION 被 CATKIN_IGNORE
+  planner: teb_local_planner              # Dockerfile 安装 ros-noetic-teb-local-planner
+  mapping: [cartographer, gmapping, fastlio]  # 见 src/my_nav/mapping_launch/
 
-  parameters: {}                 # TODO：关键参数（move_base/代价地图/规划器/速度等）
+  # 关键 Topic（CONFIRMED）
+  topics:
+    - { name: /clock,           source: firmware-sensors 容器, msg_type: rosgraph_msgs/Clock }
+    - { name: /livox/lidar,     source: firmware-sensors 容器（Livox）, msg_type: NEEDS_CONFIRMATION }
+    - { name: /livox/imu,       source: firmware-sensors 容器（Livox）, msg_type: NEEDS_CONFIRMATION }
+    - { name: /cmd_vel,         sink: Scout mini 底盘（经 CAN can0）, msg_type: geometry_msgs/Twist }
+  nodes: []                               # TODO：从 launch 文件完整回填
+  services:
+    - { name: NEEDS_CONFIRMATION, type: nav_api/NavCommand }  # 定义见 src/nav_api/srv/NavCommand.srv
+  tf_tree: []                             # TODO
+
+  parameters: {}                          # TODO：move_base/代价地图/TEB 参数（src/my_nav/config、config/tuned2）
 
   launch:
-    bringup: UNKNOWN             # 总启动 launch 文件
-    navigation: UNKNOWN          # 导航 launch（move_base 等）
-    mapping: UNKNOWN             # 建图 launch
+    bringup: src/my_nav/launch/my_nav_launch.launch          # 待确认主入口
+    navigation: src/my_nav/launch/move_base_tuned2.launch
+    lidar_to_scan: src/my_nav/launch/lidar_to_scan.launch
+    fastlio_loc_2d: src/my_nav/launch/fastlio_localization_with_2d_nav.launch
+    mapping: src/my_nav/mapping_launch/（cartographer/gmapping/fastlio）
 
-  rosbridge:                     # 前端经 rosbridge 接入
-    websocket_url: UNKNOWN
-    topics: UNKNOWN
-    see_also: "../rosbridge_profile.yaml"
+  rosbridge:
+    package: rosbridge_server
+    websocket_port: 19090                 # CONFIRMED：docker-entrypoint.sh 用 _port:=19090
+    host: 127.0.0.1                       # 容器内
 
   docker:
-    image: UNKNOWN
-    compose_file: UNKNOWN
-    notes: UNKNOWN
+    image: scout-nav:latest
+    containers: [core, firmware-sensors, scout-nav, ota_web]
+    network: host
+    can: "can0 500000 bit/s"
+    entrypoint: /usr/local/bin/nav-api-entrypoint
 
-  dependencies: []               # TODO：关键依赖包
-  status: NEEDS_CONFIRMATION
-  note: "生产基线（CURRENT），默认保护对象。所有字段待 clone d360_nav2D 后回填。"
+  dependencies:                           # 来自 Dockerfile apt 安装
+    - ros-noetic-rosbridge-server
+    - ros-noetic-amcl
+    - ros-noetic-move-base
+    - ros-noetic-teb-local-planner
+    - ros-noetic-pcl-ros / pcl-conversions
+    - ros-noetic-tf / tf2-sensor-msgs
+    - livox_ros_driver2
+    - scout_ros / ugv_sdk
+  status: CONFIRMED
+  note: "CURRENT 稳定基线。完整 Node/Topic/TF/参数清单待后续 Explorer 深读 launch 与 config 回填。"

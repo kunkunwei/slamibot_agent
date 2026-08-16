@@ -1,31 +1,30 @@
-# 事实源：rosbridge 接口（前端 APP ↔ ROS 的边界）
+# 事实源：rosbridge 接口（前端 ↔ ROS 的边界，protected）
 # 状态取值：CONFIRMED / NEEDS_CONFIRMATION / UNKNOWN / TODO
-# 这是前端与 ROS 系统之间的稳定边界，属于 protected interface。
+# 这是前后端与 ROS 系统之间的稳定边界，属于 protected interface。
+# 来源：2026-08-16 只读分析 d360_nav2D 仓库（docker-entrypoint.sh）
 
 rosbridge:
-  # 连接
-  websocket_url: UNKNOWN           # 如 ws://<jetson-ip>:9090
-  transport: websocket             # rosbridge_suite 默认
-
-  # ROS1 rosbridge 相关包（待确认）
-  packages: UNKNOWN                # 如 rosbridge_server / rosbridge_suite
+  package: rosbridge_server             # ros-noetic-rosbridge-server
+  transport: websocket                  # rosbridge_websocket
+  websocket_port: 19090                 # CONFIRMED：rosrun rosbridge_server rosbridge_websocket _port:=19090
+  websocket_host: 127.0.0.1             # 容器内；对外经 --network host 暴露
+  # 注意：默认 rosbridge 端口是 9090，本项目改为 19090（与语音/FastAPI 端口调整同批提交）
 
   # 前端订阅/发布的 Topic（逐条回填）
-  topics: []                       # TODO：名称 + 消息类型 + 方向(pub/sub)
-  services: []                     # TODO
-  params: []                       # TODO
+  topics: []                            # TODO：名称 + 消息类型 + 方向(pub/sub)
+  services: []                          # TODO
+  params: []                            # TODO
 
   # 导航状态 / 任务状态 / 错误码约定
   nav_status:
-    encoding: UNKNOWN              # 如何表示导航状态（topic 名/枚举）
-    values: []                     # TODO
+    encoding: UNKNOWN
+    values: []                          # TODO
   task_status:
     encoding: UNKNOWN
-    values: []                     # TODO
-  error_codes: []                  # TODO
+    values: []                          # TODO
+  error_codes: []                       # TODO
 
-  # 消息格式
-  message_format: UNKNOWN          # JSON 结构约定
+  message_format: UNKNOWN               # TODO：JSON 结构；点云走 CBOR（见 commits）
 
   # 迁移说明
   migration_note: |

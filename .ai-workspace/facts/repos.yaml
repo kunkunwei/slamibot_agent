@@ -5,14 +5,18 @@
 
 repositories:
   - id: navigation-ros1-d360
-    name: D360 导航（当前生产，ROS1）
-    role: 当前导航系统（CURRENT）
+    name: Scout_mini_navigation（d360_nav2D）
+    role: 当前导航系统（CURRENT）—— 松灵 Scout mini 2D 导航
     remote_url: https://gitee.com/electech6/d360_nav2D.git
     remote_host: gitee
-    local_path: UNKNOWN                # 本机尚未 clone（或位于 Jetson）
-    default_branch: UNKNOWN
-    tech_stack: [ros1, ubuntu-20.04]    # 用户已声明生产为 ROS1；仓库名含 "nav2D"，clone 后需复核
-    status: NEEDS_CONFIRMATION
+    local_path: "F:\\d360_nav2D"
+    default_branch: master             # 已通过 git 确认
+    branches:                          # 已通过 git 确认
+      - name: master                   # 默认分支（HEAD）
+      - name: feat/point-arrival-capture   # 到达点采集（功能分支）
+      - name: voice                    # 语音（功能分支）
+    tech_stack: [ros1, noetic, ubuntu-20.04]
+    status: CONFIRMED
     clone_cmd: "git clone https://gitee.com/electech6/d360_nav2D.git"
 
   - id: navigation-ros2

@@ -1,19 +1,49 @@
-# 事实源：后端接口
+# 事实源：后端接口（FastAPI，位于 d360_nav2D 的 nav_api 包内）
 # 状态取值：CONFIRMED / NEEDS_CONFIRMATION / UNKNOWN / TODO
+# 来源：2026-08-16 只读分析 d360_nav2D 仓库（docker-entrypoint.sh / nav_api 目录）
 
 backend:
-  repo: UNKNOWN
-  framework: UNKNOWN
-  language: UNKNOWN
-  local_path: UNKNOWN
+  repo: 内嵌于 d360_nav2D（src/nav_api）
+  framework: FastAPI
+  language: python
+  python: "3.11"                        # 独立于 ROS 的系统 Python 3.8，装于 /opt/python-api
+  server: uvicorn（fastapi_service.app:app）
+  local_path: "F:\\d360_nav2D\\src\\nav_api"
 
-  base_url: UNKNOWN
-  endpoints: []                   # TODO：方法 + 路径 + 请求/响应
+  base_url: http://<jetson-ip>:5000
+  endpoints:                            # 已确认入口
+    - { method: GET, path: /health,     note: 健康检查 }
+    - { method: GET, path: /docs,       note: FastAPI 文档 }
+    - { method: GET, path: /mcp,        note: MCP 兼容端点 }
   auth: UNKNOWN
 
-  # 与 rosbridge / 导航的对接
-  rosbridge_url: UNKNOWN
-  nav_integration: UNKNOWN
+  # 服务模块（fastapi_service/）
+  modules:
+    - app.py           # 主入口
+    - navigation.py    # 导航
+    - task.py          # 任务
+    - point.py         # 点位 / 降采样
+    - map_api.py       # 地图
+    - localization.py  # 定位
+    - control.py       # 控制
+    - launch_api.py    # launch 管理
+    - process_manager.py
+    - ros_client.py    # 与 ROS 对接
+    - status.py
+    - voice.py / audio.py  # 语音（opus/alsa，麦克风 plughw:3,0）
+    - database.py      # SQLite
 
-  status: UNKNOWN
-  note: "若当前架构前端直连 rosbridge（无独立后端），请在此标注为 N/A 并说明。"
+  database:
+    type: sqlite
+    path: src/nav_api/db/nav_api.db      # schema 见 db/schema.sql
+
+  # 与 rosbridge / ROS 的对接
+  rosbridge_host: 127.0.0.1
+  rosbridge_port: 19090
+  ros_master_uri: http://127.0.0.1:11311
+
+  # CORS（Android WebView 通过 appassets 加载前端后跨域访问）
+  cors_origins: [ "https://appassets.androidplatform.net" ]
+
+  status: CONFIRMED
+  note: "端口 5000 = FastAPI；19090 = rosbridge；80 = nginx Web；11311 = ROS Master。"

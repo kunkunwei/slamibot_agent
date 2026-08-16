@@ -1,22 +1,32 @@
-# 事实源：前端接口（SLAMIBotApp）
+# 事实源：前端接口
 # 状态取值：CONFIRMED / NEEDS_CONFIRMATION / UNKNOWN / TODO
-# 前端应依赖本接口定义与 rosbridge 契约，而非直接依赖 ROS1/ROS2 内部实现。
+# 来源：2026-08-16 分析 d360_nav2D/frontend + docker-entrypoint.sh
 
 frontend:
-  repo: https://github.com/electech6/SLAMIBotApp.git
-  framework: UNKNOWN              # 如 Flutter / React Native / Android Native
-  build: UNKNOWN
-  local_path: UNKNOWN
+  # 说明：存在两层前端，关系待进一步确认
+  #   1) Web 前端（React + Vite + TS）：位于 d360_nav2D/frontend/，构建产物由 nginx 提供（端口 80，/app/）
+  #   2) SLAMIBotApp（Android App）：独立仓库，推测为 WebView 加载上述 Web 前端
 
-  # 与后端/rosbridge 的接口
-  backend_base_url: UNKNOWN
-  rosbridge_url: UNKNOWN          # 见 rosbridge_profile.yaml
+  web_frontend:
+    repo: d360_nav2D（frontend/ 目录）
+    framework: React + Vite + TypeScript     # 依据 package.json / vite.config.ts / tsconfig
+    build: npm run build                      # 产物 dist/，拷贝至容器 nginx /usr/share/nginx/html/app
+    serve: nginx（端口 80，路径 /app/）
+    local_path: "F:\\d360_nav2D\\frontend"
 
-  # 页面/功能（待确认）
+  app:
+    repo: https://github.com/electech6/SLAMIBotApp.git
+    platform: Android（推测 WebView）        # 依据 CORS 注释「Android WebView 通过 appassets 安全域加载本地前端」
+    local_path: UNKNOWN                      # 待 clone
+    assets_origin: https://appassets.androidplatform.net
+
+  backend_base_url: http://<jetson-ip>:5000
+  rosbridge_url: ws://<jetson-ip>:19090       # 见 rosbridge_profile.yaml
+
+  # 页面/功能（待确认，从 frontend/src 回填）
   features:
-    - 2D 导航控制面板           # TODO：确认实际功能清单
-    - 导航状态监控
-    - 任务下发
-
-  endpoints: []                   # TODO：后端 API 端点
+    - 2D 导航控制面板
+    - 点云订阅（CBOR 编码，见 commits）
+    - 语音（opus）
+  endpoints: []                               # TODO
   status: NEEDS_CONFIRMATION
