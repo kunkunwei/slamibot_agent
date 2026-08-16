@@ -5,12 +5,14 @@
 robot_profile:
   d360:
     name: D360
-    vendor: UNKNOWN            # NEEDS_CONFIRMATION：机器狗 / 小车？厂商？
-    type: UNKNOWN              # NEEDS_CONFIRMATION：四足(机器狗) or 轮式(小车)
-    locomotion: UNKNOWN
+    chassis_vendor: 松灵（AgileX）         # 用户确认
+    chassis_model: Scout mini             # 用户确认：小车使用松灵 Scout mini
+    type: 轮式小车（四轮，差速/滑移转向）   # 具体驱动方式待从仓库核实
+    locomotion: 轮式（Scout mini 底盘）
     primary_use: [高校二次开发, 工业巡检]
     environment: 室内为主
     autonomy_level: 非自动驾驶类型导航
+    source: "底盘信息为用户 2026-08-16 确认；驱动接口/尺寸/参数待从 d360_nav2D 仓库核实"
 
     # 计算平台（下位机目标）
     compute_board: Jetson Orin NX

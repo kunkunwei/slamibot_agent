@@ -30,8 +30,11 @@ repositories:
     remote_url: https://github.com/electech6/SLAMIBotApp.git
     remote_host: github
     local_path: UNKNOWN                # 本机尚未 clone
-    default_branch: UNKNOWN
-    tech_stack: [app, rosbridge-client]
+    default_branch: main               # 已通过 git ls-remote 确认
+    branches:                          # 已通过 git ls-remote 确认
+      - name: main
+      - name: codex/native-compose-filament   # 提示：可能为 Android Jetpack Compose + Filament 渲染，待 clone 确认
+    tech_stack: [app, rosbridge-client]  # 框架待 clone 后确认
     status: NEEDS_CONFIRMATION
     clone_cmd: "git clone https://github.com/electech6/SLAMIBotApp.git"
 
