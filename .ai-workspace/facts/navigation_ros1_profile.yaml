@@ -1,0 +1,36 @@
+# 事实源：ROS1 导航（CURRENT）
+# 状态取值：CONFIRMED / NEEDS_CONFIRMATION / UNKNOWN / TODO
+# 本文件只记录 ROS1 事实；ROS2 事实见 navigation_ros2_profile.yaml，禁止混写。
+
+navigation_ros1:
+  ubuntu: 20.04
+  ros_distro: UNKNOWN            # NEEDS_CONFIRMATION：Noetic（Ubuntu 20.04 对应 Noetic）
+  build_tool: catkin_make        # 或 catkin build，clone 后确认
+  workspace: UNKNOWN             # catkin_ws 路径（本机或 Jetson）
+
+  nodes: []                      # TODO：从 launch 文件回填
+  topics: []                     # TODO：关键 Topic 及其消息类型
+  services: []                   # TODO
+  actions: []                    # TODO
+  tf_tree: []                    # TODO：关键 TF 父子关系
+
+  parameters: {}                 # TODO：关键参数（move_base/代价地图/规划器/速度等）
+
+  launch:
+    bringup: UNKNOWN             # 总启动 launch 文件
+    navigation: UNKNOWN          # 导航 launch（move_base 等）
+    mapping: UNKNOWN             # 建图 launch
+
+  rosbridge:                     # 前端经 rosbridge 接入
+    websocket_url: UNKNOWN
+    topics: UNKNOWN
+    see_also: "../rosbridge_profile.yaml"
+
+  docker:
+    image: UNKNOWN
+    compose_file: UNKNOWN
+    notes: UNKNOWN
+
+  dependencies: []               # TODO：关键依赖包
+  status: NEEDS_CONFIRMATION
+  note: "生产基线（CURRENT），默认保护对象。所有字段待 clone d360_nav2D 后回填。"

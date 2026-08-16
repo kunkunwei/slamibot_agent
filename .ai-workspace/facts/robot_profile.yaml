@@ -1,0 +1,43 @@
+# 事实源：机器人平台
+# 状态取值：CONFIRMED / NEEDS_CONFIRMATION / UNKNOWN / TODO
+# 禁止猜测事实值；缺失一律标 UNKNOWN / NEEDS_CONFIRMATION。
+
+robot_profile:
+  d360:
+    name: D360
+    vendor: UNKNOWN            # NEEDS_CONFIRMATION：机器狗 / 小车？厂商？
+    type: UNKNOWN              # NEEDS_CONFIRMATION：四足(机器狗) or 轮式(小车)
+    locomotion: UNKNOWN
+    primary_use: [高校二次开发, 工业巡检]
+    environment: 室内为主
+    autonomy_level: 非自动驾驶类型导航
+
+    # 计算平台（下位机目标）
+    compute_board: Jetson Orin NX
+    compute_os: UNKNOWN          # NEEDS_CONFIRMATION：Ubuntu 20.04（与 ROS1 对应）
+    ssh_host: 116.148.216.66     # 来源 ~/.ssh/config
+    ssh_port: 30046
+    ssh_user: root
+
+    # 传感器（全部待确认，clone 导航仓库后从 launch/配置回填）
+    sensors:
+      lidar: UNKNOWN
+      camera: UNKNOWN
+      imu: UNKNOWN
+      odometry: UNKNOWN
+
+    # Frame / TF（全部待确认）
+    frames:
+      base_frame: UNKNOWN
+      odom_frame: UNKNOWN
+      map_frame: UNKNOWN
+      lidar_frame: UNKNOWN
+
+    # 运动能力
+    max_speed: UNKNOWN
+    dof: UNKNOWN
+
+    # 备注
+    note: |
+      D360 为当前导航项目（CURRENT）。本 profile 大部分字段待从
+      d360_nav2D 仓库（launch/参数/urdf）与 Jetson 实机回填。

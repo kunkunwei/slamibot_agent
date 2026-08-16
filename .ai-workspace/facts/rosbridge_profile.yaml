@@ -1,0 +1,35 @@
+# 事实源：rosbridge 接口（前端 APP ↔ ROS 的边界）
+# 状态取值：CONFIRMED / NEEDS_CONFIRMATION / UNKNOWN / TODO
+# 这是前端与 ROS 系统之间的稳定边界，属于 protected interface。
+
+rosbridge:
+  # 连接
+  websocket_url: UNKNOWN           # 如 ws://<jetson-ip>:9090
+  transport: websocket             # rosbridge_suite 默认
+
+  # ROS1 rosbridge 相关包（待确认）
+  packages: UNKNOWN                # 如 rosbridge_server / rosbridge_suite
+
+  # 前端订阅/发布的 Topic（逐条回填）
+  topics: []                       # TODO：名称 + 消息类型 + 方向(pub/sub)
+  services: []                     # TODO
+  params: []                       # TODO
+
+  # 导航状态 / 任务状态 / 错误码约定
+  nav_status:
+    encoding: UNKNOWN              # 如何表示导航状态（topic 名/枚举）
+    values: []                     # TODO
+  task_status:
+    encoding: UNKNOWN
+    values: []                     # TODO
+  error_codes: []                  # TODO
+
+  # 消息格式
+  message_format: UNKNOWN          # JSON 结构约定
+
+  # 迁移说明
+  migration_note: |
+    未来 ROS1→ROS2 迁移时，若 rosbridge 或消息类型变化，必须在本目录
+    新建「接口迁移说明」文档，不得直接覆盖本旧协议。
+  status: NEEDS_CONFIRMATION
+  see_also: "../../interfaces/rosbridge/"

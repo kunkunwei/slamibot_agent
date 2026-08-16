@@ -1,0 +1,22 @@
+# 事实源：前端接口（SLAMIBotApp）
+# 状态取值：CONFIRMED / NEEDS_CONFIRMATION / UNKNOWN / TODO
+# 前端应依赖本接口定义与 rosbridge 契约，而非直接依赖 ROS1/ROS2 内部实现。
+
+frontend:
+  repo: https://github.com/electech6/SLAMIBotApp.git
+  framework: UNKNOWN              # 如 Flutter / React Native / Android Native
+  build: UNKNOWN
+  local_path: UNKNOWN
+
+  # 与后端/rosbridge 的接口
+  backend_base_url: UNKNOWN
+  rosbridge_url: UNKNOWN          # 见 rosbridge_profile.yaml
+
+  # 页面/功能（待确认）
+  features:
+    - 2D 导航控制面板           # TODO：确认实际功能清单
+    - 导航状态监控
+    - 任务下发
+
+  endpoints: []                   # TODO：后端 API 端点
+  status: NEEDS_CONFIRMATION

@@ -1,0 +1,82 @@
+# 事实源：Git 仓库清单
+# 状态取值：CONFIRMED（已确认）/ NEEDS_CONFIRMATION（待确认）/ UNKNOWN（未知）/ TODO（待办）
+# 说明：本机尚未 clone 的仓库，local_path 标 UNKNOWN，clone 命令见 clone_cmd。
+# 扫描日期：2026-08-16
+
+repositories:
+  - id: navigation-ros1-d360
+    name: D360 导航（当前生产，ROS1）
+    role: 当前导航系统（CURRENT）
+    remote_url: https://gitee.com/electech6/d360_nav2D.git
+    remote_host: gitee
+    local_path: UNKNOWN                # 本机尚未 clone（或位于 Jetson）
+    default_branch: UNKNOWN
+    tech_stack: [ros1, ubuntu-20.04]    # 用户已声明生产为 ROS1；仓库名含 "nav2D"，clone 后需复核
+    status: NEEDS_CONFIRMATION
+    clone_cmd: "git clone https://gitee.com/electech6/d360_nav2D.git"
+
+  - id: navigation-ros2
+    name: 导航（ROS2，未来目标）
+    role: 未来目标架构（TARGET）
+    remote_url: UNKNOWN
+    local_path: UNKNOWN
+    default_branch: UNKNOWN
+    tech_stack: [ros2, ubuntu-22.04]
+    status: UNKNOWN
+
+  - id: frontend-app
+    name: SLAMIBotApp（前端 APP）
+    role: 前端控制/监控 APP，通过 rosbridge 与导航通信
+    remote_url: https://github.com/electech6/SLAMIBotApp.git
+    remote_host: github
+    local_path: UNKNOWN                # 本机尚未 clone
+    default_branch: UNKNOWN
+    tech_stack: [app, rosbridge-client]
+    status: NEEDS_CONFIRMATION
+    clone_cmd: "git clone https://github.com/electech6/SLAMIBotApp.git"
+
+  - id: stm32
+    name: slamibot_stm32（STM32 固件 / IAP）
+    role: 底层固件 / 下位机
+    remote_url: https://github.com/electech6/slamibot_stm32.git
+    remote_host: github
+    local_path: "F:\\slamibot_stm32"
+    current_branch: bootloader
+    tech_stack: [embedded, stm32, c]
+    status: CONFIRMED
+
+  - id: backend
+    name: 后端服务
+    role: 前端与机器人/导航之间的后端接口（若存在独立后端）
+    remote_url: UNKNOWN
+    local_path: UNKNOWN
+    tech_stack: UNKNOWN
+    status: UNKNOWN
+
+  - id: deployment
+    name: 部署 / Docker
+    role: Docker 镜像、compose、部署脚本
+    remote_url: UNKNOWN
+    local_path: UNKNOWN
+    tech_stack: [docker]
+    status: UNKNOWN
+
+# ---- 扫描中观察到的其它仓库（非 D360 主链路，供参考）----
+observed_repositories:
+  - id: measuring-robot
+    name: Mearsuring_robot（STM32 测量机器人）
+    remote_url: https://github.com/kunkunwei/Mearsuring_robot.git
+    local_path: "E:\\Mearsuring_robot"
+    current_branch: ly_branch
+    tech_stack: [embedded, stm32]
+    status: CONFIRMED
+    note: 与 D360 无关的另一产品线
+
+  - id: pipe-measurement-nav
+    name: pipe-measurement-nav（测量机器人导航）
+    remote_url: https://github.com/Mar-Ding/pipe-measurement-nav
+    local_path: "E:\\Mearsuring_robot\\PC\\pipe-measurement-nav"
+    current_branch: main
+    tech_stack: [ros2, nav2, sllidar]
+    status: CONFIRMED
+    note: ROS2 (nav2) 项目，非 D360 主链路；可作为 ROS2 参考实现

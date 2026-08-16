@@ -1,0 +1,19 @@
+# 事实源：后端接口
+# 状态取值：CONFIRMED / NEEDS_CONFIRMATION / UNKNOWN / TODO
+
+backend:
+  repo: UNKNOWN
+  framework: UNKNOWN
+  language: UNKNOWN
+  local_path: UNKNOWN
+
+  base_url: UNKNOWN
+  endpoints: []                   # TODO：方法 + 路径 + 请求/响应
+  auth: UNKNOWN
+
+  # 与 rosbridge / 导航的对接
+  rosbridge_url: UNKNOWN
+  nav_integration: UNKNOWN
+
+  status: UNKNOWN
+  note: "若当前架构前端直连 rosbridge（无独立后端），请在此标注为 N/A 并说明。"

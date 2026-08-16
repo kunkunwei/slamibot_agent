@@ -1,0 +1,34 @@
+# 事实源：ROS2 导航（TARGET / 迁移目标）
+# 状态取值：CONFIRMED / NEEDS_CONFIRMATION / UNKNOWN / TODO
+# 本文件只记录 ROS2 事实；与 ROS1 物理隔离。
+
+navigation_ros2:
+  ubuntu: 22.04
+  ros_distro: UNKNOWN            # NEEDS_CONFIRMATION：Humble（Ubuntu 22.04 对应 Humble）
+  build_tool: colcon
+  workspace: UNKNOWN             # colcon_ws 路径
+
+  nodes: []                      # TODO
+  topics: []                     # TODO
+  services: []                   # TODO
+  actions: []                    # TODO
+  tf_tree: []                    # TODO
+
+  parameters: {}                 # TODO：Nav2 参数
+
+  launch:
+    bringup: UNKNOWN             # *.launch.py
+    navigation: UNKNOWN
+
+  dds_rmw: UNKNOWN               # FastDDS / CycloneDDS
+
+  docker:
+    image: UNKNOWN
+    compose_file: UNKNOWN
+    notes: UNKNOWN
+
+  dependencies: []               # TODO
+  status: UNKNOWN
+  note: |
+    未来目标架构。仅允许在明确 migration 设计/开发任务中修改。
+    不得因普通 ROS1 开发任务触碰本文件或 ROS2 环境。

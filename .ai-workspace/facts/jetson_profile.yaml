@@ -1,0 +1,33 @@
+# 事实源：Jetson / SSH 远程目标
+# 状态取值：CONFIRMED / NEEDS_CONFIRMATION / UNKNOWN / TODO
+
+jetson:
+  board: Jetson Orin NX
+  ssh_host: 116.148.216.66
+  ssh_port: 30046
+  ssh_user: root
+  ssh_config: "~/.ssh/config"       # 已确认存在该 Host 条目
+  connection: ssh                    # 本机通过 SSH 访问
+
+  os: UNKNOWN                        # NEEDS_CONFIRMATION：Ubuntu 20.04
+  ros1_distro: UNKNOWN               # NEEDS_CONFIRMATION
+  ros2_distro: UNKNOWN               # 可能未装或为迁移准备
+
+  docker:
+    present: UNKNOWN
+    images: []                       # TODO：docker images 回填
+    compose_files: []                # TODO
+
+  workspaces:
+    ros1_ws: UNKNOWN                 # 远端 catkin_ws 路径
+    ros2_ws: UNKNOWN                 # 远端 colcon_ws 路径
+
+  # 权限分级（默认只允许 READ_ONLY）
+  access_levels:
+    - READ_ONLY    # 查状态/日志、rosnode/ros2 node、topic、docker ps/logs、git status/diff —— 默认
+    - BUILD        # 编译、构建镜像、跑测试 —— 需任务授权
+    - DEPLOY       # 启停导航服务、重部署指定容器 —— 需任务授权
+    - DANGEROUS    # 删容器/网络、prune、rm、改系统配置、重启、磁盘清理 —— 永远人工确认
+
+  status: NEEDS_CONFIRMATION
+  note: "Jetson 只作为远程开发/编译/测试/运行目标，禁止向其新增 Agent/RAG/向量库/AI 服务/后台进程。"
