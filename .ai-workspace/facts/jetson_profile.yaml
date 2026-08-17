@@ -27,12 +27,15 @@ jetson:
     ros2_ws: /home/jetson/kn_nav                     # 自研 3D 导航（ROS2）
     external_3d: /home/jetson/docker_ws_backup       # 外协 3D 导航（ROS1 镜像内）
 
-  network:                            # 来自同事文档
+  network:                            # 来自同事文档 + 用户实时确认
+    jetson_lan_ip: 192.168.31.135     # 用户 2026-08-17 确认（DHCP，可能再变；此前曾为 192.168.31.132）
     go2_ip: 192.168.123.161           # Unitree Go2（STA / WebRTC）
     mid360_ip: 192.168.123.120        # Livox MID-360 雷达
     host_livox_ip: 192.168.123.164    # 主机接收雷达网卡 IP
-    web_2d: http://192.168.31.132/app/
-    web_3d_external: http://192.168.31.132:9000
+    web_2d: http://192.168.31.135/app/
+    web_2d_old_doc: http://192.168.31.132/app/   # 文档中旧 IP，DHCP 变动后已失效
+    web_3d_external: http://192.168.31.135:9000
+    web_3d_external_old_doc: http://192.168.31.132:9000
     claude_proxy: http://127.0.0.1:7890   # Claude Code 走 ssh 反向代理到本机
 
   # 权限分级（默认只允许 READ_ONLY）
