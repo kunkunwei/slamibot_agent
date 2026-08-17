@@ -25,7 +25,7 @@ robot_profile:
     sensors:
       lidar: Livox MID-360（livox_ros_driver2；3D 点云经 pointcloud_to_laserscan 转 2D 激光）
       imu: Livox 内置 IMU（topic /livox/imu）
-      camera: OAK-4P-New（oak-camera_driver，四路同步+IMU；与雷达 lidar_add_rgb 做彩色三维重建）  # 相机现场数量待确认
+      camera: OAK-4P-New × 3（oak-camera_driver；实测 topic /SLB_CAM_A|B|C/compressed 三路；与雷达 lidar_add_rgb 做彩色三维重建）  # 现场 3 路 A/B/C 已确认
       rtk: 差分 GNSS 定位模块（NMEA $GNGGA 记录 rtk_record/；前端 /rtk/gga + /rtcm/data）
       odometry: 底盘里程计，经 CAN（can0 500k）
 

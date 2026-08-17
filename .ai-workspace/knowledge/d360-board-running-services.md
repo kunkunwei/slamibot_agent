@@ -34,3 +34,16 @@
 - **kn_nav_backup**：自研 3D 备份（build/install/src）
 - **docker_ws**：当前为空（印证文档"空目录挂载会遮蔽镜像同名目录"的坑）
 - **sensors**：仅 `distinct` 子目录
+
+## 运行时快照（当前在线节点 / topic，2026-08-17）
+- 监听端口：**9090（rosbridge）、11311（rosmaster）**；19090/5000/80/9000 因对应容器未运行未监听
+- ROS 节点：camera_service / device_basic / device_service / led_control / livox_lidar_publisher2 /
+  ntrip_rtk_service / oak_keyframe_stitcher / rosapi / rosbridge_websocket / rosout / system_monitor
+- 三类关键 topic：
+  - **相机三路**：`/SLB_CAM_A/compressed`、`/SLB_CAM_B/compressed`、`/SLB_CAM_C/compressed`
+    （确认：实际 3 路 OAK 相机，A/B/C；与用户"三个 OAK 相机"记忆一致）
+  - **RTK 五件套**：`/rtk/gga`、`/rtk/gnss`、`/rtk/raw`、`/rtk/rtcm`、`/rtk/satellites`（NTRIP RTK 服务发布）
+  - **设备/系统**：`/battery` `/camera_temperature` `/cpu` `/cpu_temperature` `/memory` `/storage`
+    `/project_duration` `/driver_status` `/clock` `/keyframe` `/slam_pose`
+  - **底层对接**：`/stm32_cmd` `/stm32_serial`（与 STM32 下位机串口通信）、`/topic_frequencies`
+    `/system_monitor_history` `/client_count` `/connected_clients`
