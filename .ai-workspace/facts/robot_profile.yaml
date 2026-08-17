@@ -21,12 +21,13 @@ robot_profile:
     ssh_port: 30046
     ssh_user: root
 
-    # 传感器（来自 d360_nav2D 仓库分析，部分确认）
+    # 传感器（来自 d360_nav2D 仓库分析 + 板内盘点，部分确认）
     sensors:
       lidar: Livox MID-360（livox_ros_driver2；3D 点云经 pointcloud_to_laserscan 转 2D 激光）
       imu: Livox 内置 IMU（topic /livox/imu）
-      camera: UNKNOWN
-      odometry: UNKNOWN                # 底盘里程计，经 CAN（can0 500k）
+      camera: OAK-4P-New（oak-camera_driver，四路同步+IMU；与雷达 lidar_add_rgb 做彩色三维重建）  # 相机现场数量待确认
+      rtk: 差分 GNSS 定位模块（NMEA $GNGGA 记录 rtk_record/；前端 /rtk/gga + /rtcm/data）
+      odometry: 底盘里程计，经 CAN（can0 500k）
 
     # Frame / TF（全部待确认）
     frames:
