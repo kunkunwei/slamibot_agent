@@ -86,6 +86,15 @@ repositories:
     status: CONFIRMED
     note: 时间戳问题（雷达时间与系统时间不一致 → use_sim_time + /clock）的解所在（pond文档知识库已有记录）
 
+  - id: nav-frontend-redesign
+    name: nav_frontend_redesign（前端界面重构）
+    role: 前端导航界面重构计划（web）
+    remote_url: NEEDS_CONFIRMATION
+    local_path: /home/jetson/nav_frontend_redesign
+    default_branch: master
+    status: CONFIRMED
+    note: 含 HANDOFF.md、通信接口清单.md、nav-web、docs、screenshots；git 干净
+
   - id: stm32
     name: slamibot_stm32（STM32 固件）
     role: 底层固件 / 下位机
