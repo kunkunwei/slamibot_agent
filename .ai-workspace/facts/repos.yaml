@@ -9,7 +9,7 @@ repositories:
     role: 当前导航系统（CURRENT）—— 松灵 Scout mini 2D 导航
     remote_url: https://gitee.com/electech6/d360_nav2D.git
     remote_host: gitee
-    sync_target: https://gitee.com/lion-king2025/scout_mini_navigation.git   # 用户 2026-08-17 确认的云端目标（板内 origin 已指这里）
+    sync_target: https://github.com/kunkunwei/Scout_mini_navigation.git   # 用户 2026-08-17 已推送（lion-king2025 无权限，改用自己的 GitHub）
     local_path: "F:\\d360_nav2D"
     default_branch: master             # 已通过 git 确认
     branches:                          # 已通过 git 确认
@@ -29,7 +29,7 @@ repositories:
     role: 自研 3D 导航：Go2 / Go2-W 机器狗（ROS2，独立产品线，非 Scout mini 迁移）
     remote_url: https://gitee.com/lion-king2025/3d_nav.git
     remote_host: gitee
-    sync_target: https://github.com/kunkunwei/3d_nav.git   # 用户将新建，2026-08-17 待创建/待连通
+    sync_target: https://github.com/kunkunwei/3d_nav.git   # 用户 2026-08-17 已推送（kn_nav 主仓库）
     local_path: "F:\\3d_nav"
     default_branch: master               # 已通过 git 确认
     branches:
@@ -50,7 +50,7 @@ repositories:
     web: "http://192.168.31.132:9000 或 192.168.117.6:9000（admin/admin）"
     status: CONFIRMED
     git_remote: https://github.com/yuanqizhiti/movebase3d_web.git   # 原外协方远端
-    sync_target: https://github.com/kunkunwei/movebase_3d_web.git   # 用户 2026-08-17 新建仓库（已创建，空）
+    sync_target: https://github.com/kunkunwei/movebase_3d_web.git   # 用户 2026-08-17 已推送（仅代码与文档，剔除构建产物和地图数据）
     board_src: /home/jetson/docker_ws_backup                       # 板内有源码（含各版交接文档、dev_start.sh）
     board_unsynced_changes:
       - .gitignore: "(M)"
