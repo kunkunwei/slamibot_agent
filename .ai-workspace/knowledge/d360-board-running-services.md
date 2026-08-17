@@ -47,3 +47,13 @@
     `/project_duration` `/driver_status` `/clock` `/keyframe` `/slam_pose`
   - **底层对接**：`/stm32_cmd` `/stm32_serial`（与 STM32 下位机串口通信）、`/topic_frequencies`
     `/system_monitor_history` `/client_count` `/connected_clients`
+
+## 镜像与其它（2026-08-17 快照）
+- 镜像：scout-nav:latest（18.2GB，3天前）/+rollback-20260813-1132（回滚标签）；kn_nav:v1（8GB）；
+  slamibot_d360_firmware:latest（4.96GB）；nav3d_d360:1.0（15.1GB，4个月前）；ros:foxy-ros1-bridge
+- ota_web 容器进程：`./setting_server`（设备设置服务）
+- STM32 固件：`~/slb_d360_stm32_2.0.4.bin`（29KB，2026-04-18）—— d360 分支产物
+- sbus（遥控直连）：sbus_control.py / sbus_control_webrtc.py / sbusrecevie*.py
+- ROS 服务：camera_service / device / led / livox / ntrip_rtk_service / oak_keyframe_stitcher 各 get_loggers/set_logger_level；
+  另有 /current_ip、/ip_config、/get_version、/get_camera_status、/project_control、/project_list、/project_image、
+  /project_delete（项目管理）、rosapi 系列（/rosapi/*）
