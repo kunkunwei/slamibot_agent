@@ -78,7 +78,7 @@ repositories:
   - id: slambot-d360-framework
     name: SLAMIBOT_D360_Framework（D360 驱动/固件框架）
     role: D360 整机驱动框架（含 livox 驱动 / OAK 相机 RTSP），时间戳修复所在地
-    remote_url: NEEDS_CONFIRMATION       # 板内存在，远端待确认
+    remote_url: https://github.com/kunkunwei/SLAMIBOT_D360_Framework.git   # 用户 2026-08-17 已推送（Gitee 无权限，改用自己的 GitHub）
     local_path: /home/jetson/SLAMIBOT_D360_Framework
     default_branch: main
     board_unsynced_changes:              # 2026-08-17 板内 git status 确认
