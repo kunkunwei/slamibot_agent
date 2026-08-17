@@ -18,6 +18,9 @@ repositories:
     tech_stack: [ros1, noetic, ubuntu-20.04]
     status: CONFIRMED
     clone_cmd: "git clone https://gitee.com/electech6/d360_nav2D.git"
+    board_unsynced_changes:            # 2026-08-17 板内 git status 确认（未提交/未推送）
+      - docker-entrypoint.sh: "rosbridge 加 _use_compression:=true（端口仍 19090）"
+      - src/my_nav/maps/api_map/1/1.pgm: "已删除（D）"
     note: "交接文档提示：2D 仓库代码未完全上传云端，部分改动仍在 Jetson 板内"
 
   - id: navigation-ros2-go2-3d
@@ -43,11 +46,16 @@ repositories:
     default_branch: N/A
     tech_stack: [ros1, noetic]         # 用 roscore/rosnode/rostopic，ROS1
     web: "http://192.168.31.132:9000 或 192.168.117.6:9000（admin/admin）"
-    status: NEEDS_CONFIRMATION
+    status: CONFIRMED
+    git_remote: https://github.com/yuanqizhiti/movebase3d_web.git   # 板内 docker_ws_backup 的远端
+    board_src: /home/jetson/docker_ws_backup                       # 板内有源码（含各版交接文档、dev_start.sh）
+    board_unsynced_changes:
+      - .gitignore: "(M)"
+      - AI_DOG/.env: "已删除（D）"
     note: |
-      无源码（编译好的二进制镜像，无法编译）。MID-360 + FAST-LIO + global_planner(带 MAC 授权校验)
-      + local_planner + web_api。原本 DDS 控制，我方新增 WebRTC 控制链路。
-      MAC 绑定：雷达 00:e0:9a:2f:15:e6 + usb转网口 9c:69:d3:1e:3e:96。
+      外协 3D 导航。运行用二进制镜像 nav3d_d360:1.0（阿里云 registry），但板内 docker_ws_backup 有源码。
+      原本 DDS 控制，我方新增 WebRTC 控制链路（sdk/go2_sdk_manager.py）。
+      MAC 绑定：雷达 00:e0:9a:2f:15:e6 + usb转网口 9c:69:d3:1e:3e:96（global_planner 校验）。
 
   - id: frontend-app
     name: SLAMIBotApp（前端 APP）
@@ -63,6 +71,20 @@ repositories:
     status: CONFIRMED
     clone_cmd: "git clone https://github.com/electech6/SLAMIBotApp.git"
     note: "Web：React19+TS+Vite+ROSLib(rosbridge)+Three.js；App：Kotlin+Compose+WebView 壳"
+
+  - id: slambot-d360-framework
+    name: SLAMIBOT_D360_Framework（D360 驱动/固件框架）
+    role: D360 整机驱动框架（含 livox 驱动 / OAK 相机 RTSP），时间戳修复所在地
+    remote_url: NEEDS_CONFIRMATION       # 板内存在，远端待确认
+    local_path: /home/jetson/SLAMIBOT_D360_Framework
+    default_branch: main
+    board_unsynced_changes:              # 2026-08-17 板内 git status 确认
+      - src/livox_ros_driver2/src/lddc.cpp: "(M) 发布 /clock 时间戳修复"
+      - src/livox_ros_driver2/src/lddc.h: "(M) clock_pub_ 声明"
+      - src/oak-camera_driver/scripts/oak_rtsp_pusher.py: "(M)"
+    tech_stack: [ros1, noetic, livox, oak-camera]
+    status: CONFIRMED
+    note: 时间戳问题（雷达时间与系统时间不一致 → use_sim_time + /clock）的解所在（pond文档知识库已有记录）
 
   - id: stm32
     name: slamibot_stm32（STM32 固件）
