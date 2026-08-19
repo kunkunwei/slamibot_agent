@@ -85,9 +85,20 @@ FastAPI/nav_api ──> 127.0.0.1:19090 ──> scout-nav rosbridge
 
 ### 6.1 Android APP
 
-权威开发分支为 `codex/native-compose-filament`。`F:\SLAMIBotApp` 是该分支的正常
-worktree；`F:\SLAMIBotApp_codex` 位于同一提交但处于 detached HEAD，实施时不得直接在
-detached worktree 上形成不可追踪提交。
+权威开发分支为 `codex/native-compose-filament`，权威本地代码内容位于
+`F:\SLAMIBotApp_codex`。2026-08-19 核验时，原主工作树 `F:\SLAMIBotApp` 已被用户删除，
+而 `F:\SLAMIBotApp_codex\.git` 仍指向
+`F:/SLAMIBotApp/.git/worktrees/SLAMIBotApp_codex`，因此该目录当前只是代码快照，不是
+可用的 Git worktree；任何 Git 命令都会报 `not a git repository`。
+
+实施前必须：
+
+1. 保留 `F:\SLAMIBotApp_codex` 原样，不原地 `git init`、reset、checkout 或覆盖；
+2. 在独立路径 `F:\SLAMIBotApp_codex_repo` 干净检出
+   `origin/codex/native-compose-filament`；
+3. 排除 `.git` 后逐文件比较新检出目录与现有代码快照；
+4. 若存在差异，先列出差异并确认哪一侧是最新内容，不自动覆盖；
+5. 比对确认后只在新检出的正常分支工作树实施和提交端口修改。
 
 修改：
 
@@ -170,7 +181,8 @@ Jetson `/home/jetson/Scout_mini_navigation` 当前包含大量恢复后已暂存
 5. 重建容器时保持现有 host 网络、权限和地图/数据库 bind mount；
 6. 禁止 `git reset --hard`、`git clean`、强制 checkout、批量删除和历史改写。
 
-APP 侧只在正常分支 worktree 修改并单独提交，不夹带其它文件。
+APP 侧保留当前断链代码快照，只在新检出的正常分支 worktree 修改并单独提交，不夹带
+其它文件；未经确认不得删除或替换 `F:\SLAMIBotApp_codex`。
 
 ## 9. 验证策略
 
@@ -178,6 +190,8 @@ APP 侧只在正常分支 worktree 修改并单独提交，不夹带其它文件
 
 - APP：运行 `RobotEndpointTest` 及相关 Android 单元测试，确认实际 URL 为
   `ws://<host>:9090`。
+- APP：确认实施目录处于 `codex/native-compose-filament` 正常分支，且实施前代码内容与
+  `F:\SLAMIBotApp_codex` 快照差异已经审阅。
 - 搜索 APP 生产源码，确认没有继续把 19090 作为客户端默认值。
 - `nginx -t` 通过，并确认 `/rosbridge` 的最终展开配置指向 9090。
 - 检查 entrypoint，确认 19090 节点名唯一且启动失败能被检测。
