@@ -99,6 +99,50 @@ curl -sS -X POST 'http://127.0.0.1:5000/api/base_mode/switch?mode=none'
 curl -sS -X POST 'http://127.0.0.1:5000/api/base_mode/switch?mode=go2'
 ```
 
+## 导航栈与 2D 栅格地图
+
+底盘模式与导航模式是两个独立开关：
+
+- `mode=scout` 只负责 CAN、Scout 底盘驱动和 teleop 安全条件；
+- `/api/control/mode/navigation` 负责基础感知、`map_server`、AMCL、`move_base` 和 PCD 发布器；
+- Jetson 或 `scout-nav` 容器重启后，可能出现底盘已 `SCOUT ready=true`，但导航仍为 `idle`。此时 APP 点位管理会显示“等待/map栅格”。
+
+Windows PowerShell 启动导航模式：
+
+```powershell
+curl.exe -sS "http://192.168.31.135:5000/api/control/mode/navigation"
+```
+
+SSH 登录 Jetson 后启动导航模式：
+
+```bash
+curl -sS 'http://127.0.0.1:5000/api/control/mode/navigation'
+```
+
+查询导航 launch 状态：
+
+```bash
+curl -sS 'http://127.0.0.1:5000/api/launch/status'
+```
+
+正常状态应包含：
+
+```text
+current_mode=navigation
+base_running=true
+navigation_running=true
+pcd_running=true
+```
+
+检查 `/map`：
+
+```bash
+source /opt/ros/noetic/setup.bash
+rostopic info /map
+rostopic echo -n 1 /map --noarr
+```
+
+正常时 `/map` 发布者为 `/map_server`，`/rosbridge_websocket` 是订阅者。仅看到 `/map` Topic 名称但 `Publishers: None`，说明前端订阅已建立，但导航栈和 `map_server` 尚未启动。
 ## CAN 排障命令
 
 模式接口在切换到 Scout 时会尝试激活并检查 `can0`。只有排障时才需要手动执行：
