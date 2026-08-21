@@ -2,6 +2,59 @@
 
 > 只记录尚未完全验收或仍需人工决策的任务。已完成操作及证据见 `completed.md`。
 
+## TASK-2026-08-21-001：图传接收机 IP、BOX 麦克风、任务 service 模式与 GO2 适配
+
+- goal: 完成 2026-08-21 用户布置的多项待办并形成后续执行入口（仅记录，不擅自实现）
+- project: navigation-ros1-d360 + frontend-app + deployment
+- technology: ros1（CURRENT）；GO2 适配待定
+- lifecycle: CURRENT
+- migration: NEEDS_CONFIRMATION（GO2 适配若涉及 ROS2/DDS/迁移，未经授权不得触发；当前仅记录为待确认项）
+- status: planned
+- scope: NEEDS_CONFIRMATION（多子项目标地址、设备路径、接口契约、底盘型号均需用户确认）
+- authorized_paths:
+  - `F:\slamibot_agent\.ai-workspace\tasks\current.md`（本任务条目）
+  - `F:\slamibot_agent\.ai-workspace\tasks\context-checkpoint.md`（同步检查点）
+- forbidden:
+  - 未经授权不得修改 ROS Topic/Service/Action、消息格式、参数、launch、地图、数据库 schema。
+  - 未经授权不得改动 Jetson 系统、Docker 基础设施、ROS 工作区结构、rosbridge 接口、APP/WEB 前后端契约。
+  - 未经授权不得更换或重写底盘驱动（Scout → GO2 涉及迁移/适配，需独立专项授权）。
+  - 未经授权不得进行 ROS1 → ROS2 迁移；GO2 适配的最终技术栈以用户确认为准。
+  - 不得擅自补充未知 IP、设备名、接口路径或实现方案；缺失值一律标 UNKNOWN / NEEDS_CONFIRMATION。
+- todo:
+  - 1. 修改 IP 地址为图传接收机：
+      - 当前/原 IP：UNKNOWN
+      - 目标 IP（地址）：UNKNOWN / NEEDS_CONFIRMATION（需用户给出图传接收机的目标地址与所属网段）
+      - 目标主机/设备名：UNKNOWN
+      - 网关/掩码：UNKNOWN
+      - 备注：当前任务条仅登记需求，不执行任何网络/系统修改。
+  - 2. 插拔 BOX USB，确认麦克风是否在线：
+      - 现状参考：`TASK-2026-08-20-008`（`/dev/lg_speech_serial` 可握手，ALSA 未见 `ListenGo`）。
+      - 待做：插拔 BOX USB 后重新检查 `lsusb`、udev、`/dev/lg_speech_uac`、ALSA 设备；不得擅自写入 udev 规则。
+      - 验收：ALSA 中再次出现 `ListenGo` 音频设备且语音识别可启动。
+  - 3. 确认任务创建相关内容采用 service 模式：
+      - 当前事实源：`/api/map/task/*`、`/api/map/nav_multi/*` 为 HTTP 接口；ROS 内部使用 `move_base` action 与 `/nav_multi/*` service/status（见 `TASK-2026-08-20-010`）。
+      - 待确认：用户所指“任务创建”具体指 HTTP 入口、ROS service 还是二者并行；接口契约以用户确认为准。
+  - 4. 实现/验证语音识别到点位导航、任务创建：
+      - 依赖：TASK-2026-08-21-001 #2（麦克风在线）与 #3（service 模式确认）。
+      - 范围：仅在确认后再展开；当前不实现任何业务代码。
+  - 5. 点位动作测试和接口开发，通用 service 示例：
+      - 通用 service 示例（暂留，待实现验证）：
+        - `take_photos(n=10)`：拍照 10 张。
+        - `drive_forward(distance_m=2)`：前进 2 米。
+        - `announce(text="我到了")`：喊话"我到了"。
+      - 执行语义：动作执行时暂时打断导航，完成后继续导航。
+      - 待确认：动作实现的接入点（HTTP service / ROS service / nav_multi 内部回调）、打断/恢复机制、是否需要鉴权与幂等。
+  - 6. 适配 GO2 的 2D 导航，测试更换底盘后能否正常工作：
+      - 底盘型号：GO2（厂商/型号/驱动来源：UNKNOWN / NEEDS_CONFIRMATION）。
+      - 与现有基线关系：当前 ROS1 + Scout 为 CURRENT（见 `facts/robot_profile.yaml` 与 `TASK-2026-08-20-010`）；GO2 适配若涉及驱动替换、TF、launch、参数或栈迁移，必须 `migration: true` 独立专项授权。
+      - 当前结论：仅记录需求，不进行任何底盘相关修改。
+- validation:
+  - 当前不运行任何测试、构建、仿真、Jetson 操作。
+  - 子项推进时再按 `testing-rules.md` 选取与风险相称的验证。
+- rollback:
+  - 本任务仅做登记，未触碰任何业务仓库；若误改，按 `git-safety.md` 用 `git checkout -- <file>` 回退或删除目录。
+- tests: SKIPPED (task recording only)
+
 ## TASK-2026-08-19-001：D360 前后端双 rosbridge 联调
 
 - goal: APP/WEB 统一使用 9090，FastAPI/nav_api 内部保持使用 19090。

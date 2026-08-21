@@ -1,7 +1,9 @@
 # 最新上下文检查点
 
-- updated: 2026-08-20
-- current_focus: 导航点位/任务二开接口与客户容器化产品化审计。
+- updated: 2026-08-21
+- current_focus: `TASK-2026-08-21-001`（图传接收机 IP、BOX 麦克风、任务 service 模式、点位动作通用 service、GO2 2D 适配）。
+- scope: NEEDS_CONFIRMATION（多子项目标地址、设备路径、接口契约、底盘型号均待用户确认）。
+- migration: NEEDS_CONFIRMATION（GO2 适配若涉及 ROS2/迁移，未经专项授权不得触发；当前 ROS1 + Scout 为 CURRENT）。
 - conclusion: 已保留完整基础接口，但当前是项目接口，不宜未经加固直接作为客户稳定 API。
 - available:
   - 点位 CRUD、排序和按 `/amcl_pose` 当前位姿踩点：`/api/map/point/*`。
@@ -17,6 +19,6 @@
 - recommended_boundary: 客户只使用版本化 HTTPS API/SDK；19090 和 move_base 保持容器内部，9090 仅在确有实时 Topic 需求时经受控网关开放。
 - previous_issue: 静态地图临时障碍空气墙已诊断，见 `TASK-2026-08-20-009`。
 - jetson: ON_USER_CONFIRMED，公司 Wi-Fi `192.168.31.135`；本次未连接。
-- safety: ROS1 CURRENT；只读检查，未修改业务代码、镜像、数据库或远端。
-- tests: SKIPPED（只读接口审计）。
+- safety: ROS1 CURRENT；只读登记，未修改业务代码、镜像、数据库或远端。
+- tests: SKIPPED (task recording only)。
 - recovery_order: `AGENTS.md` → 本检查点 → `tasks/current.md` → API/ROS facts。
