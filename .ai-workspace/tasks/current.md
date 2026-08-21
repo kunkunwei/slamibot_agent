@@ -51,6 +51,18 @@
               - USB 音频输入设备：已被系统识别并由 `snd-usb-audio` 驱动枚举（`arecord -l`/`arecord -L` 列出 `USB Audio Device`）。
               - 麦克风实际录音与语音识别：仍 `NEEDS_CONFIRMATION`（设备名仍是通用 `USB Audio Device`，非 `ListenGo Circular 6-Microphone`）。
               - `/dev/lg_speech_uac`：仍不存在。
+      - 2026-08-21 用户在 Jetson 执行的 5 秒短时录音证据（用户提供，仅记录，不在本任务中执行命令）：
+          - 命令：`arecord -D plughw:CARD=Device,DEV=0 -f S16_LE -r 16000 -c 1 -d 5 /tmp/box-mic-test.wav`。
+          - 终端输出：显示“正在录音 WAVE '/tmp/box-mic-test.wav' : Signed 16 bit Little Endian, 16000Hz, Mono”，随后回到 shell，无报错。
+          - 结论：ALSA 已成功打开该 USB 采集设备并完成 5 秒录音流程；这是“录音设备可打开/采集流程完成”的证据。
+          - 边界（**不得过度宣称**）：
+              - 终端未给出 wav 文件大小；未运行 `file`/`aplay` 回放；未提供波形或语音识别结果。
+              - 因此**不能据此宣称“已经听到声音”或“语音识别正常”**。
+              - 麦克风硬件/ALSA 采集基本可用；实际音频内容与语音识别仍 `NEEDS_CONFIRMATION`。
+          - 下一步建议（**仅记录，不在本会话执行**；待用户授权后再跑）：
+              - `ls -lh /tmp/box-mic-test.wav`：核对文件大小是否为非零、与 5 秒 16kHz/16bit/Mono 的预期大小一致（5s × 16000 × 2B ≈ 160KB，未提供时按 UNKNOWN）。
+              - `file /tmp/box-mic-test.wav`：确认实际格式与采样参数。
+              - 必要时 `aplay /tmp/box-mic-test.wav` 做人工回放，或接入最小语音识别跑一次。
       - 下一步建议（**仅记录，不在本会话执行**；待用户授权后再跑）：
           - 短时录音测试，例如 `arecord -D plughw:CARD=Device,DEV=0 -f S16_LE -r 16000 -c 1 -d 5 /tmp/box-mic-test.wav`，随后 `aplay` 校验文件或最小语音识别测试。
           - 用正确绝对路径执行 `udevadm info --query=all --name=/dev/ttyUSB8`，并对实际声卡节点跑 udev 查询（实际节点需先从 `/proc/asound/cards`、`/dev/snd` 确认，未知处标 UNKNOWN）。

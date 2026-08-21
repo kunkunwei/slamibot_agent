@@ -14,8 +14,14 @@
   - 失败项：`dmesg -T | tail -n 100` 因权限失败；`udevadm info ...` 因使用占位参数 `...` 而失败——这两项均**不应**作为设备不存在的证据。
   - 当前准确状态：① BOX 音频输出（扬声器播放）已确认；② USB 音频输入设备已被系统识别；③ 麦克风实际录音与语音识别仍 `NEEDS_CONFIRMATION`；④ `/dev/lg_speech_uac` 仍不存在。
   - 结论修订：USB 音频设备在线，麦克风链路达到「系统识别」阶段；但 ListenGo 身份、录音数据有效性、语音识别链路、`/dev/lg_speech_uac` 是否被 udev 创建仍未完成确认。任务状态保持 `in_progress` / `NEEDS_CONFIRMATION`，**不得标记为完全验收**。
+  - 2026-08-21 用户在 Jetson 执行的 5 秒短时录音证据（用户提供，仅记录，不在本工作区执行命令）：
+      - 命令：`arecord -D plughw:CARD=Device,DEV=0 -f S16_LE -r 16000 -c 1 -d 5 /tmp/box-mic-test.wav`。
+      - 终端输出：显示“正在录音 WAVE '/tmp/box-mic-test.wav' : Signed 16 bit Little Endian, 16000Hz, Mono”，随后回到 shell，无报错。
+      - 结论：ALSA 已成功打开该 USB 采集设备并完成 5 秒录音流程；这是“录音设备可打开/采集流程完成”的证据。
+      - 边界（**不得过度宣称**）：终端未给出 wav 文件大小；未运行 `file`/`aplay`；未提供波形或语音识别结果。**不能据此宣称“已经听到声音”或“语音识别正常”**。麦克风硬件/ALSA 采集基本可用；实际音频内容与语音识别仍 `NEEDS_CONFIRMATION`。
+      - 下一步建议（**仅记录，不在本会话执行**）：`ls -lh /tmp/box-mic-test.wav`、`file /tmp/box-mic-test.wav`，必要时 `aplay /tmp/box-mic-test.wav` 或做最小语音识别。
   - 下一步（**仅记录建议，不在本会话执行**）：① 短时录音测试，例如 `arecord -D plughw:CARD=Device,DEV=0 -f S16_LE -r 16000 -c 1 -d 5 /tmp/box-mic-test.wav`，再 `aplay` 检查或最小语音识别；② 用正确绝对路径执行 `udevadm info --query=all --name=/dev/ttyUSB8`，并对实际声卡节点跑 udev 查询（实际节点需先从 `/proc/asound/cards`、`/dev/snd` 确认，未知处标 UNKNOWN）。
-- tests: SKIPPED (user-provided hardware test and diagnostics only)；本检查点不运行任何构建/测试/仿真/Jetson 操作。
+- tests: SKIPPED (user-provided recording result only)；本检查点不运行任何构建/测试/仿真/Jetson 操作。
 - conclusion: 已保留完整基础接口，但当前是项目接口，不宜未经加固直接作为客户稳定 API。
 - available:
   - 点位 CRUD、排序和按 `/amcl_pose` 当前位姿踩点：`/api/map/point/*`。
@@ -32,5 +38,5 @@
 - previous_issue: 静态地图临时障碍空气墙已诊断，见 `TASK-2026-08-20-009`。
 - jetson: ON_USER_CONFIRMED，公司 Wi-Fi `192.168.31.135`；本次未连接。
 - safety: ROS1 CURRENT；只读登记，未修改业务代码、镜像、数据库或远端。
-- tests: SKIPPED (task recording only)。
+- tests: SKIPPED (user-provided recording result only)。
 - recovery_order: `AGENTS.md` → 本检查点 → `tasks/current.md` → API/ROS facts。
