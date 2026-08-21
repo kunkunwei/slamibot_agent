@@ -43,6 +43,14 @@
           - 失败项：`dmesg -T | tail -n 100` 因权限失败（不允许访问内核缓冲区）；`udevadm info ...` 因使用占位参数 `...` 而失败——这两项**不应**作为设备不存在的证据。
           - 结论修订：USB 音频设备在线，麦克风链路已达到「系统识别」阶段；但 ListenGo 身份、录音数据、语音识别链路、`/dev/lg_speech_uac` 是否被 udev 创建仍未完成确认。
           - 麦克风结论：`NEEDS_CONFIRMATION`，任务状态保持 `in_progress`，**不得标记为完全验收**。
+      - 2026-08-21 BOX 扬声器与采集链路事实补充（用户提供，仅记录，不在本任务中执行命令）：
+          - BOX 集成扬声器与麦克风；**扬声器/播放链路此前已由用户人工实测确认正常**（这是已确认事实）。
+          - 本次 `arecord`/`snd-usb-audio` 证据**仅针对 USB 音频设备及采集接口在线**；**不能用「扬声器正常」反推「麦克风采集正常」**——播放与采集是两条独立物理/逻辑通道，ALSA 设备节点、profile 与驱动行为不同，扬声器正常不构成麦克风录音/语音识别可用的证据。
+          - 当前准确状态（区分播放与采集）：
+              - BOX 音频输出（扬声器播放）：已由用户人工实测确认。
+              - USB 音频输入设备：已被系统识别并由 `snd-usb-audio` 驱动枚举（`arecord -l`/`arecord -L` 列出 `USB Audio Device`）。
+              - 麦克风实际录音与语音识别：仍 `NEEDS_CONFIRMATION`（设备名仍是通用 `USB Audio Device`，非 `ListenGo Circular 6-Microphone`）。
+              - `/dev/lg_speech_uac`：仍不存在。
       - 下一步建议（**仅记录，不在本会话执行**；待用户授权后再跑）：
           - 短时录音测试，例如 `arecord -D plughw:CARD=Device,DEV=0 -f S16_LE -r 16000 -c 1 -d 5 /tmp/box-mic-test.wav`，随后 `aplay` 校验文件或最小语音识别测试。
           - 用正确绝对路径执行 `udevadm info --query=all --name=/dev/ttyUSB8`，并对实际声卡节点跑 udev 查询（实际节点需先从 `/proc/asound/cards`、`/dev/snd` 确认，未知处标 UNKNOWN）。

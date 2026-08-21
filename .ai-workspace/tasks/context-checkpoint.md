@@ -4,15 +4,18 @@
 - current_focus: `TASK-2026-08-21-001`（图传接收机 IP、BOX 麦克风、任务 service 模式、点位动作通用 service、GO2 2D 适配）。
 - scope: NEEDS_CONFIRMATION（多子项目标地址、设备路径、接口契约、底盘型号均待用户确认）。
 - migration: NEEDS_CONFIRMATION（GO2 适配若涉及 ROS2/迁移，未经专项授权不得触发；当前 ROS1 + Scout 为 CURRENT）。
-- mic_status: `NEEDS_CONFIRMATION`——2026-08-21 用户提供进一步 Jetson 检查证据（仅记录，未在本工作区执行任何远程命令）：
-  - `lsusb -t`：Bus 01 Port 2 Dev 11 同时存在 HID 与 Audio 接口；Audio 接口由 `snd-usb-audio` 驱动，说明 USB 音频设备已被内核枚举并加载驱动。
-  - `arecord -l`：列出 `card 2: Device [USB Audio Device], device 0: USB Audio [USB Audio]`。这是目前最强的「麦克风/USB 音频采集设备在线」证据，但设备名称仍是通用 `USB Audio Device`，不能直接确认为 ListenGo。
-  - `arecord -L`：列出 `sysdefault:CARD=Device`、`hw:CARD=Device,DEV=0`、`plughw:CARD=Device,DEV=0` 等 USB Audio PCM。注意它同时包含播放/输出 profile，**不能仅据此证明录音质量或语音识别链路可用**。
-  - 设备节点：`/dev/lg_speech_uac` 不存在；`/dev/lg_speech_serial -> ttyUSB8` 存在。
-  - 失败项：`dmesg -T | tail -n 100` 因权限失败（不允许访问内核缓冲区）；`udevadm info ...` 因使用占位参数 `...` 而失败——这两项均**不应**作为设备不存在的证据。
-  - 结论修订：USB 音频设备在线，麦克风链路已达到「系统识别」阶段；但 ListenGo 身份、录音数据有效性、语音识别链路、`/dev/lg_speech_uac` 是否被 udev 创建仍未完成确认。任务状态保持 `in_progress` / `NEEDS_CONFIRMATION`，**不得标记为完全验收**。
+- mic_status: `NEEDS_CONFIRMATION`（播放/采集链路必须区分，**不可互相反推**）——2026-08-21 用户补充事实与 Jetson 检查证据（仅记录，未在本工作区执行任何远程命令）：
+  - BOX 集成扬声器与麦克风；**扬声器/播放链路已由用户人工实测确认正常**（已确认事实）。
+  - 本次 `arecord`/`snd-usb-audio` 证据**仅针对 USB 音频设备与采集接口在线**；播放与采集是两条独立物理/逻辑通道，扬声器正常不构成麦克风采集/语音识别可用的证据。
+  - `lsusb -t`：Bus 01 Port 2 Dev 11 同时存在 HID 与 Audio 接口；Audio 接口由 `snd-usb-audio` 驱动，USB 音频设备已被内核枚举并加载驱动。
+  - `arecord -l`：列出 `card 2: Device [USB Audio Device], device 0: USB Audio [USB Audio]`。设备名称仍是通用 `USB Audio Device`，**不能直接确认为 ListenGo**。
+  - `arecord -L`：列出 `sysdefault:CARD=Device`、`hw:CARD=Device,DEV=0`、`plughw:CARD=Device,DEV=0` 等 USB Audio PCM；同时包含播放/输出 profile，**不能仅据此证明录音质量或语音识别链路可用**。
+  - 设备节点：`/dev/lg_speech_uac` 仍不存在；`/dev/lg_speech_serial -> ttyUSB8` 存在。
+  - 失败项：`dmesg -T | tail -n 100` 因权限失败；`udevadm info ...` 因使用占位参数 `...` 而失败——这两项均**不应**作为设备不存在的证据。
+  - 当前准确状态：① BOX 音频输出（扬声器播放）已确认；② USB 音频输入设备已被系统识别；③ 麦克风实际录音与语音识别仍 `NEEDS_CONFIRMATION`；④ `/dev/lg_speech_uac` 仍不存在。
+  - 结论修订：USB 音频设备在线，麦克风链路达到「系统识别」阶段；但 ListenGo 身份、录音数据有效性、语音识别链路、`/dev/lg_speech_uac` 是否被 udev 创建仍未完成确认。任务状态保持 `in_progress` / `NEEDS_CONFIRMATION`，**不得标记为完全验收**。
   - 下一步（**仅记录建议，不在本会话执行**）：① 短时录音测试，例如 `arecord -D plughw:CARD=Device,DEV=0 -f S16_LE -r 16000 -c 1 -d 5 /tmp/box-mic-test.wav`，再 `aplay` 检查或最小语音识别；② 用正确绝对路径执行 `udevadm info --query=all --name=/dev/ttyUSB8`，并对实际声卡节点跑 udev 查询（实际节点需先从 `/proc/asound/cards`、`/dev/snd` 确认，未知处标 UNKNOWN）。
-- tests: SKIPPED (user-provided Jetson diagnostics only)；本检查点不运行任何构建/测试/仿真/Jetson 操作。
+- tests: SKIPPED (user-provided hardware test and diagnostics only)；本检查点不运行任何构建/测试/仿真/Jetson 操作。
 - conclusion: 已保留完整基础接口，但当前是项目接口，不宜未经加固直接作为客户稳定 API。
 - available:
   - 点位 CRUD、排序和按 `/amcl_pose` 当前位姿踩点：`/api/map/point/*`。
