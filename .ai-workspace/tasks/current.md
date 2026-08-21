@@ -9,7 +9,7 @@
 - technology: ros1（CURRENT）；GO2 适配待定
 - lifecycle: CURRENT
 - migration: NEEDS_CONFIRMATION（GO2 适配若涉及 ROS2/DDS/迁移，未经授权不得触发；当前仅记录为待确认项）
-- status: planned
+- status: in_progress
 - scope: NEEDS_CONFIRMATION（多子项目标地址、设备路径、接口契约、底盘型号均需用户确认）
 - authorized_paths:
   - `F:\slamibot_agent\.ai-workspace\tasks\current.md`（本任务条目）
@@ -31,6 +31,18 @@
       - 现状参考：`TASK-2026-08-20-008`（`/dev/lg_speech_serial` 可握手，ALSA 未见 `ListenGo`）。
       - 待做：插拔 BOX USB 后重新检查 `lsusb`、udev、`/dev/lg_speech_uac`、ALSA 设备；不得擅自写入 udev 规则。
       - 验收：ALSA 中再次出现 `ListenGo` 音频设备且语音识别可启动。
+      - 2026-08-21 lsusb 证据（用户提供，仅记录，不在本任务中执行命令）：
+          - 插拔前：`lsusb` 列出 2 个 `1a86:7523 QinHeng Electronics HL-340 USB-Serial adapter`；未出现 `2208:0001 ListenGo Circular 6-Microphone`；也未识别出明确的 USB Audio 麦克风设备。
+          - 插拔后：`lsusb` 列出 3 个 `1a86:7523 QinHeng Electronics HL-340 USB-Serial adapter`，并新增 `0d8c:0012 C-Media Electronics, Inc. 4-Port USB 2.0 Hub`、`2c7c:0125 Quectel EC25 LTE modem` 以及额外的 Hub；仍未出现 `2208:0001 ListenGo Circular 6-Microphone`。
+          - 结论：仅凭 `lsusb` 不能确认麦克风在线；当前证据更支持 BOX 插拔触发了 USB 拓扑/串口设备重枚举，但**未枚举出预期 ListenGo 麦克风**。不得把 `C-Media Electronics` Hub 直接判定为麦克风。
+          - 麦克风结论：`NEEDS_CONFIRMATION`（需结合 ALSA、dmesg、udev、设备节点综合判定）。
+      - 下一步待检查项（**仅记录，不执行**；待用户授权后再跑）：
+          - `lsusb -t`：查看 USB 拓扑，确认 Hub/串口/音频设备挂在哪条总线下，是否随 BOX USB 一起重新枚举。
+          - `arecord -l`：列出 ALSA 捕获设备，确认是否存在 UAC 音频设备（关注是否出现 ListenGo 或任何 USB Audio 麦克风）。
+          - `arecord -L`：列出 ALSA PCM 设备名与可用接口。
+          - `dmesg -T | tail -n 100`：读取最近内核日志，关注 USB 枚举/断开、`audio`/`snd-usb-audio` 加载、`c-media`/`listen` 关键字。
+          - `udevadm info`（针对新增设备/节点）：核对 `/dev/lg_speech_uac`、`/dev/lg_speech_serial` 的 devpath 与属性，确认 udev 规则是否匹配；不擅自写入/修改 udev 规则。
+      - 任务执行约束：上述命令本次**不执行**，仅记录到任务条目；后续是否在 Jetson 上执行需用户授权（涉及只读命令，可纳入 READ_ONLY 范围后由用户触发）。
   - 3. 确认任务创建相关内容采用 service 模式：
       - 当前事实源：`/api/map/task/*`、`/api/map/nav_multi/*` 为 HTTP 接口；ROS 内部使用 `move_base` action 与 `/nav_multi/*` service/status（见 `TASK-2026-08-20-010`）。
       - 待确认：用户所指“任务创建”具体指 HTTP 入口、ROS service 还是二者并行；接口契约以用户确认为准。

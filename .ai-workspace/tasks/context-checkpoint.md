@@ -4,6 +4,8 @@
 - current_focus: `TASK-2026-08-21-001`（图传接收机 IP、BOX 麦克风、任务 service 模式、点位动作通用 service、GO2 2D 适配）。
 - scope: NEEDS_CONFIRMATION（多子项目标地址、设备路径、接口契约、底盘型号均待用户确认）。
 - migration: NEEDS_CONFIRMATION（GO2 适配若涉及 ROS2/迁移，未经专项授权不得触发；当前 ROS1 + Scout 为 CURRENT）。
+- mic_status: `NEEDS_CONFIRMATION`——2026-08-21 用户提供 BOX USB 插拔前后 `lsusb` 证据：插拔前 2 个 `1a86:7523 QinHeng HL-340`、无 `2208:0001 ListenGo`、无明确 USB Audio 麦克风；插拔后 3 个 `1a86:7523 QinHeng HL-340`、新增 `0d8c:0012 C-Media Electronics, Inc. 4-Port USB 2.0 Hub`、`2c7c:0125 Quectel EC25 LTE modem` 与额外 Hub，仍无 `2208:0001 ListenGo`。结论：仅 `lsusb` 不能确认麦克风在线；不能把 C-Media Hub 直接判定为麦克风。下一步待用户授权执行：`lsusb -t`、`arecord -l`、`arecord -L`、`dmesg -T | tail -n 100`、`udevadm info`，并核对 `/dev/lg_speech_uac`、`/dev/lg_speech_serial`（**仅记录，未执行**）。
+- tests: SKIPPED (user-provided lsusb evidence only)；本检查点不运行任何构建/测试/仿真/Jetson 操作。
 - conclusion: 已保留完整基础接口，但当前是项目接口，不宜未经加固直接作为客户稳定 API。
 - available:
   - 点位 CRUD、排序和按 `/amcl_pose` 当前位姿踩点：`/api/map/point/*`。
