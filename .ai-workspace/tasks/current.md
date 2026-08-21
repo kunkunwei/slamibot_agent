@@ -35,13 +35,18 @@
           - 插拔前：`lsusb` 列出 2 个 `1a86:7523 QinHeng Electronics HL-340 USB-Serial adapter`；未出现 `2208:0001 ListenGo Circular 6-Microphone`；也未识别出明确的 USB Audio 麦克风设备。
           - 插拔后：`lsusb` 列出 3 个 `1a86:7523 QinHeng Electronics HL-340 USB-Serial adapter`，并新增 `0d8c:0012 C-Media Electronics, Inc. 4-Port USB 2.0 Hub`、`2c7c:0125 Quectel EC25 LTE modem` 以及额外的 Hub；仍未出现 `2208:0001 ListenGo Circular 6-Microphone`。
           - 结论：仅凭 `lsusb` 不能确认麦克风在线；当前证据更支持 BOX 插拔触发了 USB 拓扑/串口设备重枚举，但**未枚举出预期 ListenGo 麦克风**。不得把 `C-Media Electronics` Hub 直接判定为麦克风。
-          - 麦克风结论：`NEEDS_CONFIRMATION`（需结合 ALSA、dmesg、udev、设备节点综合判定）。
-      - 下一步待检查项（**仅记录，不执行**；待用户授权后再跑）：
-          - `lsusb -t`：查看 USB 拓扑，确认 Hub/串口/音频设备挂在哪条总线下，是否随 BOX USB 一起重新枚举。
-          - `arecord -l`：列出 ALSA 捕获设备，确认是否存在 UAC 音频设备（关注是否出现 ListenGo 或任何 USB Audio 麦克风）。
-          - `arecord -L`：列出 ALSA PCM 设备名与可用接口。
-          - `dmesg -T | tail -n 100`：读取最近内核日志，关注 USB 枚举/断开、`audio`/`snd-usb-audio` 加载、`c-media`/`listen` 关键字。
-          - `udevadm info`（针对新增设备/节点）：核对 `/dev/lg_speech_uac`、`/dev/lg_speech_serial` 的 devpath 与属性，确认 udev 规则是否匹配；不擅自写入/修改 udev 规则。
+      - 2026-08-21 后续 Jetson 检查证据（用户提供，仅记录，不在本任务中执行命令）：
+          - `lsusb -t`：Bus 01 Port 2 Dev 11 同时存在 HID 与 Audio 接口；Audio 接口由 `snd-usb-audio` 驱动。说明 USB 音频设备已被内核枚举并加载驱动。
+          - `arecord -l`：列出 `card 2: Device [USB Audio Device], device 0: USB Audio [USB Audio]`。这是目前最强的「麦克风/USB 音频采集设备在线」证据，但设备名称是通用 `USB Audio Device`，**不能直接确认为 ListenGo**。
+          - `arecord -L`：列出 `sysdefault:CARD=Device`、`hw:CARD=Device,DEV=0`、`plughw:CARD=Device,DEV=0` 等 USB Audio PCM。注意它同时列出播放/输出 profile，**不能仅据此证明录音质量或语音识别可用**。
+          - 设备节点：`/dev/lg_speech_uac` 不存在；`/dev/lg_speech_serial -> ttyUSB8` 存在。
+          - 失败项：`dmesg -T | tail -n 100` 因权限失败（不允许访问内核缓冲区）；`udevadm info ...` 因使用占位参数 `...` 而失败——这两项**不应**作为设备不存在的证据。
+          - 结论修订：USB 音频设备在线，麦克风链路已达到「系统识别」阶段；但 ListenGo 身份、录音数据、语音识别链路、`/dev/lg_speech_uac` 是否被 udev 创建仍未完成确认。
+          - 麦克风结论：`NEEDS_CONFIRMATION`，任务状态保持 `in_progress`，**不得标记为完全验收**。
+      - 下一步建议（**仅记录，不在本会话执行**；待用户授权后再跑）：
+          - 短时录音测试，例如 `arecord -D plughw:CARD=Device,DEV=0 -f S16_LE -r 16000 -c 1 -d 5 /tmp/box-mic-test.wav`，随后 `aplay` 校验文件或最小语音识别测试。
+          - 用正确绝对路径执行 `udevadm info --query=all --name=/dev/ttyUSB8`，并对实际声卡节点跑 udev 查询（实际节点需先从 `/proc/asound/cards`、`/dev/snd` 确认，未知处标 UNKNOWN）。
+          - 重试 `dmesg`（需具有 sudo 或内核日志权限时再执行）。
       - 任务执行约束：上述命令本次**不执行**，仅记录到任务条目；后续是否在 Jetson 上执行需用户授权（涉及只读命令，可纳入 READ_ONLY 范围后由用户触发）。
   - 3. 确认任务创建相关内容采用 service 模式：
       - 当前事实源：`/api/map/task/*`、`/api/map/nav_multi/*` 为 HTTP 接口；ROS 内部使用 `move_base` action 与 `/nav_multi/*` service/status（见 `TASK-2026-08-20-010`）。
