@@ -38,6 +38,39 @@
   - 边界（**不得过度宣称**）：用户尚未提供 `aplay` 人工回放结果或语音识别结果，**不得宣称"已听到具体声音"或"语音识别正常"**。
   - 当前状态：① BOX 扬声器（播放链路）已确认正常；② 麦克风录音采集（`arecord` + WAV 落盘 + 格式校验）已确认正常；③ 实际音频内容/清晰度和语音识别仍 `NEEDS_CONFIRMATION`；④ `/dev/lg_speech_uac` 仍不存在。
   - 下一步建议（**仅记录，不在本会话执行**）：`aplay /tmp/box-mic-test.wav` 人工确认声音，随后进行最小语音识别测试；不执行。
+- audio_diagnostics_2026-08-21: 用户提供（仅记录，未在本工作区执行任何远程命令）：
+  - `arecord ... -V mono`：可完成 5 秒录音，但 VU 输出几乎没有有效电平（仅看到起始 `#+ ... | 00%`，不可据此做精确峰值判断）。
+  - `sox`：未安装（两次均 `sox：未找到命令`）。
+  - `ffmpeg -i /tmp/box-mic-test.wav -af volumedetect -f null -`：
+      - n_samples = 80000（约 5 秒，16kHz mono，与预期一致）。
+      - mean_volume = -90.3 dB。
+      - max_volume = -74.7 dB。
+      - histogram_74db / histogram_76db 仅有少量样本。
+      - 明确说明 WAV 内容基本接近静音/只有极低噪声。
+  - `amixer`：输出非常长，主要是 Jetson APE / 内部 DSP / I2S / DSPK 控件；用户未指定 `-c 2`，因此不能把它当作 USB Audio Device (card 2) 的采集增益/静音状态证据。
+  - **结论升级**：
+      - USB 音频设备枚举、ALSA 打开、WAV 格式/落盘都正常。
+      - 但录音内容基本为静音（mean ≈ -90 dB, max ≈ -75 dB），说明当前有效麦克风音频未进入 `hw:2,0`（或输入增益/静音/路由/设备身份仍有问题）。
+      - **不得宣称麦克风硬件已损坏**；可能原因标为 `NEEDS_CONFIRMATION`：
+          - USB 音频设备并非 BOX 麦克风输入（device 身份/路由问题）。
+          - 采集通道静音或增益为 0。
+          - USB Audio 设备身份/驱动映射错误。
+          - 需要特定多通道/采样格式才能采集到有效数据。
+      - 语音交互应用仍因只匹配 `ListenGo` 而未启动；不要把问题简化为单一名称匹配；当前至少有两层问题：
+          - ① 应用设备名识别失败（ListenGo vs 通用 USB Audio Device）。
+          - ② 采集数据近静音（与播放/识别链路无关）。
+  - 下一步建议（**仅记录，不在本会话执行**；待用户授权后再跑）：
+      - 用 `amixer -c 2 scontrols`、`amixer -c 2 contents` 检查 USB 声卡真实控件（不能继续只看默认 APE）。
+      - 查看 `cat /proc/asound/cards`、`cat /proc/asound/card2/usbid`（若存在）、`ls -l /dev/snd`。
+      - 用 `ffmpeg` 已可用，继续用它判断不同通道/格式；可试 `arecord -D hw:CARD=Device,DEV=0 -f S16_LE -r 16000 -c 1 -d 5 ...` 与 `-c 2`（先 `arecord --dump-hw-params`，仅记录建议）。
+      - 对 USB 声卡执行 `lsusb -v -d 0d8c:0012`（只读）确认描述符/厂商。
+      - 检查应用源码/配置的 `ListenGo` 匹配逻辑，暂不修改。
+  - 状态：
+      - `TASK-2026-08-21-001` 保持 `in_progress`。
+      - 扬声器此前人工确认正常。
+      - 麦克风有效音频/语音识别：`NEEDS_CONFIRMATION`。
+      - 当前已确认的是"采集链路产出近静音 WAV"。
+  - checkpoint updated 2026-08-21; tests: SKIPPED (user-provided ffmpeg/amixer diagnostics only)。
 
 - current_focus: `TASK-2026-08-21-001`（图传接收机 IP、BOX 麦克风、任务 service 模式、点位动作通用 service、GO2 2D 适配）。
 - scope: NEEDS_CONFIRMATION（多子项目标地址、设备路径、接口契约、底盘型号均待用户确认）。

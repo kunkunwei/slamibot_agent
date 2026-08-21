@@ -108,6 +108,41 @@
           - 用正确绝对路径执行 `udevadm info --query=all --name=/dev/ttyUSB8`，并对实际声卡节点跑 udev 查询（实际节点需先从 `/proc/asound/cards`、`/dev/snd` 确认，未知处标 UNKNOWN）。
           - 重试 `dmesg`（需具有 sudo 或内核日志权限时再执行）。
       - 任务执行约束：上述命令本次**不执行**，仅记录到任务条目；后续是否在 Jetson 上执行需用户授权（涉及只读命令，可纳入 READ_ONLY 范围后由用户触发）。
+  - 2026-08-21 用户最新音频诊断证据（用户提供，仅记录，不在本任务中执行命令）：
+      - `arecord ... -V mono`：可完成 5 秒录音，但 VU 输出几乎没有有效电平（仅看到起始 `#+ ... | 00%`，不可据此做精确峰值判断）。
+      - `sox`：未安装（两次均 `sox：未找到命令`）。
+      - `ffmpeg -i /tmp/box-mic-test.wav -af volumedetect -f null -`：
+          - n_samples = 80000（约 5 秒，16kHz mono，与预期一致）。
+          - mean_volume = -90.3 dB。
+          - max_volume = -74.7 dB。
+          - histogram_74db / histogram_76db 仅有少量样本。
+          - 明确说明 WAV 内容基本接近静音/只有极低噪声。
+      - `amixer`：输出非常长，主要是 Jetson APE / 内部 DSP / I2S / DSPK 控件；用户未指定 `-c 2`，因此不能把它当作 USB Audio Device (card 2) 的采集增益/静音状态证据。
+      - **结论升级**：
+          - USB 音频设备枚举、ALSA 打开、WAV 格式/落盘都正常。
+          - 但录音内容基本为静音（mean ≈ -90 dB, max ≈ -75 dB），说明当前有效麦克风音频未进入 `hw:2,0`（或输入增益/静音/路由/设备身份仍有问题）。
+          - **不得宣称麦克风硬件已损坏**；可能原因标为 `NEEDS_CONFIRMATION`：
+              - USB 音频设备并非 BOX 麦克风输入（device 身份/路由问题）。
+              - 采集通道静音或增益为 0。
+              - USB Audio 设备身份/驱动映射错误。
+              - 需要特定多通道/采样格式才能采集到有效数据。
+      - **至少有两层问题**（不要简化为单一名称匹配）：
+          - ① 应用设备名识别失败（ListenGo vs 通用 USB Audio Device）。
+          - ② 采集数据近静音（与播放/识别链路无关）。
+      - 当前准确状态（再次区分播放与采集）：
+          - BOX 音频输出（扬声器播放）：此前已由用户人工实测确认正常。
+          - USB 音频输入设备：已被系统识别并由 `snd-usb-audio` 驱动枚举（`arecord -l`/`arecord -L` 列出 `USB Audio Device`）。
+          - ALSA 打开 + WAV 落盘：已确认正常（文件格式校验通过）。
+          - 麦克风有效音频内容 / 语音识别：`NEEDS_CONFIRMATION`（WAV 接近静音）。
+          - 语音交互应用：仍因名称匹配 `ListenGo` 失败未启动。
+          - `/dev/lg_speech_uac`：仍不存在。
+      - 下一步建议（**仅记录，不在本会话执行**；待用户授权后再跑）：
+          - 用 `amixer -c 2 scontrols`、`amixer -c 2 contents` 检查 USB 声卡真实控件（不能继续只看默认 APE）。
+          - 查看 `cat /proc/asound/cards`、`cat /proc/asound/card2/usbid`（若存在）、`ls -l /dev/snd`。
+          - 用 `ffmpeg` 已可用，继续用它判断不同通道/格式；可试 `arecord -D hw:CARD=Device,DEV=0 -f S16_LE -r 16000 -c 1 -d 5 ...` 与 `-c 2`（先 `arecord --dump-hw-params`，仅记录建议）。
+          - 对 USB 声卡执行 `lsusb -v -d 0d8c:0012`（只读）确认描述符/厂商。
+          - 检查应用源码/配置的 `ListenGo` 匹配逻辑，暂不修改。
+      - 任务执行约束：上述命令本次**不执行**，仅记录到任务条目；后续是否在 Jetson 上执行需用户授权。
   - 3. 确认任务创建相关内容采用 service 模式：
       - 当前事实源：`/api/map/task/*`、`/api/map/nav_multi/*` 为 HTTP 接口；ROS 内部使用 `move_base` action 与 `/nav_multi/*` service/status（见 `TASK-2026-08-20-010`）。
       - 待确认：用户所指“任务创建”具体指 HTTP 入口、ROS service 还是二者并行；接口契约以用户确认为准。
