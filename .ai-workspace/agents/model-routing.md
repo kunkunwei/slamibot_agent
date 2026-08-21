@@ -15,23 +15,27 @@
 ## 自动切换规则
 
 1. 默认主任务使用 `gpt-5.6-luna`。Luna 负责日常需求理解、文件/日志/Git 检查、lane 拆分、工具调用、Claude Code MCP 委派、任务范围 diff 和简短汇总。
-2. 普通任务的 Sol 请求目标为 0。不得仅因为任务开始、工具返回、Claude Code 完成或需要最终总结而调用 Sol。
-3. 只有满足下列任一条件时，才显式创建 `gpt-5.6-sol` subagent：
-   - 跨前端、后端、导航仓库的架构决策或复杂接口冲突；
-   - ROS/Docker/rosbridge protected 接口、高风险迁移、部署或数据操作；
-   - Luna 已完成一次边界明确的定位，但仍无法确定根因或存在多个高风险方案；
-   - 用户明确要求使用 Sol 深入分析。
-4. Sol 委派必须包含一个边界明确的问题和所需事实，默认只咨询一轮；不得让 Sol执行例行文件搜索、机械 Git 检查、普通 diff 转述或常规最终审查。
-5. 独立且非阻塞的批量扫描可显式创建或复用 `gpt-5.6-luna` subagent。已有同类 Luna 时优先复用，不为增加 UI 显示次数重复创建。
-6. 紧急阻塞步骤由 Luna 主 Agent 本地处理，不为了形式化分工等待 subagent。
-7. 不在运行中的 subagent 内“热切换”模型；需要升级时新建 Sol 子代理并只传递必要上下文。
-8. 任何模型均继承本工作区安全规则；模型切换不扩大文件、Git、SSH、Docker、ROS 或 Jetson 权限。
-9. Jetson 未开机或用户未声明已上线时，不进行 SSH 连通性重试。上线后默认仅执行 `READ_ONLY` 白名单检查。
+2. 单 lane 普通任务的 Sol 请求目标为 0。不得仅因为任务开始、工具返回、Claude Code 完成或需要最终总结而调用 Sol。
+3. 满足以下任一客观条件时，必须显式创建或复用 `gpt-5.6-sol` subagent，不得等待用户点名：
+   - 前端、后端、导航中至少两个 lane 存在相互依赖，需要端到端联调或共同解释同一故障；
+   - 故障可能跨 API、HTTP/WebSocket、rosbridge、ROS Topic/Service/Action、容器或网络层传播，需要建立跨层因果链；
+   - 需要修改、裁决或确认 API/消息字段/状态码/端口/Topic/Service/Action 等接口契约或 protected 接口；
+   - 涉及高风险迁移、部署、数据操作或跨仓库架构决策；
+   - Luna 已完成一次定位，但仍有多个根因假设、证据互相矛盾或无法确定根因；
+   - 用户明确要求使用 Sol。
+4. 触发复杂条件后，Luna 只收集能够界定问题的最小事实，然后必须在给出根因结论或实施方案前调用 Sol；Sol 不是等待 Luna 失败后才考虑的可选项。
+5. 多 lane 修改若完全独立、无共享接口且无需解释同一端到端现象，可以继续由 Luna 协调，不触发 Sol。
+6. Sol 委派必须包含一个边界明确的问题、相关事实和期望决策，默认先咨询一轮；只有新增证据实质改变判断时才继续原 Sol 会话。
+7. 不得让 Sol 执行例行文件搜索、机械 Git 检查、普通 diff 转述、Claude Code 结果转述或常规最终审查。
+8. 独立且非阻塞的批量扫描可显式创建或复用 `gpt-5.6-luna` subagent。已有同类 Luna 时优先复用，不为增加 UI 显示次数重复创建。
+9. 不在运行中的 subagent 内“热切换”模型；复杂升级时新建或复用 Sol 子代理并只传递必要上下文。
+10. 任何模型均继承本工作区安全规则；模型切换不扩大文件、Git、SSH、Docker、ROS 或 Jetson 权限。
+11. Jetson 未开机或用户未声明已上线时，不进行 SSH 连通性重试。上线后默认仅执行 `READ_ONLY` 白名单检查。
 ## 与 Claude Code MCP 的关系
 
 - Codex subagent：用于 Codex 内部并行分析、实现支持与验证，模型可选 Sol/Luna。
 - Claude Code MCP：用于把实际代码任务委派给 Claude Code；`cwd`、读写 scope、测试和禁止事项必须明确。
-- 推荐链路：Luna 主 Codex 轻量协调 → Luna Explorer 按需并行扫描 → Claude Code MCP 实施 → 必要时单轮 Sol 专家咨询 → 直接进入用户手动现象/抓包驱动的联调。
+- 推荐链路：Luna 主 Codex 轻量分诊 → 复杂跨 lane 联调时立即调用 Sol 建立因果链 → Luna/Claude Code 按 lane 实施 → 直接进入用户手动现象/抓包驱动的联调。
 
 ## 快速开发路由
 

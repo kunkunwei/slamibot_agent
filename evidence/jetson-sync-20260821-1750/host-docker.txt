@@ -1,0 +1,20 @@
+ubuntu
+jetson
+2026年 08月 21日 星期五 17:52:27 CST
+Linux ubuntu 5.10.216-tegra #1 SMP PREEMPT Mon Jan 26 23:28:09 PST 2026 aarch64 aarch64 aarch64 GNU/Linux
+文件系统        容量  已用  可用 已用% 挂载点
+/dev/nvme0n1p1  233G  165G   56G   75% /
+545cf538f935 scout-nav scout-nav:base-mode-ready-20260820 Up About an hour
+3d16d61a8be0 firmware-sensors registry.cn-shanghai.aliyuncs.com/slamibot/slamibot_d360_firmware:latest Up 56 years
+399c8280f487 core registry.cn-shanghai.aliyuncs.com/slamibot/slamibot_d360_firmware:latest Up 56 years
+cd9095ae2426 ota_web registry.cn-shanghai.aliyuncs.com/slamibot/slamibot_d360_firmware:latest Up 56 years
+7ff63a769529 kn_nav_container kn_nav:v1 Exited (255) 56 years ago
+0f8072479978 d360_navigation_container registry.cn-shanghai.aliyuncs.com/slamibot/nav3d_d360:1.0 Exited (0) 6 days ago
+scout-nav:base-mode-ready-20260820 sha256:47a39c338aab6101d89312480c26ca49eb21e512e041f52d6a125f05ee9c515b 2026-08-20 14:20:36 +0800 CST
+ghcr.io/kunkunwei/scout-nav:initial-map-cloud-20260819 sha256:37970d47c0609b3c438c4ba3b1e339b617667c10596d21659ee209131bf7ac81 2026-08-19 18:31:10 +0800 CST
+<none>:<none> sha256:dcfb7c6b4c18e35cc5bfa9b968c532eaad2815c608e996fc9839ba33ef7b9d3c 2026-08-13 13:25:35 +0800 CST
+kn_nav:v1 sha256:89ce472fb5a292a399c5e020e7cb84de47b45775c7add89547bcd79e777b6576 2026-08-06 10:27:40 +0800 CST
+registry.cn-shanghai.aliyuncs.com/slamibot/slamibot_d360_firmware:latest sha256:71ff42d71284ec2d08066c6d6824097e4610f7d5c1f9055db4a208a9d34d919f 2026-07-21 15:23:42 +0800 CST
+registry.cn-shanghai.aliyuncs.com/slamibot/nav3d_d360:1.0 sha256:c3cbf58686b3e33e19d548ae161447b1a0757a55cb0e166ab6c9a9babf774533 2026-04-14 14:19:38 +0800 CST
+ros:foxy-ros1-bridge sha256:728409448ce4ecc91e60a5f48c4d0d0800a1295a2d6e139316002fb37fc56923 2025-06-07 16:04:40 +0800 CST
+docker.m.daocloud.io/library/ros:foxy-ros1-bridge sha256:728409448ce4ecc91e60a5f48c4d0d0800a1295a2d6e139316002fb37fc56923 2025-06-07 16:04:40 +0800 CST

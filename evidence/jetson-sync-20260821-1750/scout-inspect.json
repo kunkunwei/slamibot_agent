@@ -1,0 +1,218 @@
+[
+    {
+        "Id": "545cf538f9351881440ffb1082804b428db0ef07788419e109d04fd965762106",
+        "Created": "2026-08-20T06:20:38.650859136Z",
+        "Path": "/ros_entrypoint.sh",
+        "Args": [
+            "/usr/local/bin/nav-api-entrypoint"
+        ],
+        "State": {
+            "Status": "running",
+            "Running": true,
+            "Paused": false,
+            "Restarting": false,
+            "OOMKilled": false,
+            "Dead": false,
+            "Pid": 86796,
+            "ExitCode": 0,
+            "Error": "",
+            "StartedAt": "2026-08-21T08:35:17.431338846Z",
+            "FinishedAt": "2026-08-21T08:35:17.372934699Z"
+        },
+        "Image": "sha256:47a39c338aab6101d89312480c26ca49eb21e512e041f52d6a125f05ee9c515b",
+        "ResolvConfPath": "/var/lib/docker/containers/545cf538f9351881440ffb1082804b428db0ef07788419e109d04fd965762106/resolv.conf",
+        "HostnamePath": "/var/lib/docker/containers/545cf538f9351881440ffb1082804b428db0ef07788419e109d04fd965762106/hostname",
+        "HostsPath": "/var/lib/docker/containers/545cf538f9351881440ffb1082804b428db0ef07788419e109d04fd965762106/hosts",
+        "LogPath": "/var/lib/docker/containers/545cf538f9351881440ffb1082804b428db0ef07788419e109d04fd965762106/545cf538f9351881440ffb1082804b428db0ef07788419e109d04fd965762106-json.log",
+        "Name": "/scout-nav",
+        "RestartCount": 0,
+        "Driver": "overlay2",
+        "Platform": "linux",
+        "MountLabel": "",
+        "ProcessLabel": "",
+        "AppArmorProfile": "",
+        "ExecIDs": null,
+        "HostConfig": {
+            "Binds": [
+                "/home/jetson/Scout_mini_navigation/src/nav_api/db:/Scout_mini_navigation/src/nav_api/db",
+                "/home/jetson/Scout_mini_navigation/src/my_nav/maps:/Scout_mini_navigation/src/my_nav/maps"
+            ],
+            "ContainerIDFile": "",
+            "LogConfig": {
+                "Type": "json-file",
+                "Config": {}
+            },
+            "NetworkMode": "host",
+            "PortBindings": {},
+            "RestartPolicy": {
+                "Name": "unless-stopped",
+                "MaximumRetryCount": 0
+            },
+            "AutoRemove": false,
+            "VolumeDriver": "",
+            "VolumesFrom": null,
+            "ConsoleSize": [
+                0,
+                0
+            ],
+            "CapAdd": null,
+            "CapDrop": null,
+            "CgroupnsMode": "host",
+            "Dns": [],
+            "DnsOptions": [],
+            "DnsSearch": [],
+            "ExtraHosts": null,
+            "GroupAdd": null,
+            "IpcMode": "private",
+            "Cgroup": "",
+            "Links": null,
+            "OomScoreAdj": 0,
+            "PidMode": "",
+            "Privileged": true,
+            "PublishAllPorts": false,
+            "ReadonlyRootfs": false,
+            "SecurityOpt": [
+                "label=disable"
+            ],
+            "UTSMode": "",
+            "UsernsMode": "",
+            "ShmSize": 67108864,
+            "Runtime": "runc",
+            "Isolation": "",
+            "CpuShares": 0,
+            "Memory": 0,
+            "NanoCpus": 0,
+            "CgroupParent": "",
+            "BlkioWeight": 0,
+            "BlkioWeightDevice": [],
+            "BlkioDeviceReadBps": [],
+            "BlkioDeviceWriteBps": [],
+            "BlkioDeviceReadIOps": [],
+            "BlkioDeviceWriteIOps": [],
+            "CpuPeriod": 0,
+            "CpuQuota": 0,
+            "CpuRealtimePeriod": 0,
+            "CpuRealtimeRuntime": 0,
+            "CpusetCpus": "",
+            "CpusetMems": "",
+            "Devices": [],
+            "DeviceCgroupRules": null,
+            "DeviceRequests": null,
+            "MemoryReservation": 0,
+            "MemorySwap": 0,
+            "MemorySwappiness": null,
+            "OomKillDisable": false,
+            "PidsLimit": null,
+            "Ulimits": [],
+            "CpuCount": 0,
+            "CpuPercent": 0,
+            "IOMaximumIOps": 0,
+            "IOMaximumBandwidth": 0,
+            "MaskedPaths": null,
+            "ReadonlyPaths": null
+        },
+        "GraphDriver": {
+            "Data": {
+                "ID": "545cf538f9351881440ffb1082804b428db0ef07788419e109d04fd965762106",
+                "LowerDir": "/var/lib/docker/overlay2/d5be720f8f44bd49e437d133c126bd6695ab0afb933b6a2d9c687f89ab96fdff-init/diff:/var/lib/docker/overlay2/t7mvghyvwtpr8t8b0bgjrhs1a/diff:/var/lib/docker/overlay2/xug7sw7z7d0jiqq1i1lmoe2bz/diff:/var/lib/docker/overlay2/sadthqlpg1al8gqhtopirh34j/diff:/var/lib/docker/overlay2/xop2mgp25va5t9gdu5l0biaun/diff:/var/lib/docker/overlay2/p66820txgyftdls87ac1e6kyh/diff:/var/lib/docker/overlay2/tjuatk6tb0vyu09p4ikfh5den/diff:/var/lib/docker/overlay2/p9r4p4u1o1n027ch42wrhim4x/diff:/var/lib/docker/overlay2/ni0d4usmlylmf9q3skdgpswvw/diff:/var/lib/docker/overlay2/9ja009nn0uhalbsxfl6o240mx/diff:/var/lib/docker/overlay2/lejhbuvvygextu9n4i4m3ym5x/diff:/var/lib/docker/overlay2/mn1rk0ox7u9dyr10mp7p07gmv/diff:/var/lib/docker/overlay2/obljdpnyr2axjk2wecx7a25m3/diff:/var/lib/docker/overlay2/rnw0ljawhdyme7viwo2brbd98/diff:/var/lib/docker/overlay2/opco46g87kp9r7dnyxfqfnxtu/diff:/var/lib/docker/overlay2/rar1fnudzbd8tu507wd9p99pn/diff:/var/lib/docker/overlay2/ajm7obm1vnjrj2zgbthle83xj/diff:/var/lib/docker/overlay2/jfeiz1gdgqmm27rl1l9tgn2m2/diff:/var/lib/docker/overlay2/xib7xpobizllicr1ase1940xt/diff:/var/lib/docker/overlay2/vyaupdtt61cyoashisa5v8e2s/diff:/var/lib/docker/overlay2/rsoyzc2f7kr5bieiacqhv80cf/diff:/var/lib/docker/overlay2/7cry7z8u1vti4xl1e30496x1y/diff:/var/lib/docker/overlay2/o3mefh8sfzqe6zrxhu4ytrdf8/diff:/var/lib/docker/overlay2/k9rya7ntji83amumwoa5twsxd/diff:/var/lib/docker/overlay2/8cb8c6498e2057074c7e230579d7b143c292c56feabc40548cbcc525f7f86714/diff:/var/lib/docker/overlay2/2e23a5e6be69779a7d237a714751c5b09ae4624addb29abb0bfe4152e7bb40d4/diff:/var/lib/docker/overlay2/3304d56ba21c324249d18fd9a833b6618913265d123ce75bf7888ef0eb4e343d/diff:/var/lib/docker/overlay2/5f4718b76587bebd365b731686fec899943188c691b7d418c8f7b44f17b25cf1/diff:/var/lib/docker/overlay2/5ed7106cf03823005694f9bc974c1118e1a2fe65a4000a1e1fcd774d670c868f/diff:/var/lib/docker/overlay2/78105b158232224e7e7254fefc354cac2a3025ee38d888b495fdda19a17a6fad/diff:/var/lib/docker/overlay2/8c885c3ff8e35d393d8d714f2e0058274fccaf7abf839598e42f95f13b94faa6/diff:/var/lib/docker/overlay2/63e42e92b8b4dab15fff7d9d8876711563d61b4d0816ddf975fcb45aa79cecac/diff:/var/lib/docker/overlay2/02efaddf4e0c7c113d06e822dad6fd690e0f936a6f08b805d33a7fc114820097/diff:/var/lib/docker/overlay2/850316cb049ed1b8231ed75266ca77361852f11dfdfb66c96965f975a7df6e03/diff",
+                "MergedDir": "/var/lib/docker/overlay2/d5be720f8f44bd49e437d133c126bd6695ab0afb933b6a2d9c687f89ab96fdff/merged",
+                "UpperDir": "/var/lib/docker/overlay2/d5be720f8f44bd49e437d133c126bd6695ab0afb933b6a2d9c687f89ab96fdff/diff",
+                "WorkDir": "/var/lib/docker/overlay2/d5be720f8f44bd49e437d133c126bd6695ab0afb933b6a2d9c687f89ab96fdff/work"
+            },
+            "Name": "overlay2"
+        },
+        "Mounts": [
+            {
+                "Type": "bind",
+                "Source": "/home/jetson/Scout_mini_navigation/src/my_nav/maps",
+                "Destination": "/Scout_mini_navigation/src/my_nav/maps",
+                "Mode": "",
+                "RW": true,
+                "Propagation": "rprivate"
+            },
+            {
+                "Type": "bind",
+                "Source": "/home/jetson/Scout_mini_navigation/src/nav_api/db",
+                "Destination": "/Scout_mini_navigation/src/nav_api/db",
+                "Mode": "",
+                "RW": true,
+                "Propagation": "rprivate"
+            }
+        ],
+        "Config": {
+            "Hostname": "ubuntu",
+            "Domainname": "",
+            "User": "",
+            "AttachStdin": false,
+            "AttachStdout": false,
+            "AttachStderr": false,
+            "ExposedPorts": {
+                "19090/tcp": {},
+                "5000/tcp": {},
+                "80/tcp": {}
+            },
+            "Tty": false,
+            "OpenStdin": false,
+            "StdinOnce": false,
+            "Env": [
+                "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                "LANG=C.UTF-8",
+                "LC_ALL=C.UTF-8",
+                "ROS_DISTRO=noetic",
+                "SCOUT_NAV_WS=/Scout_mini_navigation"
+            ],
+            "Cmd": [
+                "/usr/local/bin/nav-api-entrypoint"
+            ],
+            "Image": "scout-nav:base-mode-ready-20260820",
+            "Volumes": null,
+            "WorkingDir": "/Scout_mini_navigation",
+            "Entrypoint": [
+                "/ros_entrypoint.sh"
+            ],
+            "OnBuild": null,
+            "Labels": {
+                "org.opencontainers.image.ref.name": "ubuntu",
+                "org.opencontainers.image.version": "20.04"
+            }
+        },
+        "NetworkSettings": {
+            "Bridge": "",
+            "SandboxID": "638aa0c095d2d2a2f8dc006b7559806babfe4265256f0dfe6199d8d112dfb3e7",
+            "SandboxKey": "/var/run/docker/netns/default",
+            "Ports": {},
+            "HairpinMode": false,
+            "LinkLocalIPv6Address": "",
+            "LinkLocalIPv6PrefixLen": 0,
+            "SecondaryIPAddresses": null,
+            "SecondaryIPv6Addresses": null,
+            "EndpointID": "",
+            "Gateway": "",
+            "GlobalIPv6Address": "",
+            "GlobalIPv6PrefixLen": 0,
+            "IPAddress": "",
+            "IPPrefixLen": 0,
+            "IPv6Gateway": "",
+            "MacAddress": "",
+            "Networks": {
+                "host": {
+                    "IPAMConfig": null,
+                    "Links": null,
+                    "Aliases": null,
+                    "MacAddress": "",
+                    "DriverOpts": null,
+                    "GwPriority": 0,
+                    "NetworkID": "c956e88a3b524647b678a6bc794cd9d5b1530977b0b0c0f0d2b5f0bc71ed5ad2",
+                    "EndpointID": "60431d4f9a9cb1aa4c516c0bd937febc563781192b011743cd2d87fa64b19afb",
+                    "Gateway": "",
+                    "IPAddress": "",
+                    "IPPrefixLen": 0,
+                    "IPv6Gateway": "",
+                    "GlobalIPv6Address": "",
+                    "GlobalIPv6PrefixLen": 0,
+                    "DNSNames": null
+                }
+            }
+        }
+    }
+]

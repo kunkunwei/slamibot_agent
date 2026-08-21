@@ -1,0 +1,20 @@
+core 重启后，旧的 PCD 发布进程仍然残留：
+PID 59272
+python3 /Scout_mini_navigation/install/lib/nav_api/pcd_map_publisher.py ...
+但它已经连接不到当前 ROS Master，所以只是一个“旧进程”，不会发布消息。
+后端的 pcd_running=true 是假状态，导致导航启动接口误以为 PCD 已经运行，因此没有重新创建新的点云发布器。
+我尝试清理这个旧进程，但当前 SSH 用户需要 sudo 密码：
+sudo: 需要密码
+没有执行成功，所以没有误杀其他进程。
+请你在 Jetson 执行这几条命令
+sudo kill 59272
+确认进程消失：
+pgrep -af pcd_map_publisher
+然后重新启动导航：
+curl -sS -X POST http://127.0.0.1:5000/api/launch/navigation/stop
+sleep 2
+curl -sS -X POST http://127.0.0.1:5000/api/launch/navigation/start
+最后验证：
+source /opt/ros/noetic/setup.bash
+rostopic info /global_cloud_navigation
+timeout 5 rostopic echo -n 1 /global_cloud_navigation

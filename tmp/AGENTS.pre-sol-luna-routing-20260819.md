@@ -22,9 +22,6 @@
 @.ai-workspace/core/system-lifecycle.md
 @.ai-workspace/core/testing-rules.md
 @.ai-workspace/core/agent-roles.md
-@.ai-workspace/core/context-compaction.md
-@.ai-workspace/agents/model-routing.md
-@.ai-workspace/agents/team-orchestration.md
 
 ## 事实源（唯一可信来源，读取时按需引用，禁止凭记忆改值）
 
@@ -39,7 +36,6 @@
 
 ## 任务与流程
 
-- 最新压缩检查点：`.ai-workspace/tasks/context-checkpoint.md`
 - 当前任务：`.ai-workspace/tasks/current.md`
 - 工作流程：`.ai-workspace/procedures/`
 - Agent 角色：`.ai-workspace/agents/`
@@ -50,8 +46,6 @@
 
 阅读 `.ai-workspace/README.md` 了解如何接入仓库、创建任务、连接 Jetson、撤回修改。
 
-账号/Provider 切换、Codex 重启或聊天上下文丢失时，优先读取：.ai-workspace/knowledge/codex-claude-mcp-handoff.md。
-
 ## Codex 与 Claude Code 半自动协作
 
 本节补充执行分工，不放宽上述任何安全、事实源、技术栈隔离或变更授权规则；如有冲突，以更严格的既有规则为准。
@@ -61,7 +55,7 @@
 - Codex 负责理解需求、读取工作区事实源、制定方案、拆分任务、确定授权范围以及最终验收。
 - 涉及实际代码修改时，优先通过 `claude-code` MCP 委派给 Claude Code 执行；只读分析、规划和极小的低风险操作可由 Codex 直接完成。
 - Claude Code 的 `cwd` 必须是本次任务明确授权的实际仓库或测试目录，不得因为当前会话位于本 AI 工作区就扩大到其他业务仓库、Jetson 或远程环境。
-- Codex 不得仅依据 Claude Code 的完成声明判断成功；必须独立检查 `git diff`、事实源约束和用户要求。测试仅在用户明确要求或任务属于高风险范围时执行。
+- Codex 不得仅依据 Claude Code 的完成声明判断成功；必须独立检查 `git diff`、相关测试输出、事实源约束和用户要求。
 - 检查失败时，优先继续原 Claude Code 会话返工，避免丢失上下文。
 
 ### 路由规则
@@ -75,7 +69,7 @@
 ### 委派与验收协议
 
 1. 委派前读取相关事实源并记录目标仓库当前 Git 状态，保留用户已有改动。
-2. 给 Claude Code 的提示必须包含目标、约束、`cwd`、可读写范围、测试策略（普通小改默认 `SKIP`）和禁止事项。
+2. 给 Claude Code 的提示必须包含目标、约束、`cwd`、可读写范围、测试要求和禁止事项。
 3. 默认先允许只读工具；写入或命令执行权限只授予当前任务明确需要的最小范围。
 4. Claude Code 后台运行时，Codex 应轮询状态、处理必要的权限请求并向用户提供简短进度。
 5. 完成后 Codex 独立检查差异并运行与风险相称的验证；发现问题则要求 Claude Code 继续修复。
@@ -90,44 +84,5 @@
 - 只读分析使用 `mode: read_only`；用户已授权本地文件修改时使用 `mode: edit`。Codex 必须传入明确的 `cwd`、允许修改路径、禁止事项和验收要求。
 - Jetson 状态、日志、容器列表、节点、端口和远端 Git 状态等默认只读检查，可自动使用 `mode: jetson_read_only`；该模式只能调用固定白名单助手，禁止任意 SSH 命令。
 - `BUILD`、`DEPLOY` 必须在当前任务中明确授权后执行；不得通过 `jetson_read_only` 绕过授权。`DANGEROUS`（删除、prune、改系统、重启、磁盘清理等）永远逐次人工确认。
-- Claude Code 完成后，Codex 必须独立检查本地/远端 `git status` 与差异；普通小改不强制测试。高风险任务或用户明确要求时才检查相应测试输出。
+- Claude Code 完成后，Codex 必须独立检查本地/远端 `git status`、差异与相应测试输出；不得仅依据 Claude Code 的声明验收。
 - Codex/CC Switch 配置变更不会热加载到已打开任务；新增或调整 MCP 后应新建任务或重启 Codex，再进行调用验证。
-
-## Codex Subagent：Sol / Luna 自动路由
-
-- 模型路由规则见 `.ai-workspace/agents/model-routing.md`，默认主模型使用 `gpt-5.6-luna`，无需用户每次指定。
-- Luna 负责日常协调、文件/日志/Git 检查、lane 拆分、Claude Code MCP 调用、任务范围 diff 和简短汇总；单 lane 普通任务的 Sol 请求目标为 0。
-- 满足任一条件时必须自动创建或复用 `gpt-5.6-sol` subagent，不得等待用户点名：前端/后端/导航中至少两个 lane 存在相互依赖的端到端联调；故障现象可能跨 API、HTTP/WebSocket、rosbridge、ROS Topic/Service/Action 或网络层传播；需要修改/裁决接口契约或 protected 接口；存在高风险迁移/部署/数据操作；Luna 一次定位后仍有多个根因假设或无法确定根因。
-- 复杂联调触发后，Luna 只收集最小必要事实，随后在制定根因结论或实施方案前立即调用 Sol；不再把 Sol 仅作为“Luna 失败后的可选升级”。
-- 多 lane 但修改完全独立、无共享接口、无端到端因果链时不触发 Sol。用户明确要求 Sol 时必须立即调用。
-- Sol 委派必须问题边界明确，默认先咨询一轮；只有新增证据实质改变判断时才继续原 Sol 会话。不得把 Sol 用作例行最终审查、机械 Git 检查、普通文件搜索或 Claude Code 结果转述。
-- 独立且非阻塞的并行扫描可创建或复用 Luna subagent；已有同类 Luna 时优先复用，不为增加 UI 显示次数重复创建。
-- 创建 subagent 时必须显式传入目标模型；模型切换不构成权限升级。
-- 实际业务代码修改仍遵循 Claude Code MCP 自动委派与 Codex 独立验收协议。
-- 当前 Jetson 关机；在用户明确告知开机前不得尝试 SSH。开机后仍默认从只读白名单验证开始。
-
-
-
-## 小任务完成后自动压缩与工作台同步
-
-- 每完成一个边界明确的小任务，必须按 `.ai-workspace/core/context-compaction.md` 覆盖更新 `.ai-workspace/tasks/context-checkpoint.md`。
-- 任务状态有实质变化时同步更新 `current.md` 或 `completed.md`；不得把完整对话、长日志或重复事实写入多个文件。
-- 后续恢复先读取短检查点，再按需读取当前任务和相关事实源，避免重放完整聊天上下文。
-- 如果运行时提供原生 compaction 工具，落盘后调用一次；没有工具时只声明“工作区逻辑压缩已完成”，不得声称触发了底层压缩。
-- 检查点最多 40 行、约 1200 个中文字符；最终回复只给变更、验证、风险和下一步的短摘要。
-## 快速开发默认模式（用户偏好）
-
-- 普通、小范围、可直接理解的代码修改默认走快速路径：一次分析 → 一次修改 → 检查 `git diff` → 提交并安全上传；不做多轮自我回环。
-- 默认不运行单元测试、构建、仿真或真机验证；只有用户明确要求，或任务涉及 protected 接口、ROS/Docker 基础设施、迁移、发布等高风险范围时才测试。
-- Git 仓库中的普通修改默认不制作额外时间戳备份；Git 提交和远端分支承担版本留存。历史改写、批量删除、非 Git 配置覆盖等危险操作仍必须备份并单独授权。
-- 用户已对“及时上传 GitHub”给出常规授权：仅提交任务 scope 内文件，禁止 force push；当前分支为受保护分支或远端/分支不明确时，创建并推送 `codex/*` 安全分支，不擅自合并。
-- 即使跳过测试，也必须明确报告 `tests: SKIPPED (user fast mode)`；“已上传”只表示代码已保存到远端，不等同于功能已验证。
-- 简单修改优先使用 Luna；复杂架构、疑难调试、跨仓库整合才使用 Sol。
-
-## 三项目轻量并行与直接联调
-
-- 团队协作规则见 `.ai-workspace/agents/team-orchestration.md`。
-- 前端、后端、导航只启动本次涉及的 lane；最多三个 Codex 分析 lane、两个 Claude Code 实施任务并行。
-- 取消重型阶段三汇总：各 lane 完成并做任务范围 `git diff` 后，直接进入用户手动操作、抓包和关键日志驱动的联调。
-- 稳定且本次未修改的接口、端口、状态和模块不重复检查。
-- 用户提供的可复现现象、发生时间、截图/视频、抓包和日志是联调定位的首要输入。

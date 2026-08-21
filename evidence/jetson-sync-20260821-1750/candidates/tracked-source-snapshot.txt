@@ -1,0 +1,2629 @@
+===FILE:docker-entrypoint.sh
+#!/bin/bash
+# Scout Mini 导航 Docker 入口
+# 前置条件: 宿主机已启动 roscore + livox 雷达驱动 + /clock + CAN 底盘
+
+set -e
+
+# -------- ROS 环境 --------
+source /opt/ros/noetic/setup.bash
+source /Scout_mini_navigation/install/setup.bash
+export ROS_PACKAGE_PATH=/Scout_mini_navigation/src:$ROS_PACKAGE_PATH
+
+
+# 指向宿主机 roscore (host 网络模式下即本机)
+export ROS_MASTER_URI="${ROS_MASTER_URI:-http://127.0.0.1:11311}"
+
+echo "=========================================="
+echo " ROS Master : $ROS_MASTER_URI"
+echo " 工作空间   : /app"
+echo "=========================================="
+
+# -------- 1. rosbridge (WebSocket 19090, 非阻塞) --------
+echo "[INFO] 启动 rosbridge_server (端口 19090)..."
+rosrun rosbridge_server rosbridge_websocket __name:=scout_nav_rosbridge _port:=19090 _use_compression:=true > /tmp/rosbridge.log 2>&1 &
+ROSBRIDGE_PID=$!
+ROSBRIDGE_READY=0
+for _ in $(seq 1 10); do
+    if ! kill -0 "$ROSBRIDGE_PID" 2>/dev/null; then
+        break
+    fi
+    if rosnode info /scout_nav_rosbridge >/dev/null 2>&1 && \
+       timeout 1 bash -c 'exec 3<>/dev/tcp/127.0.0.1/19090' >/dev/null 2>&1; then
+        ROSBRIDGE_READY=1
+        break
+    fi
+    sleep 1
+done
+if [ "$ROSBRIDGE_READY" -eq 1 ]; then
+    echo "[OK]   rosbridge 已启动 (PID=$ROSBRIDGE_PID)"
+else
+    echo "[ERROR] rosbridge 启动失败, 日志: /tmp/rosbridge.log"
+    tail -n 50 /tmp/rosbridge.log || true
+    exit 1
+fi
+
+# -------- 2. nav_multi_node (后台) --------
+echo "[INFO] 启动 nav_multi_node ..."
+rosrun nav_api nav_multi_node.py > /tmp/nav_multi.log 2>&1 &
+NAV_PID=$!
+sleep 1
+if kill -0 "$NAV_PID" 2>/dev/null; then
+    echo "[OK]   nav_multi_node 已启动 (PID=$NAV_PID)"
+else
+    echo "[ERROR] nav_multi_node 启动失败, 日志: /tmp/nav_multi.log"
+    exit 1
+fi
+
+# -------- 3. Nginx Web 网关 --------
+echo "[INFO] 启动 React Web + Nginx (端口 80)..."
+nginx -t
+nginx -g "daemon off;" > /tmp/nginx.log 2>&1 &
+NGINX_PID=$!
+sleep 1
+if kill -0 "$NGINX_PID" 2>/dev/null; then
+    echo "[OK]   Web 网关已启动 (PID=$NGINX_PID)"
+else
+    echo "[ERROR] Web 网关启动失败, 日志: /tmp/nginx.log"
+    exit 1
+fi
+
+# -------- 4. FastAPI + MCP --------
+cleanup() {
+    trap - SIGINT SIGTERM
+    echo ""
+    echo "[INFO] 收到退出信号, 正在停止子进程..."
+    for pid in "${API_PID:-}" "$NGINX_PID" "$ROSBRIDGE_PID" "$NAV_PID"; do
+        if [ -n "$pid" ]; then
+            kill "$pid" 2>/dev/null || true
+            wait "$pid" 2>/dev/null || true
+        fi
+    done
+    echo "[OK]   已退出"
+}
+trap 'cleanup; exit 0' SIGINT SIGTERM
+
+echo "[INFO] 启动 FastAPI + MCP (端口 5000)..."
+echo "=========================================="
+echo " Web : http://<jetson-ip>/app/"
+echo " API : http://<jetson-ip>:5000"
+echo " 文档: http://<jetson-ip>:5000/docs"
+echo " MCP : http://<jetson-ip>:5000/mcp"
+echo "=========================================="
+
+cd /Scout_mini_navigation/src/nav_api
+export PYTHONPATH=/Scout_mini_navigation/src/nav_api
+export SCOUT_NAV_WS=/Scout_mini_navigation
+export ROSBRIDGE_HOST=127.0.0.1
+export ROSBRIDGE_PORT=19090
+export AUDIO_MIC_DEVICE=plughw:3,0
+# Android WebView 通过 appassets 安全域加载本地前端，再跨域访问 BOX API。
+# 保留环境变量覆盖能力，方便部署方追加浏览器或管理端来源。
+export NAV_API_CORS_ORIGINS="${NAV_API_CORS_ORIGINS:-https://appassets.androidplatform.net}"
+/opt/python-api/bin/python3 -m uvicorn fastapi_service.app:app \
+    --host 0.0.0.0 --port 5000 &
+API_PID=$!
+
+set +e
+wait "$API_PID"
+STATUS=$?
+cleanup
+exit "$STATUS"
+===FILE:frontend/deploy/nginx.conf
+server {
+    listen 80;
+    server_name _;
+    absolute_redirect off;
+    root /usr/share/nginx/html;
+
+    location = / {
+        return 302 /app/;
+    }
+
+    location /app/ {
+        try_files $uri $uri/ /app/index.html;
+    }
+
+    location /app/assets/ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        try_files $uri =404;
+    }
+
+    location /api/ {
+        proxy_pass http://127.0.0.1:5000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location ~ ^/(health|docs|openapi\.json|redoc)$ {
+        proxy_pass http://127.0.0.1:5000;
+        proxy_set_header Host $host;
+    }
+
+    location /mcp {
+        proxy_pass http://127.0.0.1:5000;
+        proxy_http_version 1.1;
+        proxy_buffering off;
+        proxy_read_timeout 3600s;
+        proxy_set_header Host $host;
+    }
+
+    location /rosbridge {
+        proxy_pass http://127.0.0.1:9090;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_read_timeout 3600s;
+    }
+}
+===FILE:frontend/src/features/dashboard/ModePanel.tsx
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Button, Modal, Select, message } from 'antd';
+import { useRobotStore } from '../../store/robotStore';
+import { switchToNavigation, switchToMapping } from '../../api/control';
+import { getMapList, switchMap } from '../../api/mapNav';
+import { getLaunchStatus } from '../../api/launch';
+import { mapLabel, normalizeMaps } from '../../utils/normalizeMaps';
+import type { NavMapItem } from '../../types/map';
+import { MappingActions } from './MappingActions';
+import { TaskEditModal } from '../points/TaskEditModal';
+import { TaskListPanel } from '../points/TaskListPanel';
+
+export function ModePanel() {
+  const status = useRobotStore((s) => s.status);
+  // 地图名仍由 robot store 提供(实时跟随机器人状态);模式判断交给 getLaunchStatus
+  const mapName = status?.mapName ?? '';
+  const [mapModal, setMapModal] = useState(false);
+  const [maps, setMaps] = useState<NavMapItem[]>([]);
+  const [selectedMap, setSelectedMap] = useState<string>('');
+  const [taskCreateOpen, setTaskCreateOpen] = useState(false);
+  const [taskListOpen, setTaskListOpen] = useState(false);
+
+  const { data } = useQuery({
+    queryKey: ['launchStatus'],
+    queryFn: getLaunchStatus,
+    refetchInterval: 2000,
+  });
+  const switching = data?.mode_switching === true;
+  // current_mode 为 'idle' | 'mapping' | 'navigation'，作为按钮高亮与 MappingActions 显示的唯一事实源
+  const currentMode = data?.current_mode ?? 'idle';
+  const isNavigation = currentMode === 'navigation';
+  const isMapping = currentMode === 'mapping';
+
+  const openMapModal = async () => {
+    try {
+      const list = await getMapList();
+      setMaps(normalizeMaps(list));
+      setSelectedMap('');
+      setMapModal(true);
+    } catch { message.error('获取地图列表失败'); }
+  };
+
+  return (
+    <div style={{ position: 'absolute', top: 16, right: 16, display: 'flex', flexDirection: 'column', gap: 8, pointerEvents: 'auto' }}>
+      <Button type={isNavigation ? 'primary' : 'default'} disabled={switching} onClick={async () => { try { await switchToNavigation(); message.success('已切换到导航模式'); } catch (e) { message.error(`切换失败: ${(e as Error).message}`); } }}>导航</Button>
+      <Button style={isMapping ? { background: '#fa8c16', borderColor: '#fa8c16', color: '#fff' } : {}} disabled={switching} onClick={async () => { try { await switchToMapping(); message.success('已切换到建图模式'); } catch (e) { message.error(`切换失败: ${(e as Error).message}`); } }}>建图</Button>
+      {isMapping ? <MappingActions mapName={mapName} disabled={switching} /> : null}
+      <Button onClick={openMapModal}>切换地图</Button>
+      <Button type="primary" onClick={() => {
+        if (!mapName) { message.warning('请先加载地图'); return; }
+        setTaskCreateOpen(true);
+      }}>任务创建</Button>
+      <Button onClick={() => {
+        if (!mapName) { message.warning('请先加载地图'); return; }
+        setTaskListOpen(true);
+      }}>任务列表</Button>
+      <Modal title="切换地图" open={mapModal} onOk={async () => { if (!selectedMap) return; try { await switchMap(selectedMap); message.success('地图已切换'); setMapModal(false); } catch (e) { message.error(`切换失败: ${(e as Error).message}`); } }} onCancel={() => setMapModal(false)}>
+        <Select style={{ width: '100%' }} placeholder="选择地图" value={selectedMap || undefined} onChange={setSelectedMap} options={maps.map((m) => ({ label: mapLabel(m), value: m.mapName }))} />
+      </Modal>
+
+      {/* 任务创建:直接弹窗,不跳转 /points */}
+      <TaskEditModal
+        open={taskCreateOpen}
+        mapName={mapName}
+        onClose={() => setTaskCreateOpen(false)}
+      />
+
+      {/* 任务列表:整个 TaskListPanel 嵌入弹窗(执行/编辑/循环/删除) */}
+      <Modal
+        title={`任务列表 - ${mapName}`}
+        open={taskListOpen}
+        footer={null}
+        width={720}
+        onCancel={() => setTaskListOpen(false)}
+        styles={{ body: { maxHeight: '60vh', overflow: 'auto' } }}
+      >
+        {taskListOpen && <TaskListPanel mapName={mapName} />}
+      </Modal>
+    </div>
+  );
+}
+===FILE:frontend/src/features/points/Map2DCanvas.tsx
+import { useCallback, useEffect, useState, Fragment } from 'react';
+import { Stage, Layer, Image as KonvaImage, Circle, Line, RegularPolygon } from 'react-konva';
+import type { KonvaEventObject } from 'konva/lib/Node';
+import type { MapFrame } from '../../utils/mapProjection';
+import { worldToCanvas, canvasToWorld } from '../../utils/mapProjection';
+import type { NavPoint, NavArea, AreaVertex } from '../../types/map';
+import { quaternionToYaw } from '../../utils/yaw';
+
+export type CanvasMode = 'view' | 'addPoint' | 'drawArea';
+
+export interface Map2DCanvasProps {
+  frame: MapFrame | null;
+  imageUrl: string | null;
+  points: NavPoint[];
+  areas: NavArea[];
+  selectedPointId?: number | null;
+  selectedAreaId?: number | null;
+  robotPose?: { x: number; y: number; yaw: number } | null;
+  mode: CanvasMode;
+  onSelectPoint: (id: number) => void;
+  onSelectArea: (id: number) => void;
+  onCanvasClick: (world: { x: number; y: number; z: number }) => void;
+  draftAreaVertices?: AreaVertex[];
+  onDraftAreaVertex?: (v: AreaVertex) => void;
+}
+
+function useHtmlImage(url: string | null): HTMLImageElement | undefined {
+  const [image, setImage] = useState<HTMLImageElement | undefined>(undefined);
+
+  useEffect(() => {
+    if (!url) {
+      setImage(undefined);
+      return;
+    }
+
+    const img = new window.Image();
+    img.onload = () => setImage(img);
+    img.src = url;
+
+    return () => {
+      img.onload = null;
+    };
+  }, [url]);
+
+  return image;
+}
+
+function parseAreaVertices(pointsJson: string | null | undefined): AreaVertex[] {
+  if (pointsJson == null || pointsJson === '') return [];
+  try {
+    const parsed = typeof pointsJson === 'string' ? JSON.parse(pointsJson) : pointsJson;
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(
+      (v): v is AreaVertex =>
+        v != null
+        && typeof v === 'object'
+        && Number.isFinite((v as AreaVertex).x)
+        && Number.isFinite((v as AreaVertex).y),
+    );
+  } catch {
+    return [];
+  }
+}
+
+function yawToKonvaRotation(yaw: number) {
+  return (yaw * 180) / Math.PI - 90;
+}
+
+function getCanvasCoords(e: KonvaEventObject<MouseEvent | TouchEvent>) {
+  const evt = e.evt as MouseEvent;
+  if (typeof evt.offsetX === 'number' && typeof evt.offsetY === 'number') {
+    return { x: evt.offsetX, y: evt.offsetY };
+  }
+
+  const pos = e.target.getStage()?.getPointerPosition();
+  return pos ?? null;
+}
+
+export function Map2DCanvas(props: Map2DCanvasProps) {
+  const {
+    frame,
+    imageUrl,
+    points,
+    areas,
+    selectedPointId,
+    selectedAreaId,
+    robotPose,
+    mode,
+    onSelectPoint,
+    onSelectArea,
+    onCanvasClick,
+    draftAreaVertices,
+    onDraftAreaVertex,
+  } = props;
+
+  const mapImage = useHtmlImage(imageUrl);
+  const stageWidth = frame?.width ?? 0;
+  const stageHeight = frame?.height ?? 0;
+
+  const handleStageClick = useCallback(
+    (e: KonvaEventObject<MouseEvent | TouchEvent>) => {
+      if (!frame || (mode !== 'addPoint' && mode !== 'drawArea')) return;
+
+      const coords = getCanvasCoords(e);
+      if (!coords) return;
+
+      const world = canvasToWorld(coords.x, coords.y, frame);
+      const vertex = { x: world.x, y: world.y, z: 0 };
+
+      if (mode === 'drawArea') {
+        onDraftAreaVertex?.(vertex);
+      }
+
+      onCanvasClick(vertex);
+    },
+    [frame, mode, onCanvasClick, onDraftAreaVertex],
+  );
+
+  if (!frame) {
+    return (
+      <div
+        data-testid="map-2d-canvas"
+        style={{
+          height: '100%',
+          minHeight: 320,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'rgba(0, 0, 0, 0.45)',
+          background: '#fafafa',
+          fontSize: 14,
+          padding: 24,
+          textAlign: 'center',
+        }}
+      >
+        等待 2D 底图（需 rosbridge 订阅 /map）。未连接机器狗时列表仍可浏览，但无法在画布上标注。
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ overflow: 'auto' }}>
+      <div data-testid="map-2d-canvas">
+        <Stage
+          width={stageWidth}
+          height={stageHeight}
+          onClick={handleStageClick}
+          onTap={handleStageClick}
+        >
+          <Layer>
+            {mapImage && frame && (
+              <KonvaImage image={mapImage} width={frame.width} height={frame.height} />
+            )}
+
+            {frame &&
+              areas.map((area) => {
+                const flat = parseAreaVertices(area.points).flatMap((v) => {
+                  const { x, y } = worldToCanvas(v.x, v.y, frame);
+                  return [x, y];
+                });
+
+                return (
+                  <Line
+                    key={area.id}
+                    points={flat}
+                    closed
+                    fill="rgba(255,0,0,0.2)"
+                    stroke={selectedAreaId === area.id ? '#ff0000' : '#cc0000'}
+                    strokeWidth={selectedAreaId === area.id ? 2 : 1}
+                    onClick={() => onSelectArea(area.id)}
+                    onTap={() => onSelectArea(area.id)}
+                  />
+                );
+              })}
+
+            {frame && draftAreaVertices && draftAreaVertices.length > 0 && (
+              <Line
+                points={draftAreaVertices.flatMap((v) => {
+                  const { x, y } = worldToCanvas(v.x, v.y, frame);
+                  return [x, y];
+                })}
+                stroke="#ff6600"
+                strokeWidth={2}
+                dash={[6, 4]}
+              />
+            )}
+
+            {frame &&
+              points.map((point) => {
+                const { x, y } = worldToCanvas(point.positionX, point.positionY, frame);
+                const yaw = quaternionToYaw({
+                  x: point.orientationX,
+                  y: point.orientationY,
+                  z: point.orientationZ,
+                  w: point.orientationW,
+                });
+                const selected = selectedPointId === point.id;
+
+                return (
+                  <Fragment key={point.id}>
+                    <Circle
+                      x={x}
+                      y={y}
+                      radius={selected ? 8 : 6}
+                      fill={selected ? '#ff4d4f' : '#52c41a'}
+                      stroke="#fff"
+                      strokeWidth={1}
+                      onClick={() => onSelectPoint(point.id)}
+                      onTap={() => onSelectPoint(point.id)}
+                    />
+                    <RegularPolygon
+                      x={x}
+                      y={y}
+                      sides={3}
+                      radius={10}
+                      fill={selected ? '#ff4d4f' : '#52c41a'}
+                      rotation={yawToKonvaRotation(yaw)}
+                      onClick={() => onSelectPoint(point.id)}
+                      onTap={() => onSelectPoint(point.id)}
+                    />
+                  </Fragment>
+                );
+              })}
+
+            {frame && robotPose && (() => {
+              const { x, y } = worldToCanvas(robotPose.x, robotPose.y, frame);
+              return (
+                <RegularPolygon
+                  x={x}
+                  y={y}
+                  sides={3}
+                  radius={12}
+                  fill="#1890ff"
+                  rotation={yawToKonvaRotation(robotPose.yaw)}
+                />
+              );
+            })()}
+          </Layer>
+        </Stage>
+      </div>
+    </div>
+  );
+}
+===FILE:frontend/src/features/points/PointsPage.tsx
+import { useCallback, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Button, Space, message } from 'antd';
+import { getMapList } from '../../api/mapNav';
+import { useRobotStatusQuery, useRobotPose } from '../../ros/hooks';
+import type { AreaVertex } from '../../types/map';
+import { normalizeMaps } from '../../utils/normalizeMaps';
+import { useRobotPoseYaw } from '../viewer3d/hooks/useRobotPoseYaw';
+import { Map2DCanvas, type CanvasMode } from './Map2DCanvas';
+import { PointsSidebar } from './PointsSidebar';
+import { PointEditModal } from './PointEditModal';
+import { AreaEditModal } from './AreaEditModal';
+import { useOccupancyGrid } from './hooks/useOccupancyGrid';
+import { usePointsQuery } from './hooks/usePointsQuery';
+import { useAreasQuery } from './hooks/useAreasQuery';
+
+export function PointsPage() {
+  const statusQuery = useRobotStatusQuery();
+  useRobotPose();
+  const { data: maps = [] } = useQuery({
+    queryKey: ['maps'],
+    queryFn: getMapList,
+    select: normalizeMaps,
+  });
+
+  const statusMapName = statusQuery.data?.mapName ?? '';
+  const defaultMapName = statusMapName || maps[0]?.mapName || '';
+  const [mapNameOverride, setMapNameOverride] = useState<string | null>(null);
+  const mapName = mapNameOverride ?? defaultMapName;
+
+  const { frame, imageUrl } = useOccupancyGrid();
+  const robotPose = useRobotPoseYaw();
+  const pointsQuery = usePointsQuery(mapName);
+  const areasQuery = useAreasQuery(mapName);
+
+  const [canvasMode, setCanvasMode] = useState<CanvasMode>('view');
+  const [draftAreaVertices, setDraftAreaVertices] = useState<AreaVertex[]>([]);
+  const [selectedPointId, setSelectedPointId] = useState<number | null>(null);
+  const [selectedAreaId, setSelectedAreaId] = useState<number | null>(null);
+
+  const [pointModalOpen, setPointModalOpen] = useState(false);
+  const [initialPosition, setInitialPosition] = useState<{ x: number; y: number; z: number } | undefined>();
+
+  const [areaModalOpen, setAreaModalOpen] = useState(false);
+
+  const resetDrawState = useCallback(() => {
+    setCanvasMode('view');
+    setDraftAreaVertices([]);
+  }, []);
+
+  const ensureCanAnnotate = () => {
+    if (!mapName) {
+      message.warning('请先选择地图');
+      return false;
+    }
+    if (!frame) {
+      message.warning('暂无 2D 底图（需 ROS /map），无法在画布标注');
+      return false;
+    }
+    return true;
+  };
+
+  const handleAddPointMode = () => {
+    if (!ensureCanAnnotate()) return;
+    setCanvasMode('addPoint');
+    setDraftAreaVertices([]);
+  };
+
+  const handleDrawAreaMode = () => {
+    if (!ensureCanAnnotate()) return;
+    setCanvasMode('drawArea');
+    setDraftAreaVertices([]);
+  };
+
+  const handleCanvasClick = (world: { x: number; y: number; z: number }) => {
+    if (canvasMode === 'addPoint') {
+      setInitialPosition(world);
+      setPointModalOpen(true);
+      setCanvasMode('view');
+    }
+  };
+
+  const handleDraftAreaVertex = (v: AreaVertex) => {
+    setDraftAreaVertices((prev) => [...prev, v]);
+  };
+
+  const finishAreaDraw = () => {
+    if (draftAreaVertices.length >= 3) {
+      setAreaModalOpen(true);
+      setCanvasMode('view');
+    }
+  };
+
+  const handlePointModalClose = () => {
+    setPointModalOpen(false);
+    setInitialPosition(undefined);
+  };
+
+  const handleAreaModalClose = () => {
+    setAreaModalOpen(false);
+    setDraftAreaVertices([]);
+  };
+
+  return (
+    <div style={{ display: 'flex', height: '100%', background: '#fff', color: 'rgba(0, 0, 0, 0.88)' }}>
+      <div style={{ width: 360, borderRight: '1px solid #f0f0f0', overflow: 'auto', background: '#fff' }}>
+        <PointsSidebar
+          mapName={mapName}
+          onMapChange={setMapNameOverride}
+          selectedPointId={selectedPointId}
+          onSelectPoint={setSelectedPointId}
+          selectedAreaId={selectedAreaId}
+          onSelectArea={setSelectedAreaId}
+          onAddPointMode={handleAddPointMode}
+          onDrawAreaMode={handleDrawAreaMode}
+          onRefresh={() => {
+            void pointsQuery.invalidate();
+            void areasQuery.invalidate();
+          }}
+        />
+      </div>
+      <div style={{ flex: 1, position: 'relative', background: '#fff' }}>
+        <Map2DCanvas
+          frame={frame}
+          imageUrl={imageUrl}
+          points={pointsQuery.data ?? []}
+          areas={areasQuery.data ?? []}
+          selectedPointId={selectedPointId}
+          selectedAreaId={selectedAreaId}
+          robotPose={robotPose}
+          mode={canvasMode}
+          onSelectPoint={setSelectedPointId}
+          onSelectArea={setSelectedAreaId}
+          onCanvasClick={handleCanvasClick}
+          draftAreaVertices={draftAreaVertices}
+          onDraftAreaVertex={handleDraftAreaVertex}
+        />
+        {canvasMode !== 'view' && (
+          <div style={{ position: 'absolute', top: 8, left: 8 }}>
+            <Space>
+              <Button onClick={resetDrawState}>取消</Button>
+              {canvasMode === 'drawArea' && (
+                <Button type="primary" onClick={finishAreaDraw}>
+                  完成绘制
+                </Button>
+              )}
+            </Space>
+          </div>
+        )}
+        <PointEditModal
+          open={pointModalOpen}
+          mapName={mapName}
+          initialPosition={initialPosition}
+          onClose={handlePointModalClose}
+          onSuccess={() => void pointsQuery.invalidate()}
+        />
+        <AreaEditModal
+          open={areaModalOpen}
+          mapName={mapName}
+          vertices={draftAreaVertices}
+          onClose={handleAreaModalClose}
+          onSuccess={() => void areasQuery.invalidate()}
+        />
+      </div>
+    </div>
+  );
+}
+===FILE:frontend/src/features/viewer3d/Viewer3D.tsx
+import { Canvas } from '@react-three/fiber';
+import { OrbitControls } from '@react-three/drei';
+import { useQuery } from '@tanstack/react-query';
+import { MOUSE, TOUCH } from 'three';
+import { PointCloudLayer } from './PointCloudLayer';
+import { RobotMarker } from './RobotMarker';
+import { PathLine } from './PathLine';
+import { PathPointLayer } from './PathPointLayer';
+import { MapPointMarkers } from './MapPointMarkers';
+import { GoalPickMode } from './GoalPickMode';
+import { useViewer3DEvents } from './hooks/useViewer3DEvents';
+import { TOPICS } from '../../ros/topics';
+import { useRobotStore } from '../../store/robotStore';
+import { getLaunchStatus } from '../../api/launch';
+
+export function Viewer3D() {
+  const { pickMode, setPickMode, visibility } = useViewer3DEvents();
+  // Remount map cloud when map switches so latched /global_cloud_navigation is resubscribed.
+  const mapName = useRobotStore((s) => s.status?.mapName ?? '');
+  // 与 ModePanel 同 key 的 launchStatus 查询:current_mode 变化时让 PointCloudLayer 重挂载,
+  // 清空旧点云状态并重新订阅 /global_cloud_navigation。
+  const { data: launchData } = useQuery({
+    queryKey: ['launchStatus'],
+    queryFn: getLaunchStatus,
+    refetchInterval: 2000,
+  });
+  const currentMode = launchData?.current_mode ?? 'idle';
+  // 在点选目标/位姿/点位时禁用相机控制,避免拖方向的同时相机跟着转。
+  const isPicking = pickMode === 'nav' || pickMode === 'point' || pickMode === 'pose';
+  return (
+    <Canvas
+      style={{ background: '#0a0a0a', width: '100%', height: '100%' }}
+      camera={{ position: [0, 0, 15], up: [0, 0, 1], fov: 60 }}
+    >
+      <ambientLight intensity={0.5} />
+      <OrbitControls
+        enabled={!isPicking}
+        enableZoom
+        enableRotate
+        enablePan
+        enableDamping
+        dampingFactor={0.05}
+        screenSpacePanning={false}
+        minDistance={1}
+        maxDistance={500}
+        rotateSpeed={0.8}
+        zoomSpeed={0.8}
+        panSpeed={0.8}
+        mouseButtons={{
+          LEFT: MOUSE.ROTATE,
+          MIDDLE: MOUSE.PAN,
+          RIGHT: MOUSE.DOLLY,
+        }}
+        touches={{ ONE: TOUCH.ROTATE, TWO: TOUCH.DOLLY_PAN }}
+      />
+      {visibility.cloud && (
+        <PointCloudLayer
+          key={`map-cloud-${mapName}-${currentMode}`}
+          topic={TOPICS.mapCloud.name}
+          color="#9ec9ff"
+          size={0.1}
+          maxPoints={300_000}
+          compression="cbor"
+        />
+      )}
+      {/* {visibility.cloud && (
+        <PointCloudLayer topic={TOPICS.bodyCloud.name} color="#00ff88" size={0.12} maxPoints={20_000} />
+      )} */}
+      <RobotMarker />
+      {visibility.point && <MapPointMarkers visible={visibility.point} />}
+      {visibility.path && <PathLine topic={TOPICS.globalPathNav.name} />}
+      {visibility.point && <PathPointLayer />}
+      {(pickMode === 'nav' || pickMode === 'point' || pickMode === 'pose') && (
+        <GoalPickMode mode={pickMode ?? 'nav'} onPick={() => setPickMode(null)} />
+      )}
+    </Canvas>
+  );
+}
+===FILE:script/rtsp_start.sh
+#!/bin/bash
+# RTSP 视频推流一键启动：
+# 窗口 0: mediamtx RTSP 服务器
+# 窗口 1: oak_rtsp_pusher 推流
+
+set -e
+
+RTSP_DIR="/home/jetson/rtsp_server"
+SLAMIBOT_WS="/home/jetson/SLAMIBOT_D360_Framework"
+PUSHER_SCRIPT="${SLAMIBOT_WS}/src/oak-camera_driver/scripts/oak_rtsp_pusher.py"
+SESSION="rtsp_stream"
+
+if ! command -v tmux &>/dev/null; then
+    echo "[ERROR] 未找到 tmux，请安装: sudo apt install tmux"
+    exit 1
+fi
+
+if [ ! -x "${RTSP_DIR}/mediamtx" ]; then
+    echo "[ERROR] 找不到可执行文件: ${RTSP_DIR}/mediamtx"
+    exit 1
+fi
+
+if [ ! -f "${PUSHER_SCRIPT}" ]; then
+    echo "[ERROR] 找不到推流脚本: ${PUSHER_SCRIPT}"
+    exit 1
+fi
+
+if [ ! -f "${SLAMIBOT_WS}/devel/setup.bash" ]; then
+    echo "[ERROR] 找不到 ${SLAMIBOT_WS}/devel/setup.bash"
+    exit 1
+fi
+
+# 已有同名 session 则先关闭
+if tmux has-session -t "${SESSION}" 2>/dev/null; then
+    echo "[WARN] 已存在 tmux session: ${SESSION}，正在关闭..."
+    tmux kill-session -t "${SESSION}"
+fi
+
+# 窗口 0: mediamtx
+tmux new-session -d -s "${SESSION}" -n mediamtx \
+    "cd ${RTSP_DIR} && \
+     echo '[mediamtx] 启动 RTSP 服务器' && \
+     ./mediamtx mediamtx.yml; \
+     exec bash"
+
+sleep 2
+
+# 窗口 1: oak_rtsp_pusher
+tmux new-window -t "${SESSION}:1" -n pusher \
+    "source ${SLAMIBOT_WS}/devel/setup.bash && \
+     echo '[pusher] 启动 oak_rtsp_pusher.py' && \
+     python3 ${PUSHER_SCRIPT}; \
+     exec bash"
+
+echo "[INFO] 已在 tmux session '${SESSION}' 中启动 2 个窗口:"
+echo "       0 (mediamtx) : ${RTSP_DIR}/mediamtx"
+echo "       1 (pusher)   : ${PUSHER_SCRIPT}"
+echo ""
+echo "[INFO] RTSP 地址: rtsp://<本机IP>:8554/live"
+echo "[INFO] 附着到 session : tmux attach -t ${SESSION}"
+echo "[INFO] 切换窗口       : Ctrl+b 然后按 0 / 1"
+echo "[INFO] 关闭全部       : tmux kill-session -t ${SESSION}"
+
+tmux attach -t "${SESSION}"===FILE:src/nav_api/db/schema.sql
+-- nav_api 数据库表结构(MVP:地图表 + 点位表)
+-- 说明:SQLite 为动态类型,String(N)/Float(15) 等长度精度约束在应用层校验,
+--      此处仅保留数据库层能强制的约束(主键/唯一/外键/CHECK/默认值)。
+
+-- ============================================================
+-- Map 地图表
+-- 点位/任务的 mapName 外键指向本表;本项目为纯 2D,mapType 用 2d_grid。
+-- ============================================================
+CREATE TABLE IF NOT EXISTS Map (
+    id             INTEGER PRIMARY KEY AUTOINCREMENT,
+    mapName        TEXT    NOT NULL UNIQUE,                       -- 唯一,且不能为 'default'
+    mapDisplayName TEXT,                                          -- 显示名(支持中文)
+    mapDescription TEXT,                                          -- 地图描述
+    mapType        TEXT    NOT NULL DEFAULT '2d_grid',            -- 3d_pointcloud / 2d_grid
+    pcdFilePath    TEXT,                                          -- 3D 点云路径(本项目恒空)
+    yamlFilePath   TEXT,                                          -- 2D 地图 .yaml 路径(关键)
+    isActive       INTEGER NOT NULL DEFAULT 0,                    -- 1=当前激活地图(导航栈使用),0=未激活;通过 map/switch 切换
+    createdTime    TEXT    NOT NULL DEFAULT (datetime('now','localtime')),
+    updatedTime    TEXT    NOT NULL DEFAULT (datetime('now','localtime')),
+    sort           INTEGER NOT NULL DEFAULT 0,
+    CHECK (mapName <> 'default')
+);
+
+-- ============================================================
+-- PointPosition 点位表
+-- 同一地图下 pointName 唯一;坐标为 map 系(米),2D 场景 z=0、姿态仅 z/w。
+-- ============================================================
+CREATE TABLE IF NOT EXISTS PointPosition (
+    id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+    type                INTEGER NOT NULL,                         -- PointType 枚举(巡检点=2)
+    mapName             TEXT    NOT NULL,                         -- 关联 Map.mapName
+    pointName           TEXT    NOT NULL,                         -- 同图内唯一
+    positionX           REAL    NOT NULL,
+    positionY           REAL    NOT NULL,
+    positionZ           REAL    NOT NULL DEFAULT 0,
+    orientationX        REAL    NOT NULL DEFAULT 0,
+    orientationY        REAL    NOT NULL DEFAULT 0,
+    orientationZ        REAL    NOT NULL DEFAULT 0,
+    orientationW        REAL    NOT NULL DEFAULT 1,
+    controlIp           TEXT,                                     -- 以下门控字段 MVP 留空
+    controlPort         INTEGER,
+    controlType         INTEGER,
+    controlAddress      INTEGER,
+    controlDelayClosure INTEGER,
+    action              TEXT    DEFAULT '',
+    actionContent       TEXT    DEFAULT '',
+    sort                INTEGER NOT NULL DEFAULT 0,
+    UNIQUE (mapName, pointName),
+    FOREIGN KEY (mapName) REFERENCES Map(mapName)
+);
+
+-- ============================================================
+-- TaskFlow 任务表(一条固定巡检路线)
+-- 一个任务含 N 个有序点位(TaskPoint);删任务级联删其点位行,不碰 PointPosition。
+-- ============================================================
+CREATE TABLE IF NOT EXISTS TaskFlow (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    taskName    TEXT    NOT NULL,                            -- 同一地图下唯一
+    description TEXT,
+    mapName     TEXT    NOT NULL,                            -- 关联 Map.mapName
+    isEnabled   INTEGER NOT NULL DEFAULT 1,                  -- 0/1 是否启用
+    createdTime TEXT    NOT NULL DEFAULT (datetime('now','localtime')),
+    updatedTime TEXT    NOT NULL DEFAULT (datetime('now','localtime')),
+    UNIQUE (mapName, taskName),
+    FOREIGN KEY (mapName) REFERENCES Map(mapName)
+);
+
+-- ============================================================
+-- TaskPoint 任务点位表(引用模型)
+-- 非临时点位:靠 pointId 软引用 PointPosition(不加强制外键),执行/展示时实时查;
+--             点位被删则该站"失效",执行时报错。
+-- 临时点位  :pointId 为空,坐标内联存本表。
+-- ============================================================
+CREATE TABLE IF NOT EXISTS TaskPoint (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    taskId        INTEGER NOT NULL,                          -- 关联 TaskFlow.id
+    pointId       INTEGER,                                   -- 软引用 PointPosition.id;临时点位为 NULL
+    pointName     TEXT    NOT NULL,                          -- 冗余:展示 + 点位被删后报错用
+    type          INTEGER NOT NULL DEFAULT 2,                -- PointType 枚举
+    pointOrder    INTEGER NOT NULL DEFAULT 0,                -- 执行顺序(避开 SQL 保留字 order)
+    isTemporary   INTEGER NOT NULL DEFAULT 0,                -- 0/1 是否临时点位
+    positionX     REAL,                                      -- 临时点位必填;非临时点位为空(实时查)
+    positionY     REAL,
+    positionZ     REAL,
+    orientationX  REAL,
+    orientationY  REAL,
+    orientationZ  REAL,
+    orientationW  REAL,
+    action        TEXT    DEFAULT '',
+    actionContent TEXT    DEFAULT '',
+    FOREIGN KEY (taskId) REFERENCES TaskFlow(id) ON DELETE CASCADE
+);
+
+-- ============================================================
+-- Area 区域表(电子围栏 / 巡检多边形)
+-- 多边形顶点序列以 JSON 字符串存储,与前端 API 契约一致;
+-- 同图内 areaName 唯一。
+-- ============================================================
+CREATE TABLE IF NOT EXISTS Area (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    areaName    TEXT    NOT NULL,
+    mapName     TEXT    NOT NULL,
+    description TEXT,
+    type        INTEGER NOT NULL DEFAULT 0,
+    points      TEXT    DEFAULT '[]',
+    createdTime TEXT    NOT NULL DEFAULT (datetime('now','localtime')),
+    updatedTime TEXT    NOT NULL DEFAULT (datetime('now','localtime')),
+    UNIQUE (mapName, areaName),
+    FOREIGN KEY (mapName) REFERENCES Map(mapName)
+);
+
+-- ============================================================
+-- CycleConfig 周期执行配置表
+-- 关联到 TaskFlow.id,描述一个任务以何种周期/次数重复执行。
+-- cycleMode:0=按次,1=按日(cron 风格 HH:MM)。
+-- ============================================================
+CREATE TABLE IF NOT EXISTS CycleConfig (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    taskId        INTEGER NOT NULL,
+    cycleMode     INTEGER NOT NULL DEFAULT 0,
+    cycleInterval INTEGER NOT NULL DEFAULT 0,         -- 按次模式:每次间隔秒数
+    cycleCount    INTEGER NOT NULL DEFAULT 0,         -- 0=无限;>0=本周期内最大执行次数
+    startTime     TEXT,                                -- ISO 字符串,首次执行时间
+    dailyTime     TEXT,                                -- 仅 cycleMode=1 时使用,形如 HH:MM
+    isRunning     INTEGER NOT NULL DEFAULT 0,         -- 0/1 当前是否启用
+    nextExecuteTime TEXT,                              -- 下次计划执行时间(ISO)
+    createdTime   TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+    updatedTime   TEXT NOT NULL DEFAULT (datetime('now','localtime')),
+    FOREIGN KEY (taskId) REFERENCES TaskFlow(id) ON DELETE CASCADE
+);
+===FILE:src/nav_api/fastapi_service/app.py
+"""ASGI entry point for the incremental FastAPI + MCP migration."""
+
+import logging
+import os
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
+from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+
+from . import process_manager
+from .database import init_db
+from .mcp_compat import MCPServer
+from .models import fail
+from .area import register_mcp_tools as register_area_tools
+from .area import router as area_router
+from .control import register_mcp_tools as register_control_tools
+from .control import router as control_router
+from .launch_api import register_mcp_tools as register_launch_tools
+from .launch_api import router as launch_router
+from .localization import register_mcp_tools as register_localization_tools
+from .localization import router as localization_router
+from .map_api import register_mcp_tools as register_map_tools
+from .map_api import router as map_router
+from .navigation import register_mcp_tools as register_navigation_tools
+from .navigation import router as navigation_router
+from .point import register_mcp_tools, router as point_router
+from .ros_client import ros_client
+from .status import register_mcp_tools as register_status_tools
+from .status import router as status_router
+from .task import register_mcp_tools as register_task_tools
+from .task import router as task_router
+from .teleop import register_mcp_tools as register_teleop_tools
+from .teleop import router as teleop_router
+from .teleop import teleop_controller
+from .voice import register_mcp_tools as register_voice_tools
+from .voice import router as voice_router
+from .audio import router as audio_router
+from .base_mode import router as base_mode_router
+from .base_mode import base_mode_manager
+
+
+mcp = MCPServer(
+    "scout-navigation",
+    instructions="Scout Mini 地图、点位与导航控制工具。",
+)
+register_mcp_tools(mcp)
+register_task_tools(mcp)
+register_localization_tools(mcp)
+register_navigation_tools(mcp)
+register_map_tools(mcp)
+register_control_tools(mcp)
+register_launch_tools(mcp)
+register_status_tools(mcp)
+register_area_tools(mcp)
+register_teleop_tools(mcp)
+mcp_http_app = mcp.streamable_http_app()
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    init_db()
+    ros_client.start()
+    # 非致命地启动 PCD 发布器:让前端一进入导航模式即可看到点云,
+    # 而无需先点击建图再点导航。失败仅打日志,不阻断 API 启动。
+    try:
+        pcd_ok, pcd_msg = process_manager.start_pcd()
+        if not pcd_ok:
+            logging.warning("lifespan: PCD 发布器未启动: %s", pcd_msg)
+    except Exception as exc:
+        logging.warning("lifespan: 启动 PCD 发布器异常: %s", exc)
+    try:
+        # 注册 APP 摇杆安全控制链路;失败仅记录日志,不阻断 API。
+        teleop_controller.attach()
+    except Exception as exc:
+        logging.warning("lifespan: 启动 teleop 异常: %s", exc)
+    try:
+        async with mcp.session_manager.run():
+            yield
+    finally:
+        # 退出阶段:即便 mcp session 或 yield 内抛异常,也要非致命地清理 PCD、teleop 与 ros_client,
+        # 三者相互独立,任一异常都不能阻断另一个清理动作。
+        try:
+            base_mode_manager.shutdown()
+        except Exception as exc:
+            logging.warning("lifespan: 停止 base_mode 异常: %s", exc)
+        try:
+            teleop_controller.shutdown()
+        except Exception as exc:
+            logging.warning("lifespan: 停止 teleop 异常: %s", exc)
+        try:
+            process_manager.stop_pcd()
+        except Exception as exc:
+            logging.warning("lifespan: 停止 PCD 发布器异常: %s", exc)
+        try:
+            ros_client.stop()
+        except Exception as exc:
+            logging.warning("lifespan: 停止 ros_client 异常: %s", exc)
+
+
+app = FastAPI(
+    title="Scout Mini Navigation API",
+    description="FastAPI + MCP 渐进迁移服务。",
+    version="0.1.0",
+    lifespan=lifespan,
+)
+
+_cors_origins = [
+    origin.strip()
+    for origin in os.environ.get("NAV_API_CORS_ORIGINS", "").split(",")
+    if origin.strip()
+]
+if _cors_origins:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=_cors_origins,
+        allow_credentials=True,
+        allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
+        allow_headers=["*"],
+        expose_headers=["Mcp-Session-Id"],
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_error_handler(
+    _request, exc: RequestValidationError
+) -> JSONResponse:
+    fields = [".".join(str(part) for part in error["loc"][1:]) for error in exc.errors()]
+    response = fail("请求参数校验失败: %s" % ", ".join(fields))
+    return JSONResponse(status_code=200, content=response.model_dump())
+
+
+@app.get("/health", tags=["系统"])
+def health() -> dict:
+    return {
+        "success": True,
+        "service": "nav-api-fastapi",
+        "rosbridgeConnected": ros_client.is_connected,
+    }
+
+
+app.include_router(point_router)
+app.include_router(task_router)
+app.include_router(localization_router)
+app.include_router(navigation_router)
+app.include_router(map_router)
+app.include_router(control_router)
+app.include_router(launch_router)
+app.include_router(status_router)
+app.include_router(voice_router)
+app.include_router(audio_router)
+app.include_router(area_router)
+app.include_router(teleop_router)
+app.include_router(base_mode_router)
+
+
+# Keep this last: Mount("/") is a catch-all route. The MCP endpoint is /mcp.
+app.mount("/", mcp_http_app)
+===FILE:src/nav_api/fastapi_service/localization.py
+"""Localization APIs shared by FastAPI and MCP."""
+
+from fastapi import APIRouter
+
+from .mcp_compat import MCPServer
+from .models import ApiResponse, PoseRequest, fail, ok
+from .ros_client import ros_client
+
+
+router = APIRouter(prefix="/api/map", tags=["定位管理"])
+
+
+def register_mcp_tools(mcp: MCPServer) -> None:
+    mcp.tool(name="set_initial_pose")(set_pose)
+    mcp.tool(name="global_relocation")(relocation)
+    mcp.tool(name="global_relocation_check")(relocation_check)
+    mcp.tool(name="get_current_pose")(current_pose)
+
+
+def _normalize(x: float, y: float, z: float, w: float):
+    norm = (x * x + y * y + z * z + w * w) ** 0.5
+    if norm < 1e-6:
+        raise ValueError("四元数模长接近 0,非法姿态")
+    return x / norm, y / norm, z / norm, w / norm
+
+
+@router.post("/set_pose", response_model=ApiResponse)
+def set_pose(request: PoseRequest) -> ApiResponse:
+    """发布 AMCL 初始位姿。"""
+    try:
+        qx, qy, qz, qw = _normalize(
+            request.orientationX,
+            request.orientationY,
+            request.orientationZ,
+            request.orientationW,
+        )
+    except (ValueError, TypeError) as exc:
+        return fail("参数非法: %s" % exc)
+    success, message = ros_client.set_initial_pose(
+        request.positionX,
+        request.positionY,
+        request.positionZ,
+        qx,
+        qy,
+        qz,
+        qw,
+    )
+    return ok(msg=message) if success else fail(message)
+
+
+@router.get("/relocation", response_model=ApiResponse)
+@router.post("/relocation", response_model=ApiResponse)
+def relocation() -> ApiResponse:
+    """调用 AMCL global_localization 服务。"""
+    success, message = ros_client.trigger_global_localization()
+    return ok(msg=message) if success else fail(message)
+
+
+@router.get("/current_pose", response_model=ApiResponse)
+def current_pose() -> ApiResponse:
+    """获取 map 坐标系中的最新机器人位姿。"""
+    pose, message = ros_client.get_current_pose()
+    return ok(pose, message) if pose else fail(message)
+
+
+@router.get("/relocation/check", response_model=ApiResponse)
+def relocation_check() -> ApiResponse:
+    """检查重定位收敛状态：直接读取 /amcl_pose 缓存。
+
+    返回 success=true,data.isLocalized=false 表示 /amcl_pose 尚未收到或 rosbridge 离线。
+    """
+    pose, message = ros_client.get_current_pose()
+    if pose is None:
+        return ok({"isLocalized": False, "reason": message}, "未就绪")
+    return ok(
+        {"isLocalized": True, "currentPose": pose, "reason": "ok"},
+        "已就绪",
+    )
+===FILE:src/nav_api/fastapi_service/map_api.py
+"""Map management APIs for the FastAPI migration."""
+
+import logging
+import os
+import re
+import shutil
+import subprocess
+from typing import Annotated, Optional
+
+from fastapi import APIRouter, File, Form, UploadFile
+
+from .database import get_conn
+from .mcp_compat import MCPServer
+from .models import (
+    ApiResponse,
+    MapDeleteRequest,
+    MapNameRequest,
+    MapSaveRequest,
+    MapUpdateRequest,
+    fail,
+    ok,
+)
+from . import process_manager
+from .ros_client import ros_client
+
+
+router = APIRouter(prefix="/api/map", tags=["地图管理"])
+_MAP_ROOT = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "../../my_nav/maps/api_map")
+)
+_NAV_LAUNCH = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "../../my_nav/launch/my_nav_launch.launch")
+)
+_FASTLIO_PCD_FILE = os.path.abspath(
+    os.path.join(
+        os.path.dirname(__file__),
+        "../../FAST_LIO_gravity_align/PCD/scans.pcd",
+    )
+)
+_PCD_TO_MAP = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "../../my_nav/maps/pcd_to_map.py")
+)
+
+
+def register_mcp_tools(mcp: MCPServer) -> None:
+    mcp.tool(name="save_map")(save_map)
+    mcp.tool(name="switch_map")(switch_map)
+    mcp.tool(name="list_maps")(maps_list)
+    mcp.tool(name="downsample_map")(downsample_pcd)
+    mcp.tool(name="delete_map")(maps_delete)
+    mcp.tool(name="update_map")(maps_update)
+    # Binary multipart uploads intentionally remain HTTP-only.
+
+
+def _update_launch_map(yaml_path: str):
+    if not os.path.exists(_NAV_LAUNCH):
+        return False, "launch 文件不存在: %s" % _NAV_LAUNCH
+    try:
+        with open(_NAV_LAUNCH, "r", encoding="utf-8") as launch_file:
+            content = launch_file.read()
+        updated = re.sub(
+            r'(<arg\s+name="map_file"\s+default=")[^"]*(")',
+            r"\g<1>" + yaml_path.replace("\\", "/") + r"\2",
+            content,
+        )
+        if updated == content:
+            return False, "launch 文件中未找到 map_file arg,请检查格式"
+        with open(_NAV_LAUNCH, "w", encoding="utf-8") as launch_file:
+            launch_file.write(updated)
+        return True, None
+    except Exception as exc:
+        return False, str(exc)
+
+
+@router.post("/save", response_model=ApiResponse)
+def save_map(request: MapSaveRequest) -> ApiResponse:
+    """停止 FAST_LIO 建图并保存 PCD 与二维栅格地图。"""
+    if request.mapName == "default":
+        return fail("mapName 非法或为保留名 default")
+    if not process_manager.get_status().get("mapping_running"):
+        return fail("当前未在建图模式,无法保存地图")
+
+    conn = get_conn()
+    try:
+        if conn.execute(
+            "SELECT 1 FROM Map WHERE mapName = ?", (request.mapName,)
+        ).fetchone():
+            return fail("地图已存在: %s" % request.mapName)
+        stopped, message = process_manager.stop_mapping()
+        if not stopped:
+            return fail("停止建图进程失败: %s" % message)
+        if not os.path.exists(_FASTLIO_PCD_FILE):
+            return fail("FAST_LIO 未生成 PCD 文件,可能建图时间太短或点云为空")
+
+        target_dir = os.path.join(_MAP_ROOT, request.mapName)
+        os.makedirs(target_dir, exist_ok=True)
+        target_pcd = os.path.join(target_dir, request.mapName + ".pcd")
+        shutil.copy2(_FASTLIO_PCD_FILE, target_pcd)
+
+        prefix = os.path.join(target_dir, request.mapName)
+        yaml_path: Optional[str] = prefix + ".yaml"
+        try:
+            result = subprocess.run(
+                [
+                    "python3",
+                    _PCD_TO_MAP,
+                    target_pcd,
+                    "-o",
+                    prefix,
+                    "--fill-free",
+                ],
+                capture_output=True,
+                text=True,
+                timeout=120,
+                cwd=os.path.dirname(_PCD_TO_MAP),
+            )
+            if result.returncode != 0 or not os.path.exists(yaml_path):
+                logging.warning("pcd_to_map failed: %s", result.stderr[:500])
+                yaml_path = None
+        except (subprocess.TimeoutExpired, FileNotFoundError) as exc:
+            logging.warning("pcd_to_map skipped: %s", exc)
+            yaml_path = None
+
+        conn.execute(
+            "INSERT INTO Map "
+            "(mapName, mapDisplayName, mapType, yamlFilePath, pcdFilePath, isActive) "
+            "VALUES (?, ?, ?, ?, ?, 0)",
+            (
+                request.mapName,
+                request.mapDisplayName or request.mapName,
+                "3d_pcd",
+                yaml_path,
+                target_pcd,
+            ),
+        )
+        conn.commit()
+        data = {"pcdFilePath": target_pcd}
+        if yaml_path:
+            data["yamlFilePath"] = yaml_path
+        return ok(data, "保存地图成功")
+    finally:
+        conn.close()
+
+
+@router.get("/save", response_model=ApiResponse, include_in_schema=False)
+def save_map_get(mapName: str, mapDisplayName: Optional[str] = None) -> ApiResponse:
+    """Legacy GET alias."""
+    return save_map(MapSaveRequest(mapName=mapName, mapDisplayName=mapDisplayName))
+
+
+@router.post("/switch", response_model=ApiResponse)
+def switch_map(request: MapNameRequest) -> ApiResponse:
+    """激活地图并在导航运行时热切换。"""
+    state = ros_client.get_nav_status().get("state")
+    if state in ("RUNNING", "PAUSED"):
+        return fail("导航任务正在执行中(状态:%s),请先取消任务再切换地图" % state)
+
+    conn = get_conn()
+    try:
+        row = conn.execute(
+            "SELECT id, yamlFilePath FROM Map WHERE mapName = ?",
+            (request.mapName,),
+        ).fetchone()
+        if row is None:
+            return fail("地图不存在: %s" % request.mapName)
+        yaml_path = row["yamlFilePath"]
+        if not yaml_path:
+            return fail("该地图没有关联的地图文件,无法切换")
+        if not os.path.exists(yaml_path):
+            return fail("地图文件不存在: %s" % yaml_path)
+
+        changed, error = _update_launch_map(yaml_path)
+        if not changed:
+            return fail("修改 launch 文件失败: %s" % error)
+        conn.execute("UPDATE Map SET isActive = 0")
+        conn.execute(
+            "UPDATE Map SET isActive = 1 WHERE mapName = ?", (request.mapName,)
+        )
+        conn.commit()
+
+        hot = False
+        if process_manager.get_status().get("navigation_running"):
+            stopped, _ = process_manager.stop_navigation()
+            if stopped:
+                hot, _ = process_manager.start_navigation()
+        if process_manager.get_status().get("pcd_running"):
+            process_manager.start_pcd()
+
+        message = (
+            "地图已切换为 %s,导航栈正在重启加载新地图" % request.mapName
+            if hot
+            else "地图已切换为 %s,启动/重启导航栈后生效" % request.mapName
+        )
+        return ok(
+            {
+                "mapName": request.mapName,
+                "yamlFilePath": yaml_path,
+                "hotSwitched": hot,
+            },
+            message,
+        )
+    finally:
+        conn.close()
+
+
+@router.get("/switch", response_model=ApiResponse, include_in_schema=False)
+def switch_map_get(mapName: str) -> ApiResponse:
+    return switch_map(MapNameRequest(mapName=mapName))
+
+
+@router.get("/maps/list", response_model=ApiResponse)
+@router.get("/list", response_model=ApiResponse)
+def maps_list() -> ApiResponse:
+    """获取全部地图。"""
+    with get_conn() as conn:
+        rows = conn.execute("SELECT * FROM Map ORDER BY sort, id").fetchall()
+    result = []
+    for row in rows:
+        item = dict(row)
+        pcd_path = item.get("pcdFilePath") or ""
+        item["hasDisplayPcd"] = bool(
+            pcd_path
+            and os.path.exists(os.path.splitext(pcd_path)[0] + "_display.pcd")
+        )
+        result.append(item)
+    return ok(result)
+
+
+@router.post("/downsample", response_model=ApiResponse)
+def downsample_pcd(request: MapNameRequest) -> ApiResponse:
+    """生成供前端显示的降采样 PCD。"""
+    if process_manager.get_status().get("mapping_running"):
+        return fail("建图模式进行中,请先停止建图")
+    conn = get_conn()
+    try:
+        row = conn.execute(
+            "SELECT pcdFilePath FROM Map WHERE mapName = ?", (request.mapName,)
+        ).fetchone()
+        if row is None:
+            return fail("地图不存在: %s" % request.mapName)
+        pcd_path = (row["pcdFilePath"] or "").strip()
+        if not pcd_path or not os.path.exists(pcd_path):
+            return fail("PCD 文件不存在: %s" % pcd_path)
+        display_path = os.path.splitext(pcd_path)[0] + "_display.pcd"
+        if os.path.exists(display_path):
+            return ok({"points": -1, "skipped": True}, "降采样文件已存在,跳过")
+
+        from scripts.pcd_utils import load_pcd, save_pcd_binary, voxel_downsample
+
+        points, _ = load_pcd(pcd_path)
+        sampled, _ = voxel_downsample(points, None, voxel_size=0.1)
+        save_pcd_binary(display_path, sampled)
+        return ok({"points": len(sampled)}, "降采样完成 (%d 点)" % len(sampled))
+    except Exception as exc:
+        return fail("降采样失败: %s" % exc)
+    finally:
+        conn.close()
+
+
+def _delete_map_files(yaml_path: Optional[str], map_name: str) -> None:
+    if yaml_path:
+        base = os.path.splitext(yaml_path)[0]
+        for extension in (".yaml", ".pgm"):
+            try:
+                if os.path.exists(base + extension):
+                    os.remove(base + extension)
+            except OSError as exc:
+                logging.warning("failed deleting map file: %s", exc)
+    map_dir = os.path.join(_MAP_ROOT, map_name)
+    try:
+        if os.path.isdir(map_dir) and not os.listdir(map_dir):
+            os.rmdir(map_dir)
+    except OSError as exc:
+        logging.warning("failed deleting map directory: %s", exc)
+
+
+@router.post("/maps/delete", response_model=ApiResponse)
+def maps_delete(request: MapDeleteRequest) -> ApiResponse:
+    """删除地图及其关联点位、任务和物理文件。"""
+    conn = get_conn()
+    try:
+        map_name = request.mapName
+        if not map_name and request.id is not None:
+            id_row = conn.execute(
+                "SELECT mapName FROM Map WHERE id = ?", (request.id,)
+            ).fetchone()
+            if id_row is None:
+                return fail("地图不存在: id=%s" % request.id)
+            map_name = id_row["mapName"]
+        if not map_name:
+            return fail("缺少必填参数: mapName 或 id")
+
+        row = conn.execute(
+            "SELECT isActive, yamlFilePath FROM Map WHERE mapName = ?", (map_name,)
+        ).fetchone()
+        if row is None:
+            return fail("地图不存在: %s" % map_name)
+        if row["isActive"] == 1:
+            return fail("不能删除当前激活的地图,请先切换到其他地图")
+        point_count = conn.execute(
+            "SELECT COUNT(*) FROM PointPosition WHERE mapName = ?", (map_name,)
+        ).fetchone()[0]
+        task_count = conn.execute(
+            "SELECT COUNT(*) FROM TaskFlow WHERE mapName = ?", (map_name,)
+        ).fetchone()[0]
+        if (point_count or task_count) and request.force != 1:
+            return fail(
+                "该地图下有 %d 个点位、%d 个任务,请传 force=1 确认删除"
+                % (point_count, task_count)
+            )
+        conn.execute("DELETE FROM TaskFlow WHERE mapName = ?", (map_name,))
+        conn.execute("DELETE FROM PointPosition WHERE mapName = ?", (map_name,))
+        conn.execute("DELETE FROM Map WHERE mapName = ?", (map_name,))
+        conn.commit()
+        _delete_map_files(row["yamlFilePath"], map_name)
+        return ok(
+            {
+                "mapName": map_name,
+                "deletedPoints": point_count,
+                "deletedTasks": task_count,
+            },
+            "地图 %s 已删除" % map_name,
+        )
+    except Exception as exc:
+        conn.rollback()
+        return fail("删除失败: %s" % exc)
+    finally:
+        conn.close()
+
+
+@router.post("/maps/update", response_model=ApiResponse)
+def maps_update(request: MapUpdateRequest) -> ApiResponse:
+    """部分更新地图显示信息和 PCD 路径。"""
+    data = request.model_dump(exclude_unset=True)
+    map_name = data.pop("mapName")
+    if "pcdFilePath" in data and data["pcdFilePath"]:
+        if not os.path.exists(data["pcdFilePath"]):
+            return fail("PCD 文件不存在: %s" % data["pcdFilePath"])
+    conn = get_conn()
+    try:
+        if conn.execute(
+            "SELECT 1 FROM Map WHERE mapName = ?", (map_name,)
+        ).fetchone() is None:
+            return fail("地图不存在: %s" % map_name)
+        if not data:
+            return ok(msg="无需更新")
+        fields = ", ".join("%s = ?" % field for field in data)
+        fields += ", updatedTime = datetime('now','localtime')"
+        conn.execute(
+            "UPDATE Map SET %s WHERE mapName = ?" % fields,
+            list(data.values()) + [map_name],
+        )
+        conn.commit()
+        return ok(msg="地图信息已更新")
+    finally:
+        conn.close()
+
+
+@router.post("/upload", response_model=ApiResponse)
+async def maps_upload(
+    mapName: Annotated[str, Form()],
+    pgm_file: Annotated[UploadFile, File()],
+) -> ApiResponse:
+    """上传 PGM 文件；multipart 接口不注册为 MCP Tool。"""
+    map_name = mapName.strip()
+    if not re.match(r"^[\w\-]+$", map_name):
+        return fail("mapName 包含非法字符")
+    if not (pgm_file.filename or "").lower().endswith(".pgm"):
+        return fail("文件格式错误,请上传 .pgm 文件")
+    map_dir = os.path.join(_MAP_ROOT, map_name)
+    target = os.path.join(map_dir, map_name + ".pgm")
+    if os.path.exists(target):
+        return fail("该地图 pgm 文件已存在")
+    os.makedirs(map_dir, exist_ok=True)
+    with open(target, "wb") as output:
+        while chunk := await pgm_file.read(1024 * 1024):
+            output.write(chunk)
+    return ok({"pgmPath": target}, "pgm 文件上传成功")
+
+
+@router.post("/config/upload", response_model=ApiResponse)
+async def config_upload(
+    mapName: Annotated[str, Form()],
+    yaml_file: Annotated[UploadFile, File()],
+    mapDisplayName: Annotated[Optional[str], Form()] = None,
+) -> ApiResponse:
+    """上传 YAML 配置；multipart 接口不注册为 MCP Tool。"""
+    map_name = mapName.strip()
+    if not re.match(r"^[\w\-]+$", map_name):
+        return fail("mapName 包含非法字符")
+    if not (yaml_file.filename or "").lower().endswith(".yaml"):
+        return fail("文件格式错误,请上传 .yaml 文件")
+    map_dir = os.path.join(_MAP_ROOT, map_name)
+    pgm_path = os.path.join(map_dir, map_name + ".pgm")
+    yaml_path = os.path.join(map_dir, map_name + ".yaml")
+    if not os.path.exists(pgm_path):
+        return fail("未找到对应的 pgm 文件,请先上传 pgm")
+    content = (await yaml_file.read()).decode("utf-8")
+    content = re.sub(
+        r"^image:[ \t]*.*$",
+        "image: " + pgm_path.replace("\\", "/"),
+        content,
+        flags=re.MULTILINE,
+    )
+    with open(yaml_path, "w", encoding="utf-8") as output:
+        output.write(content)
+    conn = get_conn()
+    try:
+        existing = conn.execute(
+            "SELECT id FROM Map WHERE mapName = ?", (map_name,)
+        ).fetchone()
+        if existing:
+            conn.execute(
+                "UPDATE Map SET yamlFilePath = ?, "
+                "updatedTime = datetime('now','localtime') WHERE mapName = ?",
+                (yaml_path, map_name),
+            )
+        else:
+            conn.execute(
+                "INSERT INTO Map "
+                "(mapName, mapDisplayName, mapType, yamlFilePath, isActive) "
+                "VALUES (?, ?, ?, ?, 0)",
+                (
+                    map_name,
+                    (mapDisplayName or map_name).strip() or map_name,
+                    "2d_grid",
+                    yaml_path,
+                ),
+            )
+        conn.commit()
+        return ok({"yamlFilePath": yaml_path}, "yaml 配置上传成功")
+    except Exception as exc:
+        conn.rollback()
+        return fail("入库失败: %s" % exc)
+    finally:
+        conn.close()
+
+
+@router.get("/patch", response_model=ApiResponse)
+@router.post("/patch", response_model=ApiResponse)
+def patch_map(mapName: str) -> ApiResponse:
+    """对已建好的地图 PCD 做局部补图。
+
+    实际修补动作依赖 ROS 端约定的 `std_srvs/Trigger` 服务 `/map_patch`
+    (传入 map_name);当 ROS 包尚未实现该 service 时,本接口会返回
+    失败信息由前端展示,不再 404。
+    """
+    conn = get_conn()
+    try:
+        row = conn.execute(
+            "SELECT isActive, pcdFilePath FROM Map WHERE mapName = ?",
+            (mapName,),
+        ).fetchone()
+        if row is None:
+            return fail("地图不存在: %s" % mapName)
+        if row["isActive"] == 1:
+            return fail("不能对当前激活的地图执行补图,请先切换地图")
+        if not (row["pcdFilePath"] or "").strip():
+            return fail("该地图未关联 PCD 文件,无法补图")
+        success, message = ros_client.patch_pcd(mapName)
+        return ok({"mapName": mapName}, message) if success else fail(message)
+    finally:
+        conn.close()
+===FILE:src/nav_api/fastapi_service/navigation.py
+"""Navigation APIs shared by FastAPI and MCP."""
+
+from fastapi import APIRouter
+
+from .database import get_conn
+from .mcp_compat import MCPServer
+from .models import ApiResponse, NavCustomRequest, NavExecuteRequest, fail, ok
+from .ros_client import ros_client
+
+
+router = APIRouter(prefix="/api/map", tags=["导航控制"])
+
+
+def register_mcp_tools(mcp: MCPServer) -> None:
+    mcp.tool(name="execute_navigation_task")(nav_execute)
+    mcp.tool(name="pause_navigation")(nav_pause)
+    mcp.tool(name="resume_navigation")(nav_resume)
+    mcp.tool(name="cancel_navigation")(nav_cancel)
+    mcp.tool(name="get_navigation_status")(nav_status)
+    mcp.tool(name="navigate_to_point")(nav_custom)
+
+
+def _check_conflict():
+    status = ros_client.get_nav_status()
+    if status["state"] in ("RUNNING", "PAUSED"):
+        return "当前有任务正在执行(state=%s),请先取消" % status["state"]
+    return None
+
+
+def _send_task(task_id: int, task_name: str, points: list[dict]) -> ApiResponse:
+    success, message = ros_client.start_nav_task(task_id, task_name, points)
+    return ok(None, message) if success else fail(message)
+
+
+@router.post("/nav_multi/execute", response_model=ApiResponse)
+@router.post("/task/execute", response_model=ApiResponse)
+def nav_execute(request: NavExecuteRequest) -> ApiResponse:
+    """执行数据库中保存的多点导航任务。"""
+    conflict = _check_conflict()
+    if conflict:
+        return fail(conflict)
+
+    with get_conn() as conn:
+        task = conn.execute(
+            "SELECT id, taskName, mapName, isEnabled FROM TaskFlow WHERE id = ?",
+            (request.taskId,),
+        ).fetchone()
+        if task is None:
+            return fail("任务不存在: taskId=%s" % request.taskId)
+        if not task["isEnabled"]:
+            return fail("任务已禁用,无法执行")
+
+        rows = conn.execute(
+            "SELECT tp.id, tp.pointName, tp.isTemporary, tp.pointId, tp.pointOrder, "
+            "tp.positionX, tp.positionY, tp.positionZ, "
+            "tp.orientationX, tp.orientationY, tp.orientationZ, tp.orientationW, "
+            "pp.positionX AS pp_x, pp.positionY AS pp_y, pp.positionZ AS pp_z, "
+            "pp.orientationX AS pp_ox, pp.orientationY AS pp_oy, "
+            "pp.orientationZ AS pp_oz, pp.orientationW AS pp_ow "
+            "FROM TaskPoint tp LEFT JOIN PointPosition pp ON pp.id = tp.pointId "
+            "WHERE tp.taskId = ? ORDER BY tp.pointOrder, tp.id",
+            (request.taskId,),
+        ).fetchall()
+        if not rows:
+            return fail("任务中没有点位")
+
+        points = []
+        invalid = []
+        for row in rows:
+            if row["isTemporary"]:
+                prefix = ""
+            elif row["pp_x"] is None:
+                invalid.append(row["pointName"])
+                continue
+            else:
+                prefix = "pp_"
+            points.append(
+                {
+                    "pointName": row["pointName"],
+                    "positionX": row[prefix + "x"] if prefix else row["positionX"],
+                    "positionY": row[prefix + "y"] if prefix else row["positionY"],
+                    "positionZ": (
+                        row[prefix + "z"] if prefix else row["positionZ"]
+                    )
+                    or 0.0,
+                    "orientationX": (
+                        row[prefix + "ox"] if prefix else row["orientationX"]
+                    )
+                    or 0.0,
+                    "orientationY": (
+                        row[prefix + "oy"] if prefix else row["orientationY"]
+                    )
+                    or 0.0,
+                    "orientationZ": (
+                        row[prefix + "oz"] if prefix else row["orientationZ"]
+                    )
+                    or 0.0,
+                    "orientationW": (
+                        row[prefix + "ow"] if prefix else row["orientationW"]
+                    )
+                    if (
+                        row[prefix + "ow"] if prefix else row["orientationW"]
+                    )
+                    is not None
+                    else 1.0,
+                }
+            )
+        if invalid:
+            return fail("以下点位已不存在,请先修正任务: %s" % "、".join(invalid))
+
+    return _send_task(task["id"], task["taskName"], points)
+
+
+@router.get("/nav_multi/pause", response_model=ApiResponse)
+@router.post("/nav_multi/pause", response_model=ApiResponse)
+def nav_pause() -> ApiResponse:
+    """暂停当前导航任务。"""
+    success, message = ros_client.pause_nav()
+    return ok(None, message) if success else fail(message)
+
+
+@router.get("/nav_multi/resume", response_model=ApiResponse)
+@router.post("/nav_multi/resume", response_model=ApiResponse)
+def nav_resume() -> ApiResponse:
+    """恢复暂停的导航任务。"""
+    success, message = ros_client.resume_nav()
+    return ok(None, message) if success else fail(message)
+
+
+@router.get("/nav_multi/cancel", response_model=ApiResponse)
+@router.post("/nav_multi/cancel", response_model=ApiResponse)
+def nav_cancel() -> ApiResponse:
+    """立即取消当前导航任务。"""
+    success, message = ros_client.cancel_nav()
+    return ok(None, message) if success else fail(message)
+
+
+@router.get("/nav_multi/next", response_model=ApiResponse)
+@router.post("/nav_multi/next", response_model=ApiResponse)
+def nav_next() -> ApiResponse:
+    """推进到下一站。
+
+    调用约定的 ROS 端 `std_srvs/Trigger` 服务 `/nav_multi/next`;
+    当 ROS 包尚未实现该 service 时,会失败并把错误信息透传给前端。
+    """
+    success, message = ros_client.next_nav_point()
+    return ok(None, message) if success else fail(message)
+
+
+@router.get("/nav_multi/end", response_model=ApiResponse)
+@router.post("/nav_multi/end", response_model=ApiResponse)
+def nav_end() -> ApiResponse:
+    """结束当前导航任务。
+
+    调用约定的 ROS 端 `std_srvs/Trigger` 服务 `/nav_multi/end`;
+    当 ROS 包尚未实现该 service 时,会失败并把错误信息透传给前端。
+    """
+    success, message = ros_client.end_nav()
+    return ok(None, message) if success else fail(message)
+
+
+@router.get("/nav_multi/passage", response_model=ApiResponse)
+@router.post("/nav_multi/passage", response_model=ApiResponse)
+def nav_passage() -> ApiResponse:
+    """通过当前关卡（放行）。
+
+    调用约定的 ROS 端 `std_srvs/Trigger` 服务 `/nav_multi/passage`;
+    当 ROS 包尚未实现该 service 时,会失败并把错误信息透传给前端。
+    """
+    success, message = ros_client.passage_nav()
+    return ok(None, message) if success else fail(message)
+
+
+@router.get("/nav_multi/status", response_model=ApiResponse)
+def nav_status() -> ApiResponse:
+    """获取缓存的导航任务状态。"""
+    return ok(ros_client.get_nav_status())
+
+
+@router.post("/nav_custom", response_model=ApiResponse)
+def nav_custom(request: NavCustomRequest) -> ApiResponse:
+    """导航到临时坐标或数据库中的已知点位。"""
+    conflict = _check_conflict()
+    if conflict:
+        return fail(conflict)
+
+    if request.pointId == -1:
+        if any(
+            value is None
+            for value in (
+                request.positionX,
+                request.positionY,
+                request.orientationZ,
+                request.orientationW,
+            )
+        ):
+            return fail("临时点位模式(pointId=-1)缺少坐标字段")
+        point = {
+            "pointName": "临时导航",
+            "positionX": request.positionX,
+            "positionY": request.positionY,
+            "positionZ": request.positionZ,
+            "orientationX": request.orientationX,
+            "orientationY": request.orientationY,
+            "orientationZ": request.orientationZ,
+            "orientationW": request.orientationW,
+        }
+    elif request.pointId > 0:
+        with get_conn() as conn:
+            row = conn.execute(
+                "SELECT pointName, positionX, positionY, positionZ, "
+                "orientationX, orientationY, orientationZ, orientationW "
+                "FROM PointPosition WHERE id = ?",
+                (request.pointId,),
+            ).fetchone()
+        if row is None:
+            return fail("点位不存在: pointId=%d" % request.pointId)
+        point = dict(row)
+    else:
+        return fail("pointId 必须为 -1 或 >0")
+
+    return _send_task(-1, "导航到 %s" % point["pointName"], [point])
+===FILE:src/nav_api/fastapi_service/ros_client.py
+"""ROS 1 access from Python 3.10+ through rosbridge/roslibpy."""
+
+import logging
+import os
+import json
+import threading
+from typing import Any, Optional, Tuple
+
+import roslibpy
+
+
+LOGGER = logging.getLogger(__name__)
+
+
+class RosbridgeClient:
+    """Keep a rosbridge connection and cache the latest AMCL pose."""
+
+    def __init__(self) -> None:
+        self._ros = roslibpy.Ros(
+            host=os.environ.get("ROSBRIDGE_HOST", "127.0.0.1"),
+            port=int(os.environ.get("ROSBRIDGE_PORT", "19090")),
+        )
+        self._pose_topic: Optional[roslibpy.Topic] = None
+        self._topics: list[roslibpy.Topic] = []
+        self._transport_running = False
+        self._latest_pose: Optional[dict[str, float]] = None
+        self._latest_nav_status: dict[str, Any] = {}
+        self._latest_scout_status: Optional[dict[str, Any]] = None
+        self._latest_bms_status: Optional[dict[str, Any]] = None
+        self._latest_battery: Optional[dict[str, Any]] = None
+        self._cmd_vel_topic: Optional[roslibpy.Topic] = None
+        self._teleop_topic: Optional[roslibpy.Topic] = None
+        self._lock = threading.Lock()
+
+    @property
+    def is_connected(self) -> bool:
+        return bool(self._ros.is_connected)
+
+    def start(self) -> None:
+        """Connect without preventing HTTP startup when ROS is unavailable."""
+        try:
+            self._ros.run(timeout=3)
+            self._transport_running = True
+        except Exception as exc:
+            LOGGER.warning("rosbridge unavailable; ROS endpoints start degraded: %s", exc)
+            self._ros.terminate()
+            return
+
+        self._pose_topic = roslibpy.Topic(
+            self._ros,
+            "/amcl_pose",
+            "geometry_msgs/PoseWithCovarianceStamped",
+        )
+        self._pose_topic.subscribe(self._on_pose)
+        self._topics = [
+            self._pose_topic,
+            self._subscribe(
+                "/nav_multi/status", "std_msgs/String", self._on_nav_status
+            ),
+            self._subscribe(
+                "/scout_status", "scout_msgs/ScoutStatus", self._on_scout_status
+            ),
+            self._subscribe(
+                "/BMS_status", "scout_msgs/ScoutBmsStatus", self._on_bms_status
+            ),
+            self._subscribe(
+                "/battery", "sensor_msgs/BatteryState", self._on_battery
+            ),
+        ]
+        LOGGER.info("connected to rosbridge")
+
+    def stop(self) -> None:
+        for topic in self._topics:
+            topic.unsubscribe()
+        with self._lock:
+            if self._teleop_topic is not None:
+                try:
+                    self._teleop_topic.unsubscribe()
+                except Exception as exc:
+                    LOGGER.warning("ros_client: 取消 teleop 订阅失败: %s", exc)
+                self._teleop_topic = None
+            self._cmd_vel_topic = None
+        if self._transport_running:
+            self._ros.terminate()
+            self._transport_running = False
+
+    def _on_pose(self, message: dict[str, Any]) -> None:
+        pose = message["pose"]["pose"]
+        position = pose["position"]
+        orientation = pose["orientation"]
+        value = {
+            "positionX": float(position["x"]),
+            "positionY": float(position["y"]),
+            "positionZ": float(position["z"]),
+            "orientationX": float(orientation["x"]),
+            "orientationY": float(orientation["y"]),
+            "orientationZ": float(orientation["z"]),
+            "orientationW": float(orientation["w"]),
+        }
+        with self._lock:
+            self._latest_pose = value
+
+    def _subscribe(self, name: str, message_type: str, callback) -> roslibpy.Topic:
+        topic = roslibpy.Topic(self._ros, name, message_type)
+        topic.subscribe(callback)
+        return topic
+
+    def _on_nav_status(self, message: dict[str, Any]) -> None:
+        try:
+            value = json.loads(message["data"])
+        except (KeyError, TypeError, ValueError):
+            return
+        with self._lock:
+            self._latest_nav_status = value
+
+    def _on_scout_status(self, message: dict[str, Any]) -> None:
+        with self._lock:
+            self._latest_scout_status = message
+
+    def _on_bms_status(self, message: dict[str, Any]) -> None:
+        with self._lock:
+            self._latest_bms_status = message
+
+    def _on_battery(self, message: dict[str, Any]) -> None:
+        with self._lock:
+            self._latest_battery = message
+
+    def get_current_pose(self) -> Tuple[Optional[dict[str, float]], str]:
+        if not self.is_connected:
+            return None, "rosbridge 未连接"
+        with self._lock:
+            pose = dict(self._latest_pose) if self._latest_pose else None
+        if pose is None:
+            return None, "尚未收到 /amcl_pose"
+        return pose, "success"
+
+    def _call_service(
+        self, name: str, service_type: str, values: Optional[dict] = None
+    ) -> Tuple[bool, str]:
+        if not self.is_connected:
+            return False, "rosbridge 未连接"
+        try:
+            service = roslibpy.Service(self._ros, name, service_type)
+            result = service.call(roslibpy.ServiceRequest(values or {}), timeout=3)
+            if "success" in result:
+                return bool(result["success"]), result.get("message", "")
+            return True, "success"
+        except Exception as exc:
+            return False, "ROS service 调用失败: %s" % exc
+
+    def set_initial_pose(
+        self,
+        x: float,
+        y: float,
+        z: float,
+        qx: float,
+        qy: float,
+        qz: float,
+        qw: float,
+    ) -> Tuple[bool, str]:
+        if not self.is_connected:
+            return False, "rosbridge 未连接"
+        topic = roslibpy.Topic(
+            self._ros, "/initialpose", "geometry_msgs/PoseWithCovarianceStamped"
+        )
+        message = {
+            "header": {"frame_id": "map"},
+            "pose": {
+                "pose": {
+                    "position": {"x": x, "y": y, "z": z},
+                    "orientation": {"x": qx, "y": qy, "z": qz, "w": qw},
+                },
+                "covariance": [
+                    0.25, 0, 0, 0, 0, 0,
+                    0, 0.25, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0.068,
+                ],
+            },
+        }
+        try:
+            topic.publish(roslibpy.Message(message))
+            return True, "设置初始位姿成功"
+        except Exception as exc:
+            return False, "发布初始位姿失败: %s" % exc
+
+    def trigger_global_localization(self) -> Tuple[bool, str]:
+        success, message = self._call_service(
+            "/global_localization", "std_srvs/Empty"
+        )
+        if success:
+            message = "重定位已触发,请移动机器人使粒子收敛"
+        return success, message
+
+    def start_nav_task(
+        self, task_id: int, task_name: str, points: list[dict]
+    ) -> Tuple[bool, str]:
+        payload = json.dumps(
+            {"taskId": task_id, "taskName": task_name, "points": points},
+            ensure_ascii=False,
+        )
+        return self._call_service(
+            "/nav_multi/execute", "nav_api/NavCommand", {"data": payload}
+        )
+
+    def pause_nav(self) -> Tuple[bool, str]:
+        return self._call_service("/nav_multi/pause", "std_srvs/Trigger")
+
+    def resume_nav(self) -> Tuple[bool, str]:
+        return self._call_service("/nav_multi/resume", "std_srvs/Trigger")
+
+    def cancel_nav(self) -> Tuple[bool, str]:
+        return self._call_service("/nav_multi/cancel", "std_srvs/Trigger")
+
+    def next_nav_point(self) -> Tuple[bool, str]:
+        # 推进到下一站:约定 ROS 端 std_srvs/Trigger 服务 /nav_multi/next。
+        # 当 ROS 包尚未实现该 service 时,会失败并返回错误信息,
+        # 由 HTTP 层透传给前端(不再 404)。
+        return self._call_service("/nav_multi/next", "std_srvs/Trigger")
+
+    def end_nav(self) -> Tuple[bool, str]:
+        # 结束当前导航任务:约定 ROS 端 std_srvs/Trigger 服务 /nav_multi/end。
+        return self._call_service("/nav_multi/end", "std_srvs/Trigger")
+
+    def passage_nav(self) -> Tuple[bool, str]:
+        # 放行/通过当前关卡:约定 ROS 端 std_srvs/Trigger 服务 /nav_multi/passage。
+        return self._call_service("/nav_multi/passage", "std_srvs/Trigger")
+
+    def patch_pcd(self, map_name: str) -> Tuple[bool, str]:
+        # 局部补图:约定 ROS 端 std_srvs/Trigger 服务 /map_patch,
+        # 传 map_name 字段;ROS 端未实现时返回失败信息,由 HTTP 层透传。
+        return self._call_service(
+            "/map_patch", "std_srvs/Trigger",
+            values={"map_name": map_name},
+        )
+
+    def subscribe_teleop(self, callback) -> Tuple[bool, str]:
+        """Subscribe to APP ``/cmd_vel_web``; replaces any prior subscription."""
+        if not self.is_connected:
+            return False, "rosbridge 未连接"
+        try:
+            topic = roslibpy.Topic(self._ros, "/cmd_vel_web", "geometry_msgs/Twist")
+            topic.subscribe(callback)
+            with self._lock:
+                if self._teleop_topic is not None:
+                    try:
+                        self._teleop_topic.unsubscribe()
+                    except Exception as exc:
+                        LOGGER.warning("ros_client: 旧 teleop 订阅取消失败: %s", exc)
+                self._teleop_topic = topic
+            return True, "success"
+        except Exception as exc:
+            return False, "订阅 /cmd_vel_web 失败: %s" % exc
+
+    def unsubscribe_teleop(self) -> Tuple[bool, str]:
+        """Tear down the current ``/cmd_vel_web`` subscription if any."""
+        with self._lock:
+            topic = self._teleop_topic
+            self._teleop_topic = None
+        if topic is None:
+            return True, "success"
+        if not self.is_connected:
+            return True, "success"
+        try:
+            topic.unsubscribe()
+            return True, "success"
+        except Exception as exc:
+            return False, "取消 /cmd_vel_web 订阅失败: %s" % exc
+
+    def publish_cmd_vel(self, linear_x: float, angular_z: float) -> Tuple[bool, str]:
+        """Publish a sanitised ``geometry_msgs/Twist`` to ``/cmd_vel``.
+
+        ``linear.x`` 与 ``angular.z`` 之外的字段统一置零。
+        """
+        if not self.is_connected:
+            return False, "rosbridge 未连接"
+        message = {
+            "linear": {"x": float(linear_x), "y": 0.0, "z": 0.0},
+            "angular": {"x": 0.0, "y": 0.0, "z": float(angular_z)},
+        }
+        with self._lock:
+            topic = self._cmd_vel_topic
+            if topic is None:
+                try:
+                    topic = roslibpy.Topic(self._ros, "/cmd_vel", "geometry_msgs/Twist")
+                    self._cmd_vel_topic = topic
+                except Exception as exc:
+                    return False, "创建 /cmd_vel 发布器失败: %s" % exc
+        try:
+            topic.publish(roslibpy.Message(message))
+            return True, "success"
+        except Exception as exc:
+            return False, "发布 /cmd_vel 失败: %s" % exc
+
+    def get_nav_status(self) -> dict[str, Any]:
+        with self._lock:
+            value = dict(self._latest_nav_status)
+        return value or {
+            "state": "IDLE",
+            "taskId": None,
+            "taskName": "",
+            "currentPointIndex": 0,
+            "totalPoints": 0,
+            "currentPointName": "",
+            "error": "",
+        }
+
+    def get_chassis_status(self) -> dict[str, Any]:
+        with self._lock:
+            scout = dict(self._latest_scout_status or {})
+            bms = dict(self._latest_bms_status or {})
+        return {
+            "velocity": {
+                "linear": scout.get("linear_velocity"),
+                "angular": scout.get("angular_velocity"),
+                "lateral": scout.get("lateral_velocity"),
+            },
+            "battery": {
+                "soc": bms.get("SOC"),
+                "soh": bms.get("SOH"),
+                "voltage": bms.get("battery_voltage"),
+                "current": bms.get("battery_current"),
+                "temperature": bms.get("battery_temperature"),
+            },
+            "chassis": {
+                "baseState": scout.get("base_state"),
+                "controlMode": scout.get("control_mode"),
+                "faultCode": scout.get("fault_code"),
+            },
+        }
+
+    def get_battery_state(self) -> dict[str, float]:
+        with self._lock:
+            battery = dict(self._latest_battery or {})
+        percentage = battery.get("percentage") or 0
+        return {
+            "percent": float(percentage) * 100.0,
+            "voltage": float(battery.get("voltage") or 0),
+        }
+
+
+ros_client = RosbridgeClient()
+===FILE:src/nav_api/fastapi_service/task.py
+"""Task management APIs shared by FastAPI and MCP."""
+
+from typing import Annotated, Optional, Union
+
+from fastapi import APIRouter, Query
+from pydantic import Field
+
+from .database import get_conn
+from .mcp_compat import MCPServer
+from .models import (
+    ApiResponse,
+    RequestModel,
+    TaskIdRequest,
+    TaskListRequest,
+    TaskPointInput,
+    TaskSaveRequest,
+    TaskUpdateRequest,
+    fail,
+    ok,
+)
+from .ros_client import ros_client
+
+
+router = APIRouter(prefix="/api/map/task", tags=["任务管理"])
+_TP_COLUMNS = (
+    "taskId, pointId, pointName, type, pointOrder, isTemporary, "
+    "positionX, positionY, positionZ, "
+    "orientationX, orientationY, orientationZ, orientationW, "
+    "action, actionContent"
+)
+
+
+def register_mcp_tools(mcp: MCPServer) -> None:
+    mcp.tool(name="task_save")(task_save)
+    mcp.tool(name="task_list")(task_list)
+    mcp.tool(name="task_update")(task_update)
+    mcp.tool(name="task_delete")(task_delete)
+    mcp.tool(name="task_cycle_config")(cycle_config)
+    mcp.tool(name="task_cycle_status")(cycle_status)
+    mcp.tool(name="task_cycle_cancel")(cycle_cancel)
+
+
+def _normalize(x: float, y: float, z: float, w: float):
+    norm = (x * x + y * y + z * z + w * w) ** 0.5
+    if norm < 1e-6:
+        raise ValueError("四元数模长接近 0,非法姿态")
+    return x / norm, y / norm, z / norm, w / norm
+
+
+def _prepare_point(
+    index: int, point: TaskPointInput
+) -> Union[tuple, str]:
+    order = point.order if point.order is not None else index
+    if point.isTemporary:
+        coordinates = (
+            point.positionX,
+            point.positionY,
+            point.positionZ,
+            point.orientationX,
+            point.orientationY,
+            point.orientationZ,
+            point.orientationW,
+        )
+        if any(value is None for value in coordinates):
+            return "临时点位 points[%d] 缺少坐标或姿态" % index
+        try:
+            qx, qy, qz, qw = _normalize(
+                point.orientationX,
+                point.orientationY,
+                point.orientationZ,
+                point.orientationW,
+            )
+        except (ValueError, TypeError) as exc:
+            return "临时点位 points[%d] 姿态非法: %s" % (index, exc)
+        return (
+            None,
+            point.pointName,
+            point.type,
+            order,
+            1,
+            point.positionX,
+            point.positionY,
+            point.positionZ,
+            qx,
+            qy,
+            qz,
+            qw,
+            point.action,
+            point.actionContent,
+        )
+    if point.pointId is None:
+        return "非临时点位 points[%d] 缺少 pointId" % index
+    return (
+        point.pointId,
+        point.pointName,
+        point.type,
+        order,
+        0,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        point.action,
+        point.actionContent,
+    )
+
+
+@router.post("/save", response_model=ApiResponse)
+def task_save(request: TaskSaveRequest) -> ApiResponse:
+    """保存一条由有序点位组成的导航任务。"""
+    conn = get_conn()
+    try:
+        if conn.execute(
+            "SELECT 1 FROM Map WHERE mapName = ?", (request.mapName,)
+        ).fetchone() is None:
+            return fail("地图不存在: %s" % request.mapName)
+        if conn.execute(
+            "SELECT 1 FROM TaskFlow WHERE mapName = ? AND taskName = ?",
+            (request.mapName, request.taskName),
+        ).fetchone() is not None:
+            return fail("该地图下已存在同名任务: %s" % request.taskName)
+
+        prepared = []
+        for index, point in enumerate(request.points):
+            row = _prepare_point(index, point)
+            if isinstance(row, str):
+                return fail(row)
+            prepared.append(row)
+
+        cur = conn.execute(
+            "INSERT INTO TaskFlow (taskName, description, mapName, isEnabled) "
+            "VALUES (?,?,?,?)",
+            (
+                request.taskName,
+                request.description,
+                request.mapName,
+                1 if request.isEnabled else 0,
+            ),
+        )
+        task_id = cur.lastrowid
+        conn.executemany(
+            "INSERT INTO TaskPoint (%s) VALUES (%s)"
+            % (_TP_COLUMNS, ",".join(["?"] * 15)),
+            [(task_id,) + row for row in prepared],
+        )
+        conn.commit()
+        return ok({"taskId": task_id}, "保存任务成功")
+    except Exception as exc:
+        conn.rollback()
+        return fail("保存任务失败: %s" % exc)
+    finally:
+        conn.close()
+
+
+def _resolve_point(conn, task_point: dict) -> dict:
+    if task_point["isTemporary"]:
+        task_point["valid"] = True
+        return task_point
+    point = conn.execute(
+        "SELECT positionX, positionY, positionZ, "
+        "orientationX, orientationY, orientationZ, orientationW "
+        "FROM PointPosition WHERE id = ?",
+        (task_point["pointId"],),
+    ).fetchone()
+    if point is None:
+        task_point["valid"] = False
+    else:
+        task_point["valid"] = True
+        task_point.update(dict(point))
+    return task_point
+
+
+@router.get("/list", response_model=ApiResponse)
+def task_list(request: Annotated[TaskListRequest, Query()]) -> ApiResponse:
+    """查询任务列表，并解析每个任务的实时点位信息。"""
+    conn = get_conn()
+    try:
+        if request.mapName:
+            tasks = conn.execute(
+                "SELECT * FROM TaskFlow WHERE mapName = ? ORDER BY id",
+                (request.mapName,),
+            ).fetchall()
+        else:
+            tasks = conn.execute(
+                "SELECT * FROM TaskFlow ORDER BY id"
+            ).fetchall()
+
+        result = []
+        for task_row in tasks:
+            task = dict(task_row)
+            task_points = conn.execute(
+                "SELECT * FROM TaskPoint WHERE taskId = ? ORDER BY pointOrder, id",
+                (task["id"],),
+            ).fetchall()
+            task["points"] = [
+                _resolve_point(conn, dict(point)) for point in task_points
+            ]
+            result.append(task)
+        return ok(result)
+    finally:
+        conn.close()
+
+
+@router.post("/update", response_model=ApiResponse)
+def task_update(request: TaskUpdateRequest) -> ApiResponse:
+    """部分更新任务；传 points 时完全替换任务点位。"""
+    data = request.model_dump(exclude_unset=True)
+    task_id = data.pop("id")
+    points = data.pop("points", None)
+
+    conn = get_conn()
+    try:
+        row = conn.execute(
+            "SELECT * FROM TaskFlow WHERE id = ?", (task_id,)
+        ).fetchone()
+        if row is None:
+            return fail("任务不存在: id=%s" % task_id)
+        current = dict(row)
+
+        if "taskName" in data and data["taskName"] != current["taskName"]:
+            conflict = conn.execute(
+                "SELECT 1 FROM TaskFlow "
+                "WHERE mapName = ? AND taskName = ? AND id != ?",
+                (current["mapName"], data["taskName"], task_id),
+            ).fetchone()
+            if conflict:
+                return fail("该地图下已存在同名任务: %s" % data["taskName"])
+
+        prepared = None
+        if points is not None:
+            if not points:
+                return fail("points 至少包含 1 个点位")
+            prepared = []
+            for index, raw_point in enumerate(points):
+                result = _prepare_point(index, TaskPointInput.model_validate(raw_point))
+                if isinstance(result, str):
+                    return fail(result)
+                prepared.append(result)
+
+        if data:
+            fields = ", ".join("%s = ?" % field for field in data)
+            fields += ", updatedTime = datetime('now','localtime')"
+            conn.execute(
+                "UPDATE TaskFlow SET %s WHERE id = ?" % fields,
+                list(data.values()) + [task_id],
+            )
+        if prepared is not None:
+            conn.execute("DELETE FROM TaskPoint WHERE taskId = ?", (task_id,))
+            conn.executemany(
+                "INSERT INTO TaskPoint (%s) VALUES (%s)"
+                % (_TP_COLUMNS, ",".join(["?"] * 15)),
+                [(task_id,) + point for point in prepared],
+            )
+        conn.commit()
+        return ok({"taskId": task_id}, "更新任务成功")
+    except Exception as exc:
+        conn.rollback()
+        return fail("更新任务失败: %s" % exc)
+    finally:
+        conn.close()
+
+
+@router.get("/delete", response_model=ApiResponse)
+def task_delete(request: Annotated[TaskIdRequest, Query()]) -> ApiResponse:
+    """删除任务；当前正在执行或暂停的任务不能删除。"""
+    nav_status = ros_client.get_nav_status()
+    if (
+        nav_status.get("state") in ("RUNNING", "PAUSED")
+        and nav_status.get("taskId") == request.id
+    ):
+        return fail(
+            "任务正在执行中(state=%s),请先调用 /api/map/nav_multi/cancel 取消导航"
+            % nav_status["state"]
+        )
+
+    conn = get_conn()
+    try:
+        if conn.execute(
+            "SELECT 1 FROM TaskFlow WHERE id = ?", (request.id,)
+        ).fetchone() is None:
+            return fail("任务不存在: id=%s" % request.id)
+        conn.execute("DELETE FROM TaskPoint WHERE taskId = ?", (request.id,))
+        conn.execute("DELETE FROM TaskFlow WHERE id = ?", (request.id,))
+        conn.commit()
+        return ok({"id": request.id}, "任务删除成功")
+    except Exception as exc:
+        conn.rollback()
+        return fail("删除任务失败: %s" % exc)
+    finally:
+        conn.close()
+
+
+# ============================================================
+# 周期执行(cycle)接口
+# 持久化 CycleConfig 行,不负责真触发执行;后续需要 scheduler/ROS 端扩展。
+# ============================================================
+class CycleConfigRequest(RequestModel):
+    taskId: int = Field(description="要周期执行的任务 ID")
+    cycleMode: int = Field(default=0, description="0=按次 1=按日")
+    cycleInterval: int = Field(default=0, ge=0, description="按次模式间隔秒数")
+    cycleCount: int = Field(default=0, ge=0, description="0=无限,>0=次数上限")
+    startTime: Optional[str] = Field(default=None, description="首次执行时间(ISO 字符串)")
+    dailyTime: Optional[str] = Field(default=None, description="cycleMode=1 时使用,如 HH:MM")
+
+
+class CycleCancelRequest(RequestModel):
+    configId: int = Field(description="要取消的周期配置 ID")
+
+
+class CycleStatusQuery(RequestModel):
+    taskId: int = Field(description="要查询的任务 ID")
+
+
+def _compute_next_execute(cycle_mode: int, start_time: Optional[str],
+                          interval_seconds: int) -> Optional[str]:
+    """MVP:首次执行时间即 nextExecuteTime;按日模式 dailyTime 用作首次时间。"""
+    if cycle_mode == 1:
+        return start_time
+    return start_time
+
+
+@router.post("/cycle-config", response_model=ApiResponse)
+def cycle_config(request: CycleConfigRequest) -> ApiResponse:
+    """为指定任务创建/替换周期执行配置。
+
+    同一个 taskId 只允许一条 isRunning=1 的配置；新提交时将旧的 isRunning=0。
+    """
+    conn = get_conn()
+    try:
+        if conn.execute(
+            "SELECT 1 FROM TaskFlow WHERE id = ?", (request.taskId,)
+        ).fetchone() is None:
+            return fail("任务不存在: taskId=%s" % request.taskId)
+
+        conn.execute(
+            "UPDATE CycleConfig SET isRunning = 0 WHERE taskId = ?",
+            (request.taskId,),
+        )
+        next_time = _compute_next_execute(
+            request.cycleMode,
+            request.startTime or request.dailyTime,
+            request.cycleInterval,
+        )
+        cur = conn.execute(
+            """INSERT INTO CycleConfig
+               (taskId, cycleMode, cycleInterval, cycleCount,
+                startTime, dailyTime, isRunning, nextExecuteTime)
+               VALUES (?, ?, ?, ?, ?, ?, 1, ?)""",
+            (
+                request.taskId,
+                request.cycleMode,
+                request.cycleInterval,
+                request.cycleCount,
+                request.startTime,
+                request.dailyTime,
+                next_time,
+            ),
+        )
+        conn.commit()
+        return ok({"configId": cur.lastrowid}, "周期配置已创建")
+    except Exception as exc:
+        conn.rollback()
+        return fail("创建周期配置失败: %s" % exc)
+    finally:
+        conn.close()
+
+
+@router.get("/cycle-status", response_model=ApiResponse)
+def cycle_status(request: Annotated[CycleStatusQuery, Query()]) -> ApiResponse:
+    """查询指定任务当前生效的周期配置；没有则返回 isRunning=false。"""
+    conn = get_conn()
+    try:
+        row = conn.execute(
+            "SELECT * FROM CycleConfig WHERE taskId = ? "
+            "ORDER BY isRunning DESC, id DESC LIMIT 1",
+            (request.taskId,),
+        ).fetchone()
+        if row is None:
+            return ok(
+                {
+                    "isRunning": False,
+                    "configId": None,
+                    "cycleMode": None,
+                    "nextExecuteTime": "",
+                    "cycleCount": None,
+                    "cycleInterval": None,
+                    "dailyTime": "",
+                },
+                "尚未配置周期执行",
+            )
+        item = dict(row)
+        item["isRunning"] = bool(item.get("isRunning"))
+        return ok(
+            {
+                "isRunning": item["isRunning"],
+                "configId": item["id"],
+                "cycleMode": item["cycleMode"],
+                "nextExecuteTime": item["nextExecuteTime"] or "",
+                "cycleCount": item["cycleCount"],
+                "cycleInterval": item["cycleInterval"],
+                "dailyTime": item["dailyTime"] or "",
+            },
+            "ok",
+        )
+    finally:
+        conn.close()
+
+
+@router.post("/cycle-cancel", response_model=ApiResponse)
+def cycle_cancel(request: CycleCancelRequest) -> ApiResponse:
+    """取消指定周期配置(置 isRunning=0),不删除行,保留历史。"""
+    conn = get_conn()
+    try:
+        cur = conn.execute(
+            "UPDATE CycleConfig SET isRunning = 0, "
+            "updatedTime = datetime('now','localtime') WHERE id = ?",
+            (request.configId,),
+        )
+        conn.commit()
+        if cur.rowcount == 0:
+            return fail("周期配置不存在: configId=%s" % request.configId)
+        return ok({"configId": request.configId}, "周期配置已取消")
+    finally:
+        conn.close()
