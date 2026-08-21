@@ -105,3 +105,26 @@
   - 删除后目标地图、点位、任务、任务点查询结果均为 0
 - note: `office_room_test` 记录恢复仍是独立待决事项。
 
+
+## 2026-08-21：底盘自动/手动控制模式切换与 APP 状态显示
+- Jetson 后端支持自动导航/手动遥控切换，手动模式接管 `/cmd_vel`，导航模式恢复自动控制。
+- APP 导航控制→操控增加底盘模式显示与切换，保留触屏/G20/手柄输入和速度设置。
+- 修复 `SCOUT` 底盘类型与控制权混淆：结合 `control`、`teleopEnabled`、中文 `modeLabel` 解析为自动/手动/未知。
+- 摇杆实际链路已现场确认可控制小车。
+- APP 编译、安装和真机部署按用户约定由用户手动执行。
+
+## TASK-2026-08-21-003：复杂联调自动触发 Sol
+
+- status: completed
+- scope: 本地 AI 工作区模型路由文档；未修改业务代码或远端系统。
+- result:
+  - 前后端、后端导航等相互依赖的跨 lane 联调改为强制自动调用 Sol。
+  - Luna 先收集最小事实，并在形成根因或实施方案前调用 Sol，不再等待用户点名或 Luna 失败。
+  - 多 lane 但完全独立、无共享接口和共同故障现象时仍使用 Luna。
+- validation: AGENTS、model-routing、team-orchestration、handoff 规则一致；业务测试 SKIPPED（user fast mode）。
+
+## 本次恢复结论（2026-08-21）
+- 3D 点云不显示的直接原因是激活地图 `dinggu7_5` 缺少 PCD 与 display PCD 文件，publisher 仅留下 stale ROS 注册。
+- 切换到具有完整点云资源的 `dinggu7_6` 后，通过既有导航接口恢复 publisher，`/global_cloud_navigation` 正常发布，用户确认 3D 点云恢复。
+- 未覆盖容器、未修改地图/数据库、未重启整个 scout-nav；底盘模式和手动控制未被破坏。
+- 经验：恢复任务必须先以云端仓库为代码基线，再用最小命令核对实际挂载、激活地图资源和 publisher 状态，避免无关的容器级操作与重复读取。

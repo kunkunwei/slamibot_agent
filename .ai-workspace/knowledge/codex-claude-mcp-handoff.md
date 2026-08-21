@@ -37,9 +37,10 @@ codex -p luna -C F:\slamibot_agent
 完整规则：`.ai-workspace/agents/model-routing.md`
 
 - Luna 是默认主协调模型，负责日常工具调用、文件/日志/Git 检查、lane 拆分、Claude Code MCP 调用和简短汇总。
-- 普通任务的 Sol 请求目标为 0；不使用 Sol 做例行搜索、Git 检查、结果转述或最终审查。
-- 仅在跨仓库架构/protected 接口、Luna 一次定位仍无法确定根因、高风险迁移/部署/数据操作，或用户明确要求时，进行一次边界明确的 Sol 专家咨询。
-- 独立非阻塞扫描可创建或复用 Luna subagent；UI 只出现一个 Luna 实例不代表只执行一次。
+- 单 lane 普通任务的 Sol 请求目标为 0；不使用 Sol 做例行搜索、Git 检查、结果转述或最终审查。
+- 前端/后端/导航至少两个 lane 相互依赖，或需关联 API/WebSocket/rosbridge/ROS/容器/网络解释同一故障时，必须在形成根因和实施方案前自动调用 Sol，不等待 Luna 失败或用户点名。
+- 接口契约/protected 接口、高风险迁移/部署/数据操作、证据冲突或用户明确要求时同样强制 Sol；默认先咨询一轮。
+- 多 lane 但完全独立、无共享接口和共同故障现象时仍由 Luna 协调。
 - 实际业务代码修改仍优先委派 Claude Code MCP，Codex 独立验收。
 - 模型切换不扩大 SSH、Docker、ROS、Git 或文件权限。
 
