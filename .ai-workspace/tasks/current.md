@@ -59,10 +59,17 @@
               - 终端未给出 wav 文件大小；未运行 `file`/`aplay` 回放；未提供波形或语音识别结果。
               - 因此**不能据此宣称“已经听到声音”或“语音识别正常”**。
               - 麦克风硬件/ALSA 采集基本可用；实际音频内容与语音识别仍 `NEEDS_CONFIRMATION`。
-          - 下一步建议（**仅记录，不在本会话执行**；待用户授权后再跑）：
-              - `ls -lh /tmp/box-mic-test.wav`：核对文件大小是否为非零、与 5 秒 16kHz/16bit/Mono 的预期大小一致（5s × 16000 × 2B ≈ 160KB，未提供时按 UNKNOWN）。
-              - `file /tmp/box-mic-test.wav`：确认实际格式与采样参数。
-              - 必要时 `aplay /tmp/box-mic-test.wav` 做人工回放，或接入最小语音识别跑一次。
+          - 2026-08-21 用户在 Jetson 完成的 WAV 文件静态校验证据（用户提供，仅记录，不在本任务中执行命令）：
+              - `ls -lh /tmp/box-mic-test.wav`：文件大小 `157K`（157 KB，1 KB = 1024 B）。
+              - `file /tmp/box-mic-test.wav`：`RIFF (little-endian) data, WAVE audio, Microsoft PCM, 16 bit, mono 16000 Hz`。
+              - 结论升级：录音文件已成功生成，大小约 157K，与 5 秒、16kHz、16-bit、mono 的预期（约 160 KB，扣除 WAV 头 44 B）一致；文件格式有效。由此确认 **USB 麦克风采集链路在 ALSA 层工作正常**。
+              - 边界（**不得过度宣称**）：用户尚未提供 `aplay` 人工回放结果或语音识别结果，**不得宣称"已听到具体声音"或"语音识别正常"**。
+              - 当前状态：
+                  - BOX 扬声器（播放链路）：已确认正常。
+                  - 麦克风录音采集（`arecord` + WAV 落盘 + 格式校验）：**已确认正常**。
+                  - 实际音频内容/清晰度、语音识别链路：仍 `NEEDS_CONFIRMATION`。
+                  - `/dev/lg_speech_uac`：仍不存在。
+              - 下一步建议（**仅记录，不在本会话执行**）：`aplay /tmp/box-mic-test.wav` 人工确认声音，随后进行最小语音识别测试；不执行。
       - 下一步建议（**仅记录，不在本会话执行**；待用户授权后再跑）：
           - 短时录音测试，例如 `arecord -D plughw:CARD=Device,DEV=0 -f S16_LE -r 16000 -c 1 -d 5 /tmp/box-mic-test.wav`，随后 `aplay` 校验文件或最小语音识别测试。
           - 用正确绝对路径执行 `udevadm info --query=all --name=/dev/ttyUSB8`，并对实际声卡节点跑 udev 查询（实际节点需先从 `/proc/asound/cards`、`/dev/snd` 确认，未知处标 UNKNOWN）。

@@ -1,6 +1,14 @@
 # 最新上下文检查点
 
 - updated: 2026-08-21
+- wav_validation_2026-08-21: 用户提供（仅记录，未在本工作区执行任何远程命令）：
+  - `ls -lh /tmp/box-mic-test.wav`：文件大小 `157K`。
+  - `file /tmp/box-mic-test.wav`：`RIFF (little-endian) data, WAVE audio, Microsoft PCM, 16 bit, mono 16000 Hz`。
+  - 结论升级：录音文件已成功生成，大小约 157K，与 5 秒、16kHz、16-bit、mono 的预期（约 160 KB，扣除 WAV 头）一致；文件格式有效。由此确认 **USB 麦克风采集链路在 ALSA 层工作正常**。
+  - 边界（**不得过度宣称**）：用户尚未提供 `aplay` 人工回放结果或语音识别结果，**不得宣称"已听到具体声音"或"语音识别正常"**。
+  - 当前状态：① BOX 扬声器（播放链路）已确认正常；② 麦克风录音采集（`arecord` + WAV 落盘 + 格式校验）已确认正常；③ 实际音频内容/清晰度和语音识别仍 `NEEDS_CONFIRMATION`；④ `/dev/lg_speech_uac` 仍不存在。
+  - 下一步建议（**仅记录，不在本会话执行**）：`aplay /tmp/box-mic-test.wav` 人工确认声音，随后进行最小语音识别测试；不执行。
+
 - current_focus: `TASK-2026-08-21-001`（图传接收机 IP、BOX 麦克风、任务 service 模式、点位动作通用 service、GO2 2D 适配）。
 - scope: NEEDS_CONFIRMATION（多子项目标地址、设备路径、接口契约、底盘型号均待用户确认）。
 - migration: NEEDS_CONFIRMATION（GO2 适配若涉及 ROS2/迁移，未经专项授权不得触发；当前 ROS1 + Scout 为 CURRENT）。
