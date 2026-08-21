@@ -1,137 +1,18 @@
 # 最新上下文检查点
 
 - updated: 2026-08-21
-- voice_app_startup_and_playback_2026-08-21: 用户提供（仅记录，未在本工作区执行任何远程命令）：
-  - 语音交互应用启动：
-      - 用户命令：`PORT=/dev/lg_speech_serial ./run.sh`。
-      - 串口链路：成功打开 `/dev/lg_speech_serial`，115200 baud；`mic_serial` 启动成功，`raw_audio=false`。
-      - 应用枚举到的音频设备中包含 `USB Audio Device: - (hw:2,0) (输入通道: 1)`，以及 Jetson APE 设备、`pulse`、`default` 等。
-      - 错误：未找到包含 `ListenGo` 的音频设备；最终 `ALSA 音频采集启动失败，退出`。
-      - 录制输出：应用将"录音"保存到 `/dev/null`，**不要把它当作有效录音文件**——`/dev/null` 是空设备，写入即丢弃。
-  - WAV 人工回放：
-      - 用户命令：`aplay /tmp/box-mic-test.wav`，命令正常完成，未报错。
-      - 实际结果：用户**没有听到录音**。
-      - 注意：`aplay` 返回 0 不等于真的发出了声音；可能是播放路由/音量/默认 PCM 设备选择问题，也可能是源 WAV 本身就是静音/零增益。
-  - 更新结论：
-      - 串口链路：正常（`mic_serial` 启动成功）。
-      - USB 音频采集设备：存在并可打开，但**应用按名称匹配 `ListenGo`**，未识别通用 `USB Audio Device`，因此**语音交互应用启动失败**。
-      - **不得把"应用启动失败"等同于"麦克风硬件坏"**。
-  - 三个问题必须区分：
-      ① 应用设备名匹配失败（ListenGo vs USB Audio Device 名称不匹配）。
-      ② 录音文件可能全静音/增益为零（与播放无关）。
-      ③ 扬声器播放链路此前已确认正常，但本次 WAV 回放未听到声音，可能是播放设备/音量/路由问题，**暂不猜根因**。
-  - 下一步建议（**仅记录，不在本会话执行**）：
-      - 在应用配置/代码中查找 `ListenGo` 名称匹配规则，决定改成"按设备名前缀/正则匹配"或加设备别名映射。
-      - 用 `amixer`/`alsamixer` 检查 USB Audio capture mixer、Capture 开关和增益；确认采集通道是否被静音或增益为 0。
-      - 用 `arecord -D plughw:CARD=Device,DEV=0 -f S16_LE -r 16000 -c 1 -d 5 -V mono /tmp/box-mic-test.wav`（`-V mono` 输出 VU/峰值表）观察实时电平；之后用 `sox /tmp/box-mic-test.wav -n stat` 或 `ffmpeg -i /tmp/box-mic-test.wav -af volumedetect -f null -` 检查是否全零。
-      - 用 `aplay -L` 看默认播放 PCM；用 `aplay -D plughw:CARD=Device,DEV=0 /tmp/box-mic-test.wav` 强制走 USB Audio 输出，确认是否与默认路由不同。
-      - 必要时 `lsusb -v -d 0d8c:0012`（只读）确认 C-Media 设备身份。
-      - **不得修改 udev 规则或应用代码**，除非后续明确授权。
-  - 状态：
-      - `TASK-2026-08-21-001` 保持 `in_progress`。
-      - 麦克风实际有效音频与语音识别：`NEEDS_CONFIRMATION`。
-      - 扬声器此前已确认正常，但本次 WAV 回放未听到声音，**当前回放结果也需进一步确认**（不能直接否定扬声器链路）。
-- wav_validation_2026-08-21: 用户提供（仅记录，未在本工作区执行任何远程命令）：
-  - `ls -lh /tmp/box-mic-test.wav`：文件大小 `157K`。
-  - `file /tmp/box-mic-test.wav`：`RIFF (little-endian) data, WAVE audio, Microsoft PCM, 16 bit, mono 16000 Hz`。
-  - 结论升级：录音文件已成功生成，大小约 157K，与 5 秒、16kHz、16-bit、mono 的预期（约 160 KB，扣除 WAV 头）一致；文件格式有效。由此确认 **USB 麦克风采集链路在 ALSA 层工作正常**。
-  - 边界（**不得过度宣称**）：用户尚未提供 `aplay` 人工回放结果或语音识别结果，**不得宣称"已听到具体声音"或"语音识别正常"**。
-  - 当前状态：① BOX 扬声器（播放链路）已确认正常；② 麦克风录音采集（`arecord` + WAV 落盘 + 格式校验）已确认正常；③ 实际音频内容/清晰度和语音识别仍 `NEEDS_CONFIRMATION`；④ `/dev/lg_speech_uac` 仍不存在。
-  - 下一步建议（**仅记录，不在本会话执行**）：`aplay /tmp/box-mic-test.wav` 人工确认声音，随后进行最小语音识别测试；不执行。
-- audio_diagnostics_2026-08-21: 用户提供（仅记录，未在本工作区执行任何远程命令）：
-  - `arecord ... -V mono`：可完成 5 秒录音，但 VU 输出几乎没有有效电平（仅看到起始 `#+ ... | 00%`，不可据此做精确峰值判断）。
-  - `sox`：未安装（两次均 `sox：未找到命令`）。
-  - `ffmpeg -i /tmp/box-mic-test.wav -af volumedetect -f null -`：
-      - n_samples = 80000（约 5 秒，16kHz mono，与预期一致）。
-      - mean_volume = -90.3 dB。
-      - max_volume = -74.7 dB。
-      - histogram_74db / histogram_76db 仅有少量样本。
-      - 明确说明 WAV 内容基本接近静音/只有极低噪声。
-  - `amixer`：输出非常长，主要是 Jetson APE / 内部 DSP / I2S / DSPK 控件；用户未指定 `-c 2`，因此不能把它当作 USB Audio Device (card 2) 的采集增益/静音状态证据。
-  - **结论升级**：
-      - USB 音频设备枚举、ALSA 打开、WAV 格式/落盘都正常。
-      - 但录音内容基本为静音（mean ≈ -90 dB, max ≈ -75 dB），说明当前有效麦克风音频未进入 `hw:2,0`（或输入增益/静音/路由/设备身份仍有问题）。
-      - **不得宣称麦克风硬件已损坏**；可能原因标为 `NEEDS_CONFIRMATION`：
-          - USB 音频设备并非 BOX 麦克风输入（device 身份/路由问题）。
-          - 采集通道静音或增益为 0。
-          - USB Audio 设备身份/驱动映射错误。
-          - 需要特定多通道/采样格式才能采集到有效数据。
-      - 语音交互应用仍因只匹配 `ListenGo` 而未启动；不要把问题简化为单一名称匹配；当前至少有两层问题：
-          - ① 应用设备名识别失败（ListenGo vs 通用 USB Audio Device）。
-          - ② 采集数据近静音（与播放/识别链路无关）。
-  - 下一步建议（**仅记录，不在本会话执行**；待用户授权后再跑）：
-      - 用 `amixer -c 2 scontrols`、`amixer -c 2 contents` 检查 USB 声卡真实控件（不能继续只看默认 APE）。
-      - 查看 `cat /proc/asound/cards`、`cat /proc/asound/card2/usbid`（若存在）、`ls -l /dev/snd`。
-      - 用 `ffmpeg` 已可用，继续用它判断不同通道/格式；可试 `arecord -D hw:CARD=Device,DEV=0 -f S16_LE -r 16000 -c 1 -d 5 ...` 与 `-c 2`（先 `arecord --dump-hw-params`，仅记录建议）。
-      - 对 USB 声卡执行 `lsusb -v -d 0d8c:0012`（只读）确认描述符/厂商。
-      - 检查应用源码/配置的 `ListenGo` 匹配逻辑，暂不修改。
-  - 状态：
-      - `TASK-2026-08-21-001` 保持 `in_progress`。
-      - 扬声器此前人工确认正常。
-      - 麦克风有效音频/语音识别：`NEEDS_CONFIRMATION`。
-      - 当前已确认的是"采集链路产出近静音 WAV"。
-  - checkpoint updated 2026-08-21; tests: SKIPPED (user-provided ffmpeg/amixer diagnostics only)。
-
-- normal_box_vs_faulty_box_2026-08-21: 用户提供（仅记录，未在本工作区执行任何远程命令）：
-  - 正常 BOX `lsusb`：出现 `ID 2208:0001 Realtek Bluetooth Radio`。注意：用户提供的 `lsusb` 文本本身将该 ID 标为 `Realtek Bluetooth Radio`，但**不能据此自行改写 USB 厂商描述**——`2208:0001` 的真实身份仍需以设备描述符或厂家资料为准。
-  - 正常 BOX `lsusb -t`：同一设备 Dev 29 同时出现 Audio 接口（多个 `snd-usb-audio`）、Communications (`cdc_acm`) 与 CDC Data，480M。说明它是带音频 + 串口/CDC 的**复合 USB 设备**。
-  - 正常 BOX `arecord -l`：同时存在两个不同的 ALSA 声卡：
-      - `card 2: Device [USB Audio Device], device 0: USB Audio [USB Audio]`
-      - `card 3: L6Microphone [ListenGo Circular 6-Microphone], device 0: USB Audio [USB Audio]`
-  - 故障 BOX 对比：仅有通用 `USB Audio Device (hw:2,0)`，**缺少 `card 3: L6Microphone [ListenGo Circular 6-Microphone]`**。这直接解释了语音交互应用「未找到包含 ListenGo 的音频设备」并退出。
-  - **关键区分**：`USB Audio Device` 与 `ListenGo/L6Microphone` 是**两个不同 ALSA 声卡**——不能把前者当成后者；前者可能是通用播放/音频设备，后者才是应用期待的六麦阵列采集设备。
-  - **当前根因判断（高置信度）**：故障 BOX 的 ListenGo 六麦阵列复合 USB 音频/CDC 设备没有正确枚举，或设备/固件/USB 连接存在异常。
-  - **明确边界（不得过度宣称）**：
-      - **不得直接判定硬件损坏**；仍需换 BOX 交叉验证 / 设备描述符 / 内核日志进一步定位。
-      - **不得修改应用匹配逻辑**（`ListenGo` 名称匹配）：正常 BOX 已证明该匹配路径本身就是正确的；问题在故障 BOX 的设备枚举，不在应用代码。
-  - **正常 BOX 后续验证建议（仅记录，不在本会话执行）**：
-      - 在正常 BOX 上执行 `arecord -D hw:CARD=L6Microphone,DEV=0 ...` 或 `plughw:CARD=L6Microphone,DEV=0 ...` 录音并检查音量/电平；应用应自动找到包含 ListenGo 的 card 3。
-  - **故障 BOX 后续诊断建议（仅记录，不在本会话执行）**：
-      - 对比 `lsusb -v -d 2208:0001`（只读）、`cat /proc/asound/cards`、`cat /proc/asound/card3/usbid`（若存在）。
-      - 必要时 `dmesg -T | grep -i -E "snd|usb|2208|listen|cdc"` 检查枚举/绑定日志（需具备相应权限时再执行）。
-  - **状态更新**：
-      - `TASK-2026-08-21-001` 仍保持 `in_progress`。
-      - 「正常 BOX 麦克风设备枚举」：**已确认**。
-      - 「故障 BOX 麦克风硬件/USB/固件原因」：`NEEDS_CONFIRMATION`（仍需交叉验证）。
-      - 不得修改应用匹配逻辑。
-  - checkpoint updated 2026-08-21; tests: SKIPPED (user-provided comparison diagnostics only)。
-
-- current_focus: `TASK-2026-08-21-001`（图传接收机 IP、BOX 麦克风、任务 service 模式、点位动作通用 service、GO2 2D 适配）。
-- scope: NEEDS_CONFIRMATION（多子项目标地址、设备路径、接口契约、底盘型号均待用户确认）。
-- migration: NEEDS_CONFIRMATION（GO2 适配若涉及 ROS2/迁移，未经专项授权不得触发；当前 ROS1 + Scout 为 CURRENT）。
-- mic_status: `NEEDS_CONFIRMATION`（播放/采集链路必须区分，**不可互相反推**）——2026-08-21 用户补充事实与 Jetson 检查证据（仅记录，未在本工作区执行任何远程命令）：
-  - BOX 集成扬声器与麦克风；**扬声器/播放链路已由用户人工实测确认正常**（已确认事实）。
-  - 本次 `arecord`/`snd-usb-audio` 证据**仅针对 USB 音频设备与采集接口在线**；播放与采集是两条独立物理/逻辑通道，扬声器正常不构成麦克风采集/语音识别可用的证据。
-  - `lsusb -t`：Bus 01 Port 2 Dev 11 同时存在 HID 与 Audio 接口；Audio 接口由 `snd-usb-audio` 驱动，USB 音频设备已被内核枚举并加载驱动。
-  - `arecord -l`：列出 `card 2: Device [USB Audio Device], device 0: USB Audio [USB Audio]`。设备名称仍是通用 `USB Audio Device`，**不能直接确认为 ListenGo**。
-  - `arecord -L`：列出 `sysdefault:CARD=Device`、`hw:CARD=Device,DEV=0`、`plughw:CARD=Device,DEV=0` 等 USB Audio PCM；同时包含播放/输出 profile，**不能仅据此证明录音质量或语音识别链路可用**。
-  - 设备节点：`/dev/lg_speech_uac` 仍不存在；`/dev/lg_speech_serial -> ttyUSB8` 存在。
-  - 失败项：`dmesg -T | tail -n 100` 因权限失败；`udevadm info ...` 因使用占位参数 `...` 而失败——这两项均**不应**作为设备不存在的证据。
-  - 当前准确状态：① BOX 音频输出（扬声器播放）已确认；② USB 音频输入设备已被系统识别；③ 麦克风实际录音与语音识别仍 `NEEDS_CONFIRMATION`；④ `/dev/lg_speech_uac` 仍不存在。
-  - 结论修订：USB 音频设备在线，麦克风链路达到「系统识别」阶段；但 ListenGo 身份、录音数据有效性、语音识别链路、`/dev/lg_speech_uac` 是否被 udev 创建仍未完成确认。任务状态保持 `in_progress` / `NEEDS_CONFIRMATION`，**不得标记为完全验收**。
-  - 2026-08-21 用户在 Jetson 执行的 5 秒短时录音证据（用户提供，仅记录，不在本工作区执行命令）：
-      - 命令：`arecord -D plughw:CARD=Device,DEV=0 -f S16_LE -r 16000 -c 1 -d 5 /tmp/box-mic-test.wav`。
-      - 终端输出：显示“正在录音 WAVE '/tmp/box-mic-test.wav' : Signed 16 bit Little Endian, 16000Hz, Mono”，随后回到 shell，无报错。
-      - 结论：ALSA 已成功打开该 USB 采集设备并完成 5 秒录音流程；这是“录音设备可打开/采集流程完成”的证据。
-      - 边界（**不得过度宣称**）：终端未给出 wav 文件大小；未运行 `file`/`aplay`；未提供波形或语音识别结果。**不能据此宣称“已经听到声音”或“语音识别正常”**。麦克风硬件/ALSA 采集基本可用；实际音频内容与语音识别仍 `NEEDS_CONFIRMATION`。
-      - 下一步建议（**仅记录，不在本会话执行**）：`ls -lh /tmp/box-mic-test.wav`、`file /tmp/box-mic-test.wav`，必要时 `aplay /tmp/box-mic-test.wav` 或做最小语音识别。
-  - 下一步（**仅记录建议，不在本会话执行**）：① 短时录音测试，例如 `arecord -D plughw:CARD=Device,DEV=0 -f S16_LE -r 16000 -c 1 -d 5 /tmp/box-mic-test.wav`，再 `aplay` 检查或最小语音识别；② 用正确绝对路径执行 `udevadm info --query=all --name=/dev/ttyUSB8`，并对实际声卡节点跑 udev 查询（实际节点需先从 `/proc/asound/cards`、`/dev/snd` 确认，未知处标 UNKNOWN）。
-- tests: SKIPPED (user-provided voice app and playback logs only)；本检查点不运行任何构建/测试/仿真/Jetson 操作。
-- conclusion: 已保留完整基础接口，但当前是项目接口，不宜未经加固直接作为客户稳定 API。
-- available:
-  - 点位 CRUD、排序和按 `/amcl_pose` 当前位姿踩点：`/api/map/point/*`。
-  - 单点导航：`POST /api/map/nav_custom`，数据库点位或临时 map 坐标。
-  - 多点任务 CRUD、执行、暂停、恢复、取消、状态：`/api/map/task/*`、`/api/map/nav_multi/*`。
-  - ROS1 内部使用 `move_base` action 与 `/nav_multi/*` service/status；FastAPI 同时生成 OpenAPI，并注册 MCP tools。
-  - 一体化 Docker 镜像已有地图目录和 SQLite 数据库宿主机卷挂载方案。
-- product_gaps:
-  - 无 auth/TLS/RBAC、`/api/v1`、幂等、审计和正式 DB migration。
-  - 未校验任务/点位地图与当前激活地图一致。
-  - `next/end/passage` ROS service 未实现；APP `/nav_multi` 路径与后端契约存在差异。
-  - `action/actionContent` 仅存储未执行；任务状态容器重启不恢复。
-- recommended_boundary: 客户只使用版本化 HTTPS API/SDK；19090 和 move_base 保持容器内部，9090 仅在确有实时 Topic 需求时经受控网关开放。
-- previous_issue: 静态地图临时障碍空气墙已诊断，见 `TASK-2026-08-20-009`。
-- jetson: ON_USER_CONFIRMED，公司 Wi-Fi `192.168.31.135`；本次未连接。
-- safety: ROS1 CURRENT；只读登记，未修改业务代码、镜像、数据库或远端。
-- tests: SKIPPED (user-provided voice app and playback logs only)。
-- recovery_order: `AGENTS.md` → 本检查点 → `tasks/current.md` → API/ROS facts。
+- current_focus: BOX 麦克风硬件问题移交同事，任务暂停。
+- task: `TASK-2026-08-21-001`
+- status: paused_hardware_handoff
+- handoff: 同事检查 BOX 硬件、USB 连接/供电、固件及设备枚举；Codex 暂不继续 Jetson 诊断、应用修改或 udev 修改。
+- key_facts:
+  - 正常 BOX：`arecord -l` 有 `card 3: L6Microphone [ListenGo Circular 6-Microphone]`，并有音频 + CDC 复合 USB 接口。
+  - 故障 BOX：缺少 `L6Microphone/ListenGo` 声卡，仅有通用 `USB Audio Device (card 2)`。
+  - 故障 BOX：`/dev/lg_speech_serial` 可打开，但通用 USB 音频 WAV 近静音；语音交互程序因找不到 ListenGo 设备退出。
+  - 应用的 ListenGo 匹配逻辑暂不修改；正常 BOX 已证明该路径正确。
+- unresolved: 故障原因可能是硬件、USB 连接/供电、固件或枚举异常，等待同事结论。
+- resume_inputs: 正常/故障 BOX 的 `lsusb -t`、`arecord -l`、`/proc/asound/cards`、设备描述符、硬件检查结果。
+- safety: ROS1 CURRENT；不触发 ROS1→ROS2 迁移，不修改业务代码、Jetson、Docker、udev 或接口。
+- tests: SKIPPED (task paused and handed off).
+- note: 已完成工作区逻辑压缩；不代表删除聊天历史或触发底层上下文清理。
+- recovery_order: `AGENTS.md` → 本检查点 → `tasks/current.md` → 相关 facts。

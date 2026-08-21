@@ -9,7 +9,10 @@
 - technology: ros1（CURRENT）；GO2 适配待定
 - lifecycle: CURRENT
 - migration: NEEDS_CONFIRMATION（GO2 适配若涉及 ROS2/DDS/迁移，未经授权不得触发；当前仅记录为待确认项）
-- status: in_progress
+- status: paused_hardware_handoff
+- handoff: BOX 硬件/USB/固件检查移交同事；Codex 暂停 Jetson 诊断、应用改动和 udev 改动。
+- handoff_summary: 正常 BOX 有 card 3: L6Microphone [ListenGo Circular 6-Microphone]；故障 BOX 缺少该声卡，仅有通用 USB Audio Device (card 2)，录音 WAV 近静音；串口可打开；应用 ListenGo 名称匹配逻辑暂不修改。
+- resume_when: 等待同事反馈硬件、USB 枚举、设备描述符或固件检查结论后再恢复。
 - scope: NEEDS_CONFIRMATION（多子项目标地址、设备路径、接口契约、底盘型号均需用户确认）
 - authorized_paths:
   - `F:\slamibot_agent\.ai-workspace\tasks\current.md`（本任务条目）
@@ -312,3 +315,4 @@
   - SQLite 仅执行建表 schema，尚无正式迁移/version 管理。
 - recommendation: 面向客户冻结 `/api/v1` 北向 API；ROS/rosbridge 作为容器内部实现；外部仅经 80/443 网关访问，并为地图、点位和任务增加 revision、鉴权、审计、幂等和持久化状态。
 - forbidden: 未授权不修改接口、数据库 schema、APP、镜像或 Jetson。
+
