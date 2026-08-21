@@ -3,11 +3,42 @@
 
 jetson:
   board: Jetson Orin NX
-  ssh_host: 116.148.216.66
-  ssh_port: 30046
-  ssh_user: root
-  ssh_config: "~/.ssh/config"       # 已确认存在该 Host 条目
+  # 当前可靠入口（2026-08-20 15:22:32 CST 实测成功）；新会话必须优先使用 LAN。
+  ssh_host: 192.168.31.135
+  ssh_port: 22
+  ssh_user: jetson
+  ssh_config: "NUL"                 # Windows 使用 -F NUL，绕过旧 ~/.ssh/config/代理配置
+  ssh_command_windows: 'ssh -F NUL -i "C:\Users\kun\.ssh\id_rsa" -o IdentitiesOnly=yes -o BatchMode=yes -o ConnectTimeout=8 jetson@192.168.31.135'
+  ssh_lan:
+    host: 192.168.31.135
+    port: 22
+    user: jetson
+    auth: "C:\Users\kun\.ssh\id_rsa；BatchMode 免交互连接"
+    status: CONFIRMED
+    verified_at: "2026-08-20 15:22:32 CST"
+    verified_result: "host=ubuntu user=jetson"
+    priority: PRIMARY
+  ssh_hotspot:
+    host: 192.168.117.6
+    port: 22
+    user: jetson
+    status: NEEDS_CONFIRMATION
+    priority: SECONDARY
+  ssh_public:
+    host: 116.148.216.66
+    port: 30046
+    user: root
+    status: UNREACHABLE_2026_08_20
+    note: "连续超时，未到 SSH 握手；不得因公网入口超时判断 Jetson 离线。"
+    priority: FALLBACK_ONLY
   connection: ssh                    # 本机通过 SSH 访问
+
+  cloud_git:
+    transport: ssh
+    key_location: "Jetson 板上已配置并保存"
+    github_remote_pattern: "git@github.com:<owner>/<repo>.git"
+    policy: "所有云端仓库 clone/fetch/pull/push 默认在 Jetson 上通过 SSH 执行；禁止回退到 HTTPS，除非用户另行明确要求。"
+    status: CONFIRMED
 
   os: Ubuntu 20.04.6 LTS             # 宿主机（aarch64）；自研3D 容器内为 Ubuntu 22.04
   ros1_distro: noetic                # 宿主机 ROS1（跑雷达驱动 + 2D/外协3D 导航）
@@ -16,7 +47,7 @@ jetson:
   docker:
     present: true
     images:
-      - scout-nav:latest             # 2D 导航（ROS1）
+      - scout-nav:map2d-topic-copy-20260820  # 2026-08-20 当前运行镜像
       - kn_nav:v1                    # 自研 3D 导航（ROS2）
       - registry.cn-shanghai.aliyuncs.com/slamibot/nav3d_d360:1.0   # 外协 3D 导航（ROS1 二进制镜像）
       - ros:foxy-ros1-bridge         # ROS1/ROS2 桥接
@@ -29,10 +60,15 @@ jetson:
 
   network:                            # 来自同事文档 + 用户实时确认
     jetson_lan_ip: 192.168.31.135     # 用户 2026-08-17 确认（DHCP，可能再变；此前曾为 192.168.31.132）
+    jetson_hotspot_ip: 192.168.117.6  # Jetson 开启热点时的固定使用地址
+    current_network: company_wifi
+    current_reachable_ip: 192.168.31.135
+    current_network_updated_at: "2026-08-20"
     go2_ip: 192.168.123.161           # Unitree Go2（STA / WebRTC）
     mid360_ip: 192.168.123.120        # Livox MID-360 雷达
     host_livox_ip: 192.168.123.164    # 主机接收雷达网卡 IP
     web_2d: http://192.168.31.135/app/
+    web_2d_hotspot: http://192.168.117.6/app/
     web_2d_old_doc: http://192.168.31.132/app/   # 文档中旧 IP，DHCP 变动后已失效
     web_3d_external: http://192.168.31.135:9000
     web_3d_external_old_doc: http://192.168.31.132:9000
@@ -45,5 +81,26 @@ jetson:
     - DEPLOY       # 启停导航服务、重部署指定容器 —— 需任务授权
     - DANGEROUS    # 删容器/网络、prune、rm、改系统配置、重启、磁盘清理 —— 永远人工确认
 
-  status: NEEDS_CONFIRMATION
+  runtime_2026_08_19:
+    active_containers: [core, firmware-sensors, scout-nav, ota_web]
+    scout_nav_image_at_time: scout-nav:dual-rosbridge-20260819
+    image_present_2026_08_20: false
+    listening_ports: [80, 5000, 9090, 19090]
+
+  runtime_2026_08_20:
+    active_containers: [core, firmware-sensors, scout-nav, ota_web]
+    scout_nav_image: scout-nav:map2d-topic-copy-20260820
+    historical_rollback_container: scout-nav-before-map2d-20260820-0958
+    historical_rollback_container_present: false
+    listening_ports: [80, 5000, 9090, 19090]
+    navigation_mode: running
+    map_topic: { name: /map, publisher: /map_server, width: 1515, height: 852, resolution: 0.05 }
+    plane_occ_map_topic: NOT_PRESENT
+    status: CONFIRMED
+  status: CONFIRMED
+  power_state: ON_USER_CONFIRMED
+  power_state_updated_at: "2026-08-20"
   note: "Jetson 只作为远程开发/编译/测试/运行目标，禁止向其新增 Agent/RAG/向量库/AI 服务/后台进程。"
+
+
+

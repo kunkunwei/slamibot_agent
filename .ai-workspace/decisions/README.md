@@ -16,3 +16,4 @@
 
 ## 已有决策
 - [ADR-0001 本地 AI 工作区采用文件化事实源、不引入 Agent 框架](./ADR-0001-local-ai-workspace.md)
+- [ADR-0002 D360 使用双 rosbridge 固定端口职责](./ADR-0002-d360-dual-rosbridge-ports.md)

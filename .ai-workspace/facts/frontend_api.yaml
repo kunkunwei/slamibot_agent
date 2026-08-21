@@ -1,6 +1,6 @@
 # 事实源：前端接口（SLAMIBotApp）
 # 状态取值：CONFIRMED / NEEDS_CONFIRMATION / UNKNOWN / TODO
-# 来源：2026-08-17 分析 SLAMIBotApp 仓库（main + codex/native-compose-filament 两分支）
+# 来源：2026-08-19 核验 SLAMIBotApp 仓库与 Jetson 双 rosbridge 运行状态
 
 frontend:
   repo: https://github.com/electech6/SLAMIBotApp.git
@@ -14,7 +14,9 @@ frontend:
       status: CONFIRMED
     - name: codex/native-compose-filament   # 新实现：原生 Kotlin+Compose+Filament（删除 web/）
       stack: [android, kotlin, jetpack-compose, filament]
-      rosbridge_port: 19090                 # 提交「将默认 rosbridge 端口从 9090 改为 19090」
+      rosbridge_port: 9090                  # 客户端统一端口；本地 RobotEndpoint.kt 已改，尚未提交
+      implementation_status: UNCOMMITTED
+      head: f919874
       status: CONFIRMED
       note: D360 专属（D360ApiClient / D360Topics）；G20 手柄+外接手柄；点云 CBOR 直传（C++ 解码）；Filament 渲染；MJPEG 相机流；蓝牙耳机双向喊话；RTK/固件/项目管理原生页面
 
@@ -40,12 +42,26 @@ frontend:
     inputs: G20 手柄 + 外接手柄（G20InputController / AndroidGamepadController）
     camera: MJPEG 流（MjpegStreamClient）
     sdk: rcsdk-v1.9.2.aar
+    default_host: 192.168.117.6              # Jetson 热点地址；不是公司 Wi-Fi 地址
+    configurable_host: true                  # 公司 Wi-Fi 当前地址可填 192.168.31.135
+    websocket: "ws://<jetson-ip>:9090"
 
-  ros_server: 192.168.117.6（.env.production）；127.0.0.1（.env.development）
+  ros_server: 192.168.117.6（Jetson 热点）；192.168.31.135（公司 Wi-Fi，DHCP）；127.0.0.1（开发环境）
 
   rosbridge_port:
-    current: 19090        # 临时（D360 容器实际端口）
-    target: 9090          # 目标（后端端口代码改完后）
+    client: 9090          # Android APP 全部 ROS 功能统一走 core rosbridge
+    web: 9090             # WEB 经 Nginx /rosbridge 反代到 9090
+    nav_api_internal: 19090  # 仅 FastAPI/nav_api 内部使用
     main_branch: 9090
-    codex_branch: 19090
+    codex_branch: 9090
+
+  implementation:
+    app_change: "F:\\SLAMIBotApp\\app\\app\\src\\main\\java\\com\\example\\metacam\\RobotEndpoint.kt: DEFAULT_ROSBRIDGE_PORT 19090 -> 9090"
+    app_change_state: UNCOMMITTED
+    jetson_web_proxy: "Nginx /rosbridge -> 127.0.0.1:9090"
+    verification_2026_08_19:
+      targeted_robot_endpoint_test: PASS
+      assemble_debug: PASS
+      full_unit_suite: "63/64；唯一失败为既有 G20 摇杆旧期望，与端口修改无关；未修改摇杆代码"
+      app_device_e2e: NOT_RUN
   status: CONFIRMED

@@ -1,6 +1,6 @@
 # 事实源：后端接口（FastAPI，位于 d360_nav2D 的 nav_api 包内）
 # 状态取值：CONFIRMED / NEEDS_CONFIRMATION / UNKNOWN / TODO
-# 来源：2026-08-16 只读分析 d360_nav2D 仓库（docker-entrypoint.sh / nav_api 目录）
+# 来源：2026-08-19 只读核验 d360_nav2D、运行容器与 /health
 
 backend:
   repo: 内嵌于 d360_nav2D（src/nav_api）
@@ -40,10 +40,15 @@ backend:
   # 与 rosbridge / ROS 的对接
   rosbridge_host: 127.0.0.1
   rosbridge_port: 19090
+  rosbridge_role: navigation_internal       # 仅 nav_api 内部；APP/WEB 不使用此端口
+  rosbridge_node: /scout_nav_rosbridge
   ros_master_uri: http://127.0.0.1:11311
 
   # CORS（Android WebView 通过 appassets 加载前端后跨域访问）
   cors_origins: [ "https://appassets.androidplatform.net" ]
 
   status: CONFIRMED
-  note: "端口 5000 = FastAPI；19090 = rosbridge；80 = nginx Web；11311 = ROS Master。"
+  runtime_2026_08_19:
+    health: '{"success":true,"service":"nav-api-fastapi","rosbridgeConnected":true}'
+    image: scout-nav:dual-rosbridge-20260819
+  note: "5000 = FastAPI；19090 = nav_api 内部 rosbridge；9090 = APP/WEB 客户端 rosbridge；80 = Nginx Web；11311 = ROS Master。"

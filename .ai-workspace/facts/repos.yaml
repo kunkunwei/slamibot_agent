@@ -1,7 +1,7 @@
 # 事实源：Git 仓库清单
 # 状态取值：CONFIRMED（已确认）/ NEEDS_CONFIRMATION（待确认）/ UNKNOWN（未知）/ TODO（待办）
 # 说明：本机尚未 clone 的仓库，local_path 标 UNKNOWN，clone 命令见 clone_cmd。
-# 扫描日期：2026-08-16
+# 扫描日期：2026-08-19
 
 repositories:
   - id: navigation-ros1-d360
@@ -9,7 +9,7 @@ repositories:
     role: 当前导航系统（CURRENT）—— 松灵 Scout mini 2D 导航
     remote_url: https://gitee.com/electech6/d360_nav2D.git
     remote_host: gitee
-    sync_target: https://github.com/kunkunwei/Scout_mini_navigation.git   # 用户 2026-08-17 已推送（lion-king2025 无权限，改用自己的 GitHub）
+    sync_target: https://github.com/kunkunwei/Scout_mini_navigation.git   # 2026-08-18 已推送（filter-branch 瘦身 + force-push）
     local_path: "F:\\d360_nav2D"
     default_branch: master             # 已通过 git 确认
     branches:                          # 已通过 git 确认
@@ -19,10 +19,14 @@ repositories:
     tech_stack: [ros1, noetic, ubuntu-20.04]
     status: CONFIRMED
     clone_cmd: "git clone https://gitee.com/electech6/d360_nav2D.git"
-    board_unsynced_changes:            # 2026-08-17 板内 git status 确认（未提交/未推送）
-      - docker-entrypoint.sh: "rosbridge 加 _use_compression:=true（端口仍 19090）"
-      - src/my_nav/maps/api_map/1/1.pgm: "已删除（D）"
-    note: "交接文档提示：2D 仓库代码未完全上传云端，部分改动仍在 Jetson 板内"
+    board_unsynced_changes:            # 2026-08-19 板内 git status 确认（未提交/未推送）
+      - docker-entrypoint.sh: "19090 rosbridge 使用唯一节点名 /scout_nav_rosbridge，并增加进程/节点/端口启动检查"
+      - frontend/deploy/nginx.conf: "WEB /rosbridge 上游从 19090 改为 9090"
+      - src/my_nav/maps: "恢复出的地图文件大量处于暂存 A/AD；不得清理或强制 checkout"
+      - src/nav_api: "用户已有 API/数据库改动；地图数据库完成一次有备份的失效记录清理"
+    deployed_image: scout-nav:dual-rosbridge-20260819
+    rollback_container: scout-nav-pre-dual-20260819
+    note: "板内工作树包含用户恢复出的地图和后端 API 修改；双 rosbridge 部署改动也尚未提交/推送，操作时必须保留。"
 
   - id: navigation-ros2-go2-3d
     name: KN 导航工作区（3d_nav）
@@ -69,16 +73,22 @@ repositories:
     default_branch: main               # 已通过 git 确认
     branches:
       - name: main
-      - name: codex/native-compose-filament   # 原生重写分支：删除 web/，改为 Kotlin+Compose+Filament 原生 App（D360 专属），G20 手柄、CBOR 点云、rosbridge 19090
+      - name: codex/native-compose-filament   # 原生 Kotlin+Compose+Filament App；本地默认 rosbridge 已改回客户端 9090，尚未提交
     tech_stack: [android, kotlin, jetpack-compose, react, typescript, roslib, three.js]
     status: CONFIRMED
     clone_cmd: "git clone https://github.com/electech6/SLAMIBotApp.git"
-    note: "Web：React19+TS+Vite+ROSLib(rosbridge)+Three.js；App：Kotlin+Compose+WebView 壳"
+    working_tree_2026_08_19:
+      head: f919874
+      branch: codex/native-compose-filament
+      port_change: "RobotEndpoint.DEFAULT_ROSBRIDGE_PORT 19090 -> 9090（未提交）"
+      unrelated_untracked_files: "AGENTS.md、docs/build-and-install.md、scripts/*.ps1；本次未修改"
+    note: "main 为旧 WebView+React 实现；codex/native-compose-filament 为 Kotlin+Compose+Filament 原生 App。"
 
   - id: slambot-d360-framework
     name: SLAMIBOT_D360_Framework（D360 驱动/固件框架）
     role: D360 整机驱动框架（含 livox 驱动 / OAK 相机 RTSP），时间戳修复所在地
-    remote_url: https://github.com/kunkunwei/SLAMIBOT_D360_Framework.git   # 用户 2026-08-17 已推送（Gitee 无权限，改用自己的 GitHub）
+    remote_url: https://github.com/kunkunwei/SLAMIBOT_D360_Framework.git   # 旧仓库：历史浅克隆缺父提交 5f363da7，push 失败，弃用（有 diag-tiny 残留分支）
+    sync_target: https://github.com/kunkunwei/SLAMIBOT_D360.git            # 新目标仓库（空，2026-08-17 用户创建）
     local_path: /home/jetson/SLAMIBOT_D360_Framework
     default_branch: main
     board_unsynced_changes:              # 2026-08-17 板内 git status 确认
@@ -87,7 +97,9 @@ repositories:
       - src/oak-camera_driver/scripts/oak_rtsp_pusher.py: "(M)"
     tech_stack: [ros1, noetic, livox, oak-camera]
     status: CONFIRMED
-    note: 时间戳问题（雷达时间与系统时间不一致 → use_sim_time + /clock）的解所在（pond文档知识库已有记录）
+    note: |
+      时间戳问题（雷达时间与系统时间不一致 → use_sim_time + /clock）的解所在（pond文档知识库已有记录）。
+      上传状态：DONE（2026-08-18 完成）—— 用户拿到 gitee 权限后 `git fetch --unshallow`，278 个提交 + 14 个 tag（v1.0.1–v1.0.15 缺 v1.0.8）已成功 push 到 https://github.com/kunkunwei/SLAMIBOT_D360.git。旧仓库 https://github.com/kunkunwei/SLAMIBOT_D360_Framework.git 残留 diag-tiny 诊断分支，待后续清理。
 
   - id: nav-frontend-redesign
     name: nav_frontend_redesign（前端界面重构）

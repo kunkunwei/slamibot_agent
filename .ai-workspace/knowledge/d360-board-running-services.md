@@ -1,4 +1,4 @@
-# D360 板内运行服务与容器详情（2026-08-17 只读盘点）
+# D360 板内运行服务与容器详情（2026-08-19 只读复核）
 
 ## 运行中的容器
 - **core**（image `slamibot_d360_firmware:latest`，自启动）：`project_control/core.launch`
@@ -11,18 +11,28 @@
   - `camera_control_service`（camera_service）
   - `project_control_service`（device_basic）
   - `device_basic_service`（device_service）
+  - 2026-08-19：9090 的 `rosbridge_library` 容器文件系统被应用三处 CBOR 兼容 live patch；未落到镜像，重启/重建 core 会丢失。独立探针已收到 `/map`，但 APP UI 仍未显示，详见 `known-issues/app-map-cbor-rosbridge-2026-08-19.md`。
 - **firmware-sensors**（image 同，自启动）：`project_control/sensors.launch`
   - `livox_ros_driver2_node`（livox_lidar_publisher2，发布 /livox/lidar、/livox/imu）
   - **`oak_keyframe_stitcher`**（包 `ros1_oak_ffc_sync`，OAK 关键帧拼接 —— 相机关键帧与雷达/其它帧时空同步，三维重建关键环节）
 - **ota_web**：设备设置/升级服务
-- **scout-nav**（image `scout-nav:latest`）：当前 Exited（2D 导航未启动）
+- **scout-nav**（image `scout-nav:dual-rosbridge-20260819`）：当前运行
+  - Nginx：80，`/rosbridge` 反代到 core 的 9090
+  - FastAPI/nav_api：5000，内部连接 19090
+  - `scout_nav_rosbridge`：19090，ROS 节点 `/scout_nav_rosbridge`
+- **scout-nav-pre-dual-20260819**（image `scout-nav:latest`）：停止状态，作为部署前回滚容器保留
 - **kn_nav_container**（image `kn_nav:v1`）：当前 Exited（自研 3D 未启动）
 
-## 端口现状（与文档对上的关键点）
-- **9090**：core 内 rosbridge（无端口参数默认 9090）
-- **19090**：scout-nav 内 rosbridge（`_port:=19090 _use_compression:=true`）
-- 两个 rosbridge 共用节点名 `rosbridge_websocket` → 启动顺序/冲突是已知坑（文档错误排查 E 节）
-- 其余：11311 ROS Master、5000 FastAPI、80 nginx、9000 外协3D Web
+## 端口现状与职责
+
+- **9090**：core 内客户端兼容 rosbridge，节点 `/rosbridge_websocket`；Android APP 与 WEB 使用。
+- **19090**：scout-nav 内部 rosbridge，节点 `/scout_nav_rosbridge`；仅 FastAPI/nav_api 使用。
+- **80**：Nginx WEB；同源 `/rosbridge` 实际上游为 `127.0.0.1:9090`。
+- **5000**：FastAPI/nav_api；`/health` 的 `rosbridgeConnected` 只表示内部 19090。
+- **11311**：共享 ROS Master。两套 rosbridge 访问同一 Topic/Service 空间。
+
+2026-08-19 已通过唯一节点名解决两个 rosbridge 同名互踢；旧的“两个节点都叫
+`/rosbridge_websocket`”仅是历史故障，不再是当前状态。
 
 ## 容器内路径
 - 镜像把 SLAMIBOT_D360_Framework 装进 `/root/SLAMIBOT_D360_Framework/install`（core/firmware-sensors 里）
@@ -35,8 +45,16 @@
 - **docker_ws**：当前为空（印证文档"空目录挂载会遮蔽镜像同名目录"的坑）
 - **sensors**：仅 `distinct` 子目录
 
-## 运行时快照（当前在线节点 / topic，2026-08-17）
-- 监听端口：**9090（rosbridge）、11311（rosmaster）**；19090/5000/80/9000 因对应容器未运行未监听
+## 运行时快照（2026-08-19 15:41）
+
+- 运行容器：`core`、`firmware-sensors`、`scout-nav`、`ota_web`。
+- 监听端口：**80、5000、9090、19090**；ROS Master 11311 由 core 提供。
+- rosbridge 节点：`/rosbridge_websocket`、`/scout_nav_rosbridge` 同时存在。
+- FastAPI 健康检查：`{"success":true,"service":"nav-api-fastapi","rosbridgeConnected":true}`。
+- Nginx 最终配置：`location /rosbridge` → `proxy_pass http://127.0.0.1:9090`。
+
+## 传感器 Topic 快照（2026-08-17，未在本次改端口任务中重新枚举）
+
 - ROS 节点：camera_service / device_basic / device_service / led_control / livox_lidar_publisher2 /
   ntrip_rtk_service / oak_keyframe_stitcher / rosapi / rosbridge_websocket / rosout / system_monitor
 - 三类关键 topic：
@@ -48,8 +66,10 @@
   - **底层对接**：`/stm32_cmd` `/stm32_serial`（与 STM32 下位机串口通信）、`/topic_frequencies`
     `/system_monitor_history` `/client_count` `/connected_clients`
 
-## 镜像与其它（2026-08-17 快照）
-- 镜像：scout-nav:latest（18.2GB，3天前）/+rollback-20260813-1132（回滚标签）；kn_nav:v1（8GB）；
+## 镜像与其它
+- 2026-08-19 当前 2D 导航镜像：`scout-nav:dual-rosbridge-20260819`；部署前容器
+  `scout-nav-pre-dual-20260819` 保持停止状态供回滚。
+- 2026-08-17 其它镜像快照：scout-nav:latest（18.2GB）/+rollback-20260813-1132；kn_nav:v1（8GB）；
   slamibot_d360_firmware:latest（4.96GB）；nav3d_d360:1.0（15.1GB，4个月前）；ros:foxy-ros1-bridge
 - ota_web 容器进程：`./setting_server`（设备设置服务）
 - STM32 固件：`~/slb_d360_stm32_2.0.4.bin`（29KB，2026-04-18）—— d360 分支产物

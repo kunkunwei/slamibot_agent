@@ -5,6 +5,16 @@
 ## 事实源
 - `facts/rosbridge_profile.yaml`（唯一可信来源）
 
+## 当前端口契约（2026-08-19）
+
+| 调用方 | 地址 | 提供方/节点 |
+|---|---|---|
+| Android APP 全部 ROS 功能 | `ws://<Jetson>:9090` | core `/rosbridge_websocket` |
+| 浏览器 WEB | `ws(s)://<Jetson>/rosbridge` | Nginx → 9090 |
+| FastAPI/nav_api 内部 | `ws://127.0.0.1:19090` | scout-nav `/scout_nav_rosbridge` |
+
+架构决策见 `decisions/ADR-0002-d360-dual-rosbridge-ports.md`。
+
 ## 应记录的内容（逐项回填）
 - WebSocket 地址（`ws://...`）
 - 前端订阅/发布的 Topic（名称 + 消息类型 + 方向）

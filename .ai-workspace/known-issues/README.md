@@ -16,3 +16,6 @@ Docker 网络问题、Jetson 特定问题、ROS1/ROS2 差异。
 - [3d-nav-issues-2026-08.md](./3d-nav-issues-2026-08.md) —— 3D 导航问题汇总（自研 + 外协）
 - [map-icon-direction.md](./map-icon-direction.md) —— 地图机器人图标方向不对
 - [point-marking-ime-s.md](./point-marking-ime-s.md) —— 标记点位时英文输入法无法输入字母 s
+- [web-app-map-display-2026-08-18.md](./web-app-map-display-2026-08-18.md) —— 历史根因报告；端口/IP 结论已被 2026-08-19 双 rosbridge 决策取代
+- [map-record-cleanup-2026-08-19.md](./map-record-cleanup-2026-08-19.md) —— 前端无可用 2D 地图记录的清理、备份、隔离与遗留项
+- [app-map-cbor-rosbridge-2026-08-19.md](./app-map-cbor-rosbridge-2026-08-19.md) —— 9090 rosbridge 的 CBOR `/map` live patch；未持久化且 APP UI 仍未显示

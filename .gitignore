@@ -1,6 +1,8 @@
 # 工作区自身只需版本化文档；忽略临时/编辑产物
 .DS_Store
 Thumbs.db
+*.png
+*.xml
 *.tmp
 *.log
 .idea/

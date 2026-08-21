@@ -6,12 +6,13 @@
 - id: navigation-ros1-d360
 - name: D360 导航（ROS1）
 - repo: https://gitee.com/electech6/d360_nav2D.git
-- local_path: UNKNOWN          # clone 后回填
+- local_path: `F:\d360_nav2D`（本机只读参考）；Jetson 实施路径 `/home/jetson/Scout_mini_navigation`
 - lifecycle: CURRENT
-- tech_stack: { ros: ros1, ubuntu: "20.04", distro: UNKNOWN, build: catkin_make }
+- tech_stack: { ros: ros1, ubuntu: "20.04", distro: noetic, build: "catkin_make install" }
 
 ## 允许修改范围（allowed_paths）
-- TODO：clone 后明确（如 `src/<规划器>/...`、`config/*.yaml`）
+- 无全局默认写权限；每个任务必须明确到具体文件。
+- Jetson 默认 READ_ONLY；构建、部署和删除分别需要任务授权。
 
 ## 禁止修改范围（protected_paths / protected_infrastructure）
 - 任何 ros2/ 相关目录与代码

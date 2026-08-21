@@ -1,0 +1,22 @@
+# 最新上下文检查点
+
+- updated: 2026-08-20
+- current_focus: 导航点位/任务二开接口与客户容器化产品化审计。
+- conclusion: 已保留完整基础接口，但当前是项目接口，不宜未经加固直接作为客户稳定 API。
+- available:
+  - 点位 CRUD、排序和按 `/amcl_pose` 当前位姿踩点：`/api/map/point/*`。
+  - 单点导航：`POST /api/map/nav_custom`，数据库点位或临时 map 坐标。
+  - 多点任务 CRUD、执行、暂停、恢复、取消、状态：`/api/map/task/*`、`/api/map/nav_multi/*`。
+  - ROS1 内部使用 `move_base` action 与 `/nav_multi/*` service/status；FastAPI 同时生成 OpenAPI，并注册 MCP tools。
+  - 一体化 Docker 镜像已有地图目录和 SQLite 数据库宿主机卷挂载方案。
+- product_gaps:
+  - 无 auth/TLS/RBAC、`/api/v1`、幂等、审计和正式 DB migration。
+  - 未校验任务/点位地图与当前激活地图一致。
+  - `next/end/passage` ROS service 未实现；APP `/nav_multi` 路径与后端契约存在差异。
+  - `action/actionContent` 仅存储未执行；任务状态容器重启不恢复。
+- recommended_boundary: 客户只使用版本化 HTTPS API/SDK；19090 和 move_base 保持容器内部，9090 仅在确有实时 Topic 需求时经受控网关开放。
+- previous_issue: 静态地图临时障碍空气墙已诊断，见 `TASK-2026-08-20-009`。
+- jetson: ON_USER_CONFIRMED，公司 Wi-Fi `192.168.31.135`；本次未连接。
+- safety: ROS1 CURRENT；只读检查，未修改业务代码、镜像、数据库或远端。
+- tests: SKIPPED（只读接口审计）。
+- recovery_order: `AGENTS.md` → 本检查点 → `tasks/current.md` → API/ROS facts。

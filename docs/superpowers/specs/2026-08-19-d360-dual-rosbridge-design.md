@@ -1,9 +1,13 @@
 # D360 双 rosbridge 分工设计
 
 - 日期：2026-08-19
-- 状态：架构已由用户批准，待实施计划评审
+- 状态：架构已批准；Jetson 部署已核验，APP 改动未提交，端到端联调未全部完成
 - 适用系统：D360 CURRENT（ROS1 Noetic，Ubuntu 20.04）
 - 不属于 ROS1 → ROS2 迁移任务
+
+> 2026-08-19 实施更新：Jetson 双 rosbridge 与 Nginx 路由已通过端口、ROS 节点和
+> `/health` 核验；APP 默认端口的一行修改仍未提交。当前状态见
+> `.ai-workspace/tasks/current.md`，不能把本设计视为全部验收完成。
 
 ## 1. 背景
 

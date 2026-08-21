@@ -1,43 +1,85 @@
-# 事实源：rosbridge 接口（前端 ↔ ROS 的边界，protected）
+# 事实源：D360 rosbridge 端口职责（前端/后端 ↔ ROS 的 protected 边界）
 # 状态取值：CONFIRMED / NEEDS_CONFIRMATION / UNKNOWN / TODO
-# 这是前后端与 ROS 系统之间的稳定边界，属于 protected interface。
-# 来源：2026-08-16 只读分析 d360_nav2D 仓库（docker-entrypoint.sh）
+# 来源：2026-08-19 Jetson 运行核验；架构决策见 decisions/ADR-0002-d360-dual-rosbridge-ports.md
 
 rosbridge:
-  package: rosbridge_server             # ros-noetic-rosbridge-server
-  transport: websocket                  # rosbridge_websocket
-  websocket_port: 19090                 # 当前实际端口（临时）
-  target_port: 9090                     # 目标端口（用户 2026-08-17 确认）
-  websocket_host: 127.0.0.1             # 容器内；对外经 --network host 暴露
-  port_note: |
-    端口现状（用户 2026-08-17 确认）：当前 rosbridge 临时跑在 19090，
-    因为 D360 后端端口相关代码尚未改完；目标端口是 9090。
-    待后端端口代码改完后应切回 9090，届时同步更新本文件与 App 配置。
-    App 分支差异：main 分支连 9090；codex/native-compose-filament 分支已改为 19090
-    （提交「将默认 rosbridge 端口从 9090 改为 19090」），与当前临时端口一致。
+  package: rosbridge_server
+  transport: websocket
+  ros_master_uri: http://127.0.0.1:11311
+  topology: dual_rosbridge_single_ros_master
 
-  # 前端订阅/发布的 Topic（来自 SLAMIBotApp msg.md 与 web/src，逐条回填）
+  endpoints:
+    client_compat:
+      port: 9090
+      provider: core
+      node: /rosbridge_websocket
+      consumers: [android_app, browser_web]
+      android_url: "ws://<jetson-ip>:9090"
+      web_url: "ws(s)://<jetson>/rosbridge"
+      nginx_upstream: "http://127.0.0.1:9090"
+      role: "APP 的地图、点云、位姿、控制等全部 ROS 功能；WEB 与 APP 保持一致"
+      status: CONFIRMED
+
+    navigation_internal:
+      port: 19090
+      provider: scout-nav
+      node: /scout_nav_rosbridge
+      consumers: [fastapi_nav_api]
+      url: "ws://127.0.0.1:19090"
+      role: "FastAPI/nav_api 内部 ROS 通道，不提供给 APP/WEB"
+      status: CONFIRMED
+
+  runtime_2026_08_19:
+    image_at_time: scout-nav:dual-rosbridge-20260819
+    image_present_2026_08_20: false
+    ports_listening: [9090, 19090]
+    nodes_present: [/rosbridge_websocket, /scout_nav_rosbridge]
+    nav_api_health_rosbridge_connected: true
+    web_proxy_target: 9090
+    historical_rollback_container: scout-nav-pre-dual-20260819
+    historical_rollback_container_present: false
+    core_cbor_live_patch:
+      status: EPHEMERAL_NOT_PERSISTED
+      target: "core 容器 9090 rosbridge_library"
+      purpose: "兼容 Android APP 的 /map cbor-raw 订阅与手写 CBOR 解析器"
+      result: "独立探针收到匹配结构的二进制帧，但 APP UI 仍显示等待 /map 栅格"
+      restart_risk: "重启或重建 core 容器会丢失 live patch"
+      details: "../known-issues/app-map-cbor-rosbridge-2026-08-19.md"
+
+  runtime_2026_08_20:
+    image: scout-nav:map2d-topic-copy-20260820
+    ports_listening: [9090, 19090]
+    nodes_present: [/rosbridge_websocket, /scout_nav_rosbridge]
+    nav_api_health_rosbridge_connected: true
+    web_proxy_target: 9090
+    client_map_topic: /map
+    client_map_cbor_probe: PASS
+    map_requires_publisher: true
+    idle_map_publisher: NONE
+    navigation_map_publisher: /map_server
+    web_stale_copy_fixed: true
+    historical_rollback_container: scout-nav-before-map2d-20260820-0958
+    historical_rollback_container_present: false
+
+  contract_notes:
+    - 两套 rosbridge 共用一个 ROS Master 和同一 Topic/Service 空间；端口只隔离调用职责，不隔离 ROS 数据域。
+    - scout-nav rosbridge 必须使用唯一节点名，避免与 core 的 /rosbridge_websocket 重名互踢。
+    - APP 默认热点地址是 192.168.117.6；公司 Wi-Fi 当前地址是 192.168.31.135，二者都应使用 9090。
+    - FastAPI /health 的 rosbridgeConnected 表示内部 19090 状态，不代表 Android 到 9090 的链路。
+    - core 9090 当前有未持久化的 CBOR 兼容 live patch；不得把探针通过等同于 APP UI 联调通过。
+
   topics:
-    - { name: /rtk/gga,    msg_type: std_msgs/String,          note: NMEA GPGGA }
-    - { name: /rtcm/data,  msg_type: std_msgs/UInt8MultiArray, note: RTCM 差分数据 }
-    - { name: NEEDS_CONFIRMATION, note: 点云（CBOR 压缩）、里程计、电池/存储/驱动状态、关键帧图像等，topic 名待从 web/src 组件回填 }
-  services: []                          # TODO
-  params: []                            # TODO
+    - { name: /rtk/gga, msg_type: std_msgs/String, note: NMEA GPGGA }
+    - { name: /rtcm/data, msg_type: std_msgs/UInt8MultiArray, note: RTCM 差分数据 }
+    - { name: NEEDS_CONFIRMATION, note: 点云、地图、位姿、控制及设备状态 Topic 名称待完整回填 }
+  services: []
+  params: []
+  message_format: "JSON；部分点云/地图链路使用 CBOR"
 
-  # 导航状态 / 任务状态 / 错误码约定
-  nav_status:
-    encoding: UNKNOWN
-    values: []                          # TODO
-  task_status:
-    encoding: UNKNOWN
-    values: []                          # TODO
-  error_codes: []                       # TODO
-
-  message_format: UNKNOWN               # TODO：JSON 结构；点云走 CBOR（见 commits）
-
-  # 迁移说明
   migration_note: |
-    未来 ROS1→ROS2 迁移时，若 rosbridge 或消息类型变化，必须在本目录
-    新建「接口迁移说明」文档，不得直接覆盖本旧协议。
-  status: NEEDS_CONFIRMATION
-  see_also: "../../interfaces/rosbridge/"
+    未来 ROS1→ROS2 迁移时，若 rosbridge 或消息类型变化，必须新建接口迁移说明，
+    不得直接覆盖本 ROS1 契约。
+  status: CONFIRMED
+  see_also:
+    - "../decisions/ADR-0002-d360-dual-rosbridge-ports.md"
+    - "../../docs/superpowers/specs/2026-08-19-d360-dual-rosbridge-design.md"

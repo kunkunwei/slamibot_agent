@@ -47,3 +47,18 @@
 - `nav_frontend_redesign`：前端重设计（待确认）
 - `Cartographer_ws` / `catkin_ws` / `caktin_ws`：旧/备用工作区
 - 大量 rosbag（lidar_camera*.bag 等）在 `~`
+## 7. R1 麦克风阵列与 D360/BOX 设备关系（用户确认，2026-08-20）
+- 硬件拓扑：R1 麦克风阵列搭载在 BOX 设备上；BOX 通过一根网线和一根 USB 线连接到 D360。
+- D360 设备组成：Jetson 主板、雷达、RTK、相机、网卡及电源模块等。
+- 当前状态：用户已更换 BOX；新 BOX 已完成物理连接并通电，待在 Jetson 上进行设备枚举和录音/语音交互测试。
+- R1 资料来源：用户提供《R1麦克风阵列模块大模型语音交互功能部署》文档及其中的 Yahboom R1 资料链接。
+- 文档确认的 USB 设备：
+  - 六麦 UAC：`ListenGo Circular 6-Microphone`，VID:PID `2208:0001`。
+  - 串口通信：`QinHeng USB`，VID:PID `1a86:7523`。
+- 文档建议的 udev 规则：
+  - `2208:0001` 绑定 `/dev/lg_speech_uac`。
+  - `1a86:7523` 绑定 `/dev/lg_speech_serial`。
+  - 如遇重复设备 ID，需结合实际 `ATTRS{devpath}` 区分，禁止直接猜测 devpath。
+- 语音程序：`/home/jetson/xf_chat_standalone`；启动示例 `PORT=/dev/lg_speech_serial ./run.sh`。
+- 预期验收：`lsusb` 出现两个设备、`ls /dev/lg*` 出现绑定设备；启动后唤醒词“ 小飞小飞 ”应得到“我在”，并完成录音、ASR、星火回复和 TTS 播放。
+- 安全备注：文档中的讯飞 API 凭证、模型配置和在线服务开通步骤不写入工作台；如需配置必须使用用户自己的凭证，禁止记录明文密钥。

@@ -1,7 +1,7 @@
 # 事实源：ROS1 导航（CURRENT）—— Scout mini 2D 导航
 # 状态取值：CONFIRMED / NEEDS_CONFIRMATION / UNKNOWN / TODO
 # 本文件只记录 ROS1 事实；ROS2 事实见 navigation_ros2_profile.yaml，禁止混写。
-# 来源：2026-08-16 只读分析 d360_nav2D 仓库（README/Dockerfile/docker-entrypoint.sh/快速操作手册.md）
+# 来源：2026-08-19 只读分析仓库并核验 Jetson 运行容器
 
 navigation_ros1:
   project: Scout_mini_navigation
@@ -37,15 +37,23 @@ navigation_ros1:
 
   rosbridge:
     package: rosbridge_server
-    websocket_port: 19090                 # CONFIRMED：docker-entrypoint.sh 用 _port:=19090
-    host: 127.0.0.1                       # 容器内
+    client_port: 9090                     # core 提供；Android APP 与 WEB 使用
+    client_node: /rosbridge_websocket
+    nav_api_internal_port: 19090          # scout-nav 提供；仅 FastAPI/nav_api 使用
+    nav_api_internal_node: /scout_nav_rosbridge
+    host: 127.0.0.1
 
   docker:
-    image: scout-nav:latest
+    active_image: scout-nav:dual-rosbridge-20260819
+    rollback_container: scout-nav-pre-dual-20260819
     containers: [core, firmware-sensors, scout-nav, ota_web]
     network: host
     can: "can0 500000 bit/s"
     entrypoint: /usr/local/bin/nav-api-entrypoint
+    runtime_2026_08_19:
+      ports_listening: [80, 5000, 9090, 19090]
+      health_rosbridge_connected: true
+      nginx_rosbridge_upstream: 9090
 
   dependencies:                           # 来自 Dockerfile apt 安装
     - ros-noetic-rosbridge-server
@@ -63,7 +71,8 @@ navigation_ros1:
     pcd: /home/jetson/Scout_mini_navigation/src/FAST_LIO_gravity_align/PCD
     db: /home/jetson/Scout_mini_navigation/src/nav_api/db/nav_api.db
   start_script: src/my_nav/script/start_nav.sh    # 单独启动导航（与前后端无关）
-  web_entry: http://192.168.31.132/app/           # 前端入口（示例 IP）
+  web_entry_lan: http://192.168.31.135/app/
+  web_entry_hotspot: http://192.168.117.6/app/
   data_convention: "/data/project1/YYYYMMDD_场景/；bag 命名 日期_场景_是否成功.bag；中间结果放 debug/"
   status: CONFIRMED
-  note: "CURRENT 稳定基线。完整 Node/Topic/TF/参数清单待后续 Explorer 深读 launch 与 config 回填。"
+  note: "CURRENT 稳定基线。2026-08-19 双 rosbridge 已部署：客户端 9090、nav_api 内部 19090；完整 Node/Topic/TF/参数清单仍待回填。"
