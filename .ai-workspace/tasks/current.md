@@ -143,6 +143,28 @@
           - 对 USB 声卡执行 `lsusb -v -d 0d8c:0012`（只读）确认描述符/厂商。
           - 检查应用源码/配置的 `ListenGo` 匹配逻辑，暂不修改。
       - 任务执行约束：上述命令本次**不执行**，仅记录到任务条目；后续是否在 Jetson 上执行需用户授权。
+  - 2026-08-21 正常 BOX vs 故障 BOX 麦克风设备枚举对比证据（用户提供，仅记录，不在本任务中执行命令）：
+      - **正常 BOX `lsusb`**：出现 `ID 2208:0001 Realtek Bluetooth Radio`。注意：用户提供的 `lsusb` 文本本身将该 ID 标为 `Realtek Bluetooth Radio`，但**不能据此改写 USB 厂商描述**——`2208:0001` 的真实身份仍需以设备描述符或厂家资料为准；当前仅按用户提供的文本如实登记。
+      - **正常 BOX `lsusb -t`**：同一设备 Dev 29 同时出现 Audio 接口（多个 `snd-usb-audio`）、Communications (`cdc_acm`) 与 CDC Data，480M。说明它是带音频 + 串口/CDC 的**复合 USB 设备**。
+      - **正常 BOX `arecord -l`**：同时存在两个不同的 ALSA 声卡：
+          - `card 2: Device [USB Audio Device], device 0: USB Audio [USB Audio]`
+          - `card 3: L6Microphone [ListenGo Circular 6-Microphone], device 0: USB Audio [USB Audio]`
+      - **故障 BOX 对比**：仅有通用 `USB Audio Device (hw:2,0)`，**缺少 `card 3: L6Microphone [ListenGo Circular 6-Microphone]`**。这直接解释了语音交互应用「未找到包含 ListenGo 的音频设备」并退出。
+      - **关键区分**：正常 BOX 证据明确表明 `USB Audio Device` 与 `ListenGo/L6Microphone` 是**两个不同 ALSA 声卡**——不能把前者当成后者；前者可能是通用播放/音频设备，后者才是应用期待的六麦阵列采集设备。
+      - **当前根因判断（高置信度）**：故障 BOX 的 ListenGo 六麦阵列复合 USB 音频/CDC 设备没有正确枚举，或设备/固件/USB 连接存在异常。
+      - **明确边界（不得过度宣称）**：
+          - **不得直接判定硬件损坏**；仍需换 BOX 交叉验证 / 设备描述符 / 内核日志进一步定位。
+          - **不得修改应用匹配逻辑**（`ListenGo` 名称匹配）：正常 BOX 已证明该匹配路径本身就是正确的，问题在故障 BOX 的设备枚举，不在应用代码。
+      - **正常 BOX 后续验证建议（仅记录，不在本会话执行）**：
+          - 在正常 BOX 上执行 `arecord -D hw:CARD=L6Microphone,DEV=0 ...` 或 `plughw:CARD=L6Microphone,DEV=0 ...` 录音并检查音量/电平；应用应自动找到包含 ListenGo 的 card 3。
+      - **故障 BOX 后续诊断建议（仅记录，不在本会话执行）**：
+          - 对比 `lsusb -v -d 2208:0001`（只读）、`cat /proc/asound/cards`、`cat /proc/asound/card3/usbid`（若存在）。
+          - 必要时 `dmesg -T | grep -i -E "snd|usb|2208|listen|cdc"` 检查枚举/绑定日志（需具备相应权限时再执行）。
+      - **状态更新**：
+          - `TASK-2026-08-21-001` 仍保持 `in_progress`。
+          - 「正常 BOX 麦克风设备枚举」：**已确认**（含 `card 3: L6Microphone [ListenGo Circular 6-Microphone]` 与复合 CDC 接口）。
+          - 「故障 BOX 麦克风硬件/USB/固件原因」：`NEEDS_CONFIRMATION`（仍需交叉验证）。
+          - 不得修改应用匹配逻辑。
   - 3. 确认任务创建相关内容采用 service 模式：
       - 当前事实源：`/api/map/task/*`、`/api/map/nav_multi/*` 为 HTTP 接口；ROS 内部使用 `move_base` action 与 `/nav_multi/*` service/status（见 `TASK-2026-08-20-010`）。
       - 待确认：用户所指“任务创建”具体指 HTTP 入口、ROS service 还是二者并行；接口契约以用户确认为准。
