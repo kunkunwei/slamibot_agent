@@ -70,6 +70,39 @@
                   - 实际音频内容/清晰度、语音识别链路：仍 `NEEDS_CONFIRMATION`。
                   - `/dev/lg_speech_uac`：仍不存在。
               - 下一步建议（**仅记录，不在本会话执行**）：`aplay /tmp/box-mic-test.wav` 人工确认声音，随后进行最小语音识别测试；不执行。
+      - 2026-08-21 语音交互应用启动与人工回放证据（用户提供，仅记录，不在本任务中执行命令）：
+          - 启动命令：`PORT=/dev/lg_speech_serial ./run.sh`。
+          - 串口链路：成功打开 `/dev/lg_speech_serial`，115200 baud；`mic_serial` 启动成功，`raw_audio=false`。
+          - 设备枚举：包含 `USB Audio Device: - (hw:2,0) (输入通道: 1)`，以及 Jetson APE 设备、`pulse`、`default` 等。
+          - 错误：未找到包含 `ListenGo` 的音频设备；最终 `ALSA 音频采集启动失败，退出`。
+          - 录制输出：应用将"录音"写入 `/dev/null`——**不要把它当作有效录音文件**（`/dev/null` 是空设备，写入即丢弃）。
+          - 人工回放：用户执行 `aplay /tmp/box-mic-test.wav`，命令正常完成、未报错，但**用户没有听到录音**。
+          - **更新结论**：
+              - 串口链路：正常（`mic_serial` 启动成功）。
+              - USB 音频采集设备：存在并可打开（`hw:2,0`）。
+              - 应用按名称匹配 `ListenGo`，未识别通用 `USB Audio Device`，**语音交互应用启动失败**。
+              - **不得把"应用启动失败"等同于"麦克风硬件坏"**；USB Audio Device 已被 `snd-usb-audio` 驱动枚举。
+          - **三个问题必须区分**：
+              ① 应用设备名匹配失败（ListenGo vs 通用 USB Audio Device）。
+              ② 录音文件可能全静音/增益为零（与播放链路无关）。
+              ③ 扬声器播放链路此前已确认正常，但本次 WAV 回放未听到声音，可能是播放设备/音量/路由问题，**暂不猜根因**。
+          - 当前准确状态：
+              - 串口（`mic_serial`）：已确认启动成功。
+              - USB 音频采集设备（`hw:2,0`）：已被系统识别，可被 ALSA 打开。
+              - 语音交互应用：因名称匹配 `ListenGo` 失败而退出，**未真正进入采集**。
+              - 应用写入 `/dev/null` 的"录音"：**不是有效录音**。
+              - `/tmp/box-mic-test.wav`：来自此前 `arecord` 测试，文件格式/落盘已确认正常；本次 `aplay` 命令正常但用户未听到声音。
+              - 麦克风实际有效音频、语音识别、WAV 实际播放结果：仍 `NEEDS_CONFIRMATION`。
+              - 扬声器链路：此前已确认正常，本次回放结果需进一步确认（不直接否定扬声器）。
+          - 下一步建议（**仅记录，不在本会话执行**；待用户授权后再跑）：
+              - 在应用配置/代码中查找 `ListenGo` 名称匹配规则；决定改成按设备名前缀/正则匹配或加设备别名映射。
+              - 用 `amixer`/`alsamixer` 检查 USB Audio capture mixer、Capture 开关和增益。
+              - 用 `arecord -D plughw:CARD=Device,DEV=0 -f S16_LE -r 16000 -c 1 -d 5 -V mono /tmp/box-mic-test.wav` 观察实时 VU/峰值表。
+              - 之后用 `sox /tmp/box-mic-test.wav -n stat` 或 `ffmpeg -i /tmp/box-mic-test.wav -af volumedetect -f null -` 检查录音是否全零。
+              - 用 `aplay -L` 看默认播放 PCM；用 `aplay -D plughw:CARD=Device,DEV=0 /tmp/box-mic-test.wav` 强制走 USB Audio 输出确认播放路由。
+              - 必要时 `lsusb -v -d 0d8c:0012`（只读）确认 C-Media 设备身份。
+              - **不得修改 udev 规则或应用代码**，除非后续明确授权。
+          - 任务执行约束：上述命令本次**不执行**，仅记录到任务条目；后续是否在 Jetson 上执行需用户授权。
       - 下一步建议（**仅记录，不在本会话执行**；待用户授权后再跑）：
           - 短时录音测试，例如 `arecord -D plughw:CARD=Device,DEV=0 -f S16_LE -r 16000 -c 1 -d 5 /tmp/box-mic-test.wav`，随后 `aplay` 校验文件或最小语音识别测试。
           - 用正确绝对路径执行 `udevadm info --query=all --name=/dev/ttyUSB8`，并对实际声卡节点跑 udev 查询（实际节点需先从 `/proc/asound/cards`、`/dev/snd` 确认，未知处标 UNKNOWN）。
@@ -97,7 +130,7 @@
   - 子项推进时再按 `testing-rules.md` 选取与风险相称的验证。
 - rollback:
   - 本任务仅做登记，未触碰任何业务仓库；若误改，按 `git-safety.md` 用 `git checkout -- <file>` 回退或删除目录。
-- tests: SKIPPED (task recording only)
+- tests: SKIPPED (task recording only)；本次新增的语音交互应用启动与人工回放证据同样仅记录，未在本任务中执行任何远程命令。
 
 ## TASK-2026-08-19-001：D360 前后端双 rosbridge 联调
 

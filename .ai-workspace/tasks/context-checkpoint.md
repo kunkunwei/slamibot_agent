@@ -1,6 +1,36 @@
 # 最新上下文检查点
 
 - updated: 2026-08-21
+- voice_app_startup_and_playback_2026-08-21: 用户提供（仅记录，未在本工作区执行任何远程命令）：
+  - 语音交互应用启动：
+      - 用户命令：`PORT=/dev/lg_speech_serial ./run.sh`。
+      - 串口链路：成功打开 `/dev/lg_speech_serial`，115200 baud；`mic_serial` 启动成功，`raw_audio=false`。
+      - 应用枚举到的音频设备中包含 `USB Audio Device: - (hw:2,0) (输入通道: 1)`，以及 Jetson APE 设备、`pulse`、`default` 等。
+      - 错误：未找到包含 `ListenGo` 的音频设备；最终 `ALSA 音频采集启动失败，退出`。
+      - 录制输出：应用将"录音"保存到 `/dev/null`，**不要把它当作有效录音文件**——`/dev/null` 是空设备，写入即丢弃。
+  - WAV 人工回放：
+      - 用户命令：`aplay /tmp/box-mic-test.wav`，命令正常完成，未报错。
+      - 实际结果：用户**没有听到录音**。
+      - 注意：`aplay` 返回 0 不等于真的发出了声音；可能是播放路由/音量/默认 PCM 设备选择问题，也可能是源 WAV 本身就是静音/零增益。
+  - 更新结论：
+      - 串口链路：正常（`mic_serial` 启动成功）。
+      - USB 音频采集设备：存在并可打开，但**应用按名称匹配 `ListenGo`**，未识别通用 `USB Audio Device`，因此**语音交互应用启动失败**。
+      - **不得把"应用启动失败"等同于"麦克风硬件坏"**。
+  - 三个问题必须区分：
+      ① 应用设备名匹配失败（ListenGo vs USB Audio Device 名称不匹配）。
+      ② 录音文件可能全静音/增益为零（与播放无关）。
+      ③ 扬声器播放链路此前已确认正常，但本次 WAV 回放未听到声音，可能是播放设备/音量/路由问题，**暂不猜根因**。
+  - 下一步建议（**仅记录，不在本会话执行**）：
+      - 在应用配置/代码中查找 `ListenGo` 名称匹配规则，决定改成"按设备名前缀/正则匹配"或加设备别名映射。
+      - 用 `amixer`/`alsamixer` 检查 USB Audio capture mixer、Capture 开关和增益；确认采集通道是否被静音或增益为 0。
+      - 用 `arecord -D plughw:CARD=Device,DEV=0 -f S16_LE -r 16000 -c 1 -d 5 -V mono /tmp/box-mic-test.wav`（`-V mono` 输出 VU/峰值表）观察实时电平；之后用 `sox /tmp/box-mic-test.wav -n stat` 或 `ffmpeg -i /tmp/box-mic-test.wav -af volumedetect -f null -` 检查是否全零。
+      - 用 `aplay -L` 看默认播放 PCM；用 `aplay -D plughw:CARD=Device,DEV=0 /tmp/box-mic-test.wav` 强制走 USB Audio 输出，确认是否与默认路由不同。
+      - 必要时 `lsusb -v -d 0d8c:0012`（只读）确认 C-Media 设备身份。
+      - **不得修改 udev 规则或应用代码**，除非后续明确授权。
+  - 状态：
+      - `TASK-2026-08-21-001` 保持 `in_progress`。
+      - 麦克风实际有效音频与语音识别：`NEEDS_CONFIRMATION`。
+      - 扬声器此前已确认正常，但本次 WAV 回放未听到声音，**当前回放结果也需进一步确认**（不能直接否定扬声器链路）。
 - wav_validation_2026-08-21: 用户提供（仅记录，未在本工作区执行任何远程命令）：
   - `ls -lh /tmp/box-mic-test.wav`：文件大小 `157K`。
   - `file /tmp/box-mic-test.wav`：`RIFF (little-endian) data, WAVE audio, Microsoft PCM, 16 bit, mono 16000 Hz`。
@@ -29,7 +59,7 @@
       - 边界（**不得过度宣称**）：终端未给出 wav 文件大小；未运行 `file`/`aplay`；未提供波形或语音识别结果。**不能据此宣称“已经听到声音”或“语音识别正常”**。麦克风硬件/ALSA 采集基本可用；实际音频内容与语音识别仍 `NEEDS_CONFIRMATION`。
       - 下一步建议（**仅记录，不在本会话执行**）：`ls -lh /tmp/box-mic-test.wav`、`file /tmp/box-mic-test.wav`，必要时 `aplay /tmp/box-mic-test.wav` 或做最小语音识别。
   - 下一步（**仅记录建议，不在本会话执行**）：① 短时录音测试，例如 `arecord -D plughw:CARD=Device,DEV=0 -f S16_LE -r 16000 -c 1 -d 5 /tmp/box-mic-test.wav`，再 `aplay` 检查或最小语音识别；② 用正确绝对路径执行 `udevadm info --query=all --name=/dev/ttyUSB8`，并对实际声卡节点跑 udev 查询（实际节点需先从 `/proc/asound/cards`、`/dev/snd` 确认，未知处标 UNKNOWN）。
-- tests: SKIPPED (user-provided recording result only)；本检查点不运行任何构建/测试/仿真/Jetson 操作。
+- tests: SKIPPED (user-provided voice app and playback logs only)；本检查点不运行任何构建/测试/仿真/Jetson 操作。
 - conclusion: 已保留完整基础接口，但当前是项目接口，不宜未经加固直接作为客户稳定 API。
 - available:
   - 点位 CRUD、排序和按 `/amcl_pose` 当前位姿踩点：`/api/map/point/*`。
@@ -46,5 +76,5 @@
 - previous_issue: 静态地图临时障碍空气墙已诊断，见 `TASK-2026-08-20-009`。
 - jetson: ON_USER_CONFIRMED，公司 Wi-Fi `192.168.31.135`；本次未连接。
 - safety: ROS1 CURRENT；只读登记，未修改业务代码、镜像、数据库或远端。
-- tests: SKIPPED (user-provided recording result only)。
+- tests: SKIPPED (user-provided voice app and playback logs only)。
 - recovery_order: `AGENTS.md` → 本检查点 → `tasks/current.md` → API/ROS facts。
