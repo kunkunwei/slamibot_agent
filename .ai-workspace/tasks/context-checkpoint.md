@@ -1,16 +1,13 @@
 # 最新上下文检查点
-- updated: 2026-08-25 22:52 CST
-- mode: ROS1 Noetic CURRENT；本地正式修复完成，等待BUILD/DEPLOY授权。
-- task: TASK-2026-08-25-004 nav_multi重启后未订阅/clock。
-- root_cause: nav_multi在/use_sim_time=true之前执行rospy.init_node，启动后不会补订阅/clock，goal误用墙钟。
-- local_repo: F:\d360_nav2D；3个未提交文件。
-- entrypoint: 等ROS Master→设置/use_sim_time=true→启动rosbridge/nav_multi/Web/API；不再全局等待/clock。
-- nav_multi: init_node后确认/use_sim_time；等待非零/clock；就绪前不开放Service；默认持续等待并自动恢复。
-- launch_manager: 进入/启动navigation前5秒时间预检；失败时保持当前模式，不重启节点。
-- safety: /clock缺失不会阻塞rosbridge、Nginx、FastAPI；不会退化为墙钟导航。
-- verification: py_compile PASS；bash -n PASS；entrypoint顺序PASS；git diff --check PASS；docker-entrypoint为LF。
-- diff: 3 files changed, 177 insertions(+), 3 deletions(-)。
-- not_run: Docker build、Jetson SSH/部署、整机重启、真机导航、Git commit/push。
-- next: 明确授权BUILD/DEPLOY后创建并推送codex/*安全分支，再部署验证重启闭环。
-- acceptance: nav_multi唯一且订阅/clock；goal秒值与/clock同时间系；GlobalPlanner/TEB有路径；move_base输出cmd_vel；APP/Web任务正常。
-- constraints: 禁止容器restart、killall/pkill、rosnode cleanup、手工重复roslaunch、force push。
+- updated: 2026-08-25 CST
+- current_task: TASK-2026-08-25-003 原生 APP 手动拍照融合，源码已推送，等待用户编译和真机验收。
+- app_repo: F:\SLAMIBotApp；branch=codex/native-compose-filament；base=b808a9f；commit=4fc7815（已推送）。
+- integration_rule: PR #10 是旧 Web 实现，未 checkout/merge，未恢复 web/src；按当前 Compose/Filament 重写。
+- app_api: POST /api/capture/photo，body={"source":"manual"}；成功后 GET /captures/<fileName> 下载 JPEG。
+- app_ui: 实时视频按钮显示“拍照/拍照中…”；保存成功后显示全屏原生照片预览，可用返回键或“关闭”退出。
+- isolation: 拍照使用独立 captureJob/captureInFlight，不占用 commandJob，不阻塞导航/遥控命令。
+- unchanged: b808a9f 图传点云默认关闭优化、/map 订阅、/cmd_vel_web 25Hz 均未修改。
+- excluded: 历史照片列表、Jetson、ROS、Docker、后端部署、APP 编译安装均未执行。
+- validation: git diff --check PASS；旧 /api/go2/capture/visible 引用为 0；tests/build SKIPPED (user fast mode)。
+- user_file_preserved: F:\SLAMIBotApp\teleop-A-pointcloud-off.txt 仍为未跟踪文件，未修改、未提交。
+- next: 用户编译安装并真机验证拍照保存、预览、返回键和遥控无回归；通过后记录验收，再决定历史列表或合并。
