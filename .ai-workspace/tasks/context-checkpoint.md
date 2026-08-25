@@ -10,4 +10,4 @@
 - excluded: 历史照片列表、Jetson、ROS、Docker、后端部署、APP 编译安装均未执行。
 - validation: git diff --check PASS；旧 /api/go2/capture/visible 引用为 0；tests/build SKIPPED (user fast mode)。
 - user_file_preserved: F:\SLAMIBotApp\teleop-A-pointcloud-off.txt 仍为未跟踪文件，未修改、未提交。
-- next: 用户编译安装并真机验证拍照保存、预览、返回键和遥控无回归；通过后再提交/上传或继续历史列表。
+- next: 用户编译安装并真机验证拍照保存、预览、返回键和遥控无回归；通过后记录验收，再决定历史列表或合并。

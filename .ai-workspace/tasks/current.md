@@ -846,4 +846,4 @@
 - protected_behavior: 保留 `b808a9f` 图传低延迟优化，未修改点云开关、`/map` 订阅、`/cmd_vel_web` 25Hz、Jetson、ROS 或 Docker。
 - changed_files: `D360ApiClient.kt`、`NativeNavigationRepository.kt`、`NativeNavigationController.kt`、`NativeNavigationScreen.kt`。
 - validation: `git diff --check` PASS；旧接口全局搜索为 0；Gradle/build/device test: SKIPPED（用户要求自行编译测试）。
-- next: 用户编译安装后，连接已加载 capture 后端的机器人，验证按钮防重复点击、照片保存、全屏预览和返回键关闭；通过后再决定是否做历史照片列表及提交上传。
+- next: 用户编译安装后，连接已加载 capture 后端的机器人，验证按钮防重复点击、照片保存、全屏预览和返回键关闭；通过后记录真机验收，再决定是否做历史照片列表或发起合并。
