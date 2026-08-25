@@ -2,6 +2,38 @@
 
 > 只记录尚未完全验收或仍需人工决策的任务。已完成操作及证据见 `completed.md`。
 
+## TASK-2026-08-25-001：AIKIT 语音识别 × d360_nav2D × Go2 真机动作联调测试
+
+- parent: `TASK-2026-08-21-001`
+- scheduled_for: 2026-08-25（明日测试）
+- status: scheduled
+- current_scope: WORKSPACE_DOCUMENTATION_ONLY（2026-08-24）；真机测试、代码修改、BUILD/DEPLOY 需明日按阶段授权。
+- goal: 验证“环形麦 AIKIT 识别 → d360_nav2D 动态词表/语音意图 → 唯一 dog 适配层 → Go2 真实动作”的完整链路，并确认失败响应、停止抢占和限时移动安全机制。
+- procedure: `.ai-workspace/procedures/voice-go2-integration-validation.md`
+- technology: ROS1 CURRENT + 独立 Go2 控制适配；不是 ROS1→ROS2 迁移任务。
+- prerequisites:
+  - 用户明确告知 Jetson 已开机；当前仍不得尝试 SSH。
+  - 现场控制链路确认使用 `DDS` 或 `WebRTC`，不得同时启用。
+  - 后端真实 `dog.py`、命令词扩充和失败语义修复已完成并通过任务范围 diff 检查。
+  - 静态动作映射、移动速度与持续时间由用户确认；未知参数保持 `NEEDS_CONFIRMATION`。
+  - 现场具备物理急停/接管条件，测试区域清空。
+- stages:
+  1. T0 只读预检、词表和运行代码就绪检查；
+  2. T1 mock/HTTP 意图与失败语义测试；
+  3. T2 `stop`、`stand`、`hello` 等已确认静态动作；
+  4. T3 低速短脉冲前后/横移/转向，`finally: StopMove()`；
+  5. T4 单麦克风进程下的完整 AIKIT 语音闭环；
+  6. T5 最后单独处理双进程读声卡冲突。
+- forbidden:
+  - 不重启、停启或重建 `scout-nav`；不结束 Uvicorn；不全局 `rosnode cleanup`。
+  - 不把 copy 成功当作运行时已加载；需要重载时先停止并申请最小 DEPLOY 授权。
+  - 不混发 ROS1 Scout `/cmd_vel` 与 Go2 DDS/WebRTC 控制。
+  - 未确认的 `crouch`/`handshake` 映射和移动参数不得上真机。
+- evidence_required: 逐条记录口述词、识别文本、HTTP 返回、驱动返回、实际动作、停止结果及 PASS/FAIL/BLOCKED。
+- rollback: 异常时立即 `StopMove()`/物理接管；只结束本次临时测试进程，不触碰导航主进程；禁止硬重置或清理 Git。
+- validation: NOT_RUN（按用户要求延期至 2026-08-25）。
+- business_changes: NONE（2026-08-24 仅创建工作台任务与测试流程）。
+
 ## TASK-2026-08-21-001：图传接收机 IP、BOX 麦克风、任务 service 模式与 GO2 适配
 
 - goal: 完成 2026-08-21 用户布置的多项待办并形成后续执行入口（仅记录，不擅自实现）
@@ -9,7 +41,9 @@
 - technology: ros1（CURRENT）；GO2 适配待定
 - lifecycle: CURRENT
 - migration: NEEDS_CONFIRMATION（GO2 适配若涉及 ROS2/DDS/迁移，未经授权不得触发；当前仅记录为待确认项）
-- status: paused_hardware_handoff
+- status: in_progress
+- current_focus: 已创建 `TASK-2026-08-25-001`，计划于 2026-08-25 测试 AIKIT → d360_nav2D → Go2 真机动作链路；测试前必须确认 DDS/WebRTC、补齐真实 `dog.py` 并确认动作/移动安全参数。到点 TTS 热拷贝代码尚未被运行中的 nav_multi 加载，仍禁止重启 `scout-nav`/Uvicorn。
+- hardware_subtask_status: paused_hardware_handoff（BOX 硬件/USB/固件仍等待同事反馈）
 - handoff: BOX 硬件/USB/固件检查移交同事；Codex 暂停 Jetson 诊断、应用改动和 udev 改动。
 - handoff_summary: 正常 BOX 有 card 3: L6Microphone [ListenGo Circular 6-Microphone]；故障 BOX 缺少该声卡，仅有通用 USB Audio Device (card 2)，录音 WAV 近静音；串口可打开；应用 ListenGo 名称匹配逻辑暂不修改。
 - resume_when: 等待同事反馈硬件、USB 枚举、设备描述符或固件检查结论后再恢复。
@@ -203,6 +237,16 @@
       - 底盘型号：GO2（厂商/型号/驱动来源：UNKNOWN / NEEDS_CONFIRMATION）。
       - 与现有基线关系：当前 ROS1 + Scout 为 CURRENT（见 `facts/robot_profile.yaml` 与 `TASK-2026-08-20-010`）；GO2 适配若涉及驱动替换、TF、launch、参数或栈迁移，必须 `migration: true` 独立专项授权。
       - 当前结论：仅记录需求，不进行任何底盘相关修改。
+- app_update_2026_08_24:
+  - 新建点位默认动作 `photo`，默认 TTS 文本 `已经到达该点位`；已有点位保留原 `action` / `actionContent`，仍可编辑并通过 `updatePoint` 保存。
+  - 已移除 APP 固定到点播报调用，避免手机与 BOX 重复发声。
+  - APP 提交 `0e01fed` 已推送到 `origin/codex/native-compose-filament`；未编译、未安装 APK。
+- backend_arrival_tts_2026_08_24:
+  - ROS1 导航成功到点后发布 `/nav_multi/point_arrived`，FastAPI 订阅并按非空 `actionContent` 进入离线 TTS 队列，经 BOX 扬声器播放；包含 30 秒去重及 APP PTT/自动 TTS 扬声器互斥。
+  - Docker 运行依赖增加 `espeak-ng` 与 ALSA；空播报文本保持静默，后端不擅自补默认值。
+  - GitHub 提交 `b5f94a1` 已推送到 `kunkunwei/codex/point-arrival-tts-20260824`；对应原开发提交为 `af666c8`。
+  - 用户明确：后端 Gitee 暂不上传；当前未向 Gitee 推送该提交。
+  - 已通过语法、diff 与定向行为检查；未部署 Jetson、未构建 Docker、未做 BOX 真机播放。
 - validation:
   - 当前不运行任何测试、构建、仿真、Jetson 操作。
   - 子项推进时再按 `testing-rules.md` 选取与风险相称的验证。
@@ -247,35 +291,6 @@
 - rollback:
   - APP：只回退 `RobotEndpoint.kt` 的单行端口修改。
   - Jetson：历史 scout-nav 容器/镜像已按用户授权删除；如需回退，基于远端分支 `codex/fix-initial-map-cloud` 的提交重新构建，不得依赖已删除容器。
-
-## TASK-2026-08-19-004：地图清理遗留项人工决策
-
-- goal: 决定 `test_map` 的关联数据如何处理，并复核 `office_room_test` 数据库记录是否应恢复。
-- project: navigation-ros1-d360
-- technology: ros1 + sqlite
-- lifecycle: CURRENT
-- status: needs_confirmation
-- current_scope: READ_ONLY
-- facts:
-  - `test_map` 没有可用 2D 文件，数据库仍有 8 个点位、5 个任务、12 个任务点，未删除。
-  - 已完成：删除 `test_map` 记录，并级联删除 8 个点位、5 个任务、12 个任务点。
-  - 原备份已按用户要求删除；当前不保留本次 `test_map` 删除专用备份。
-  - 验证：删除前后 `PRAGMA integrity_check` 均为 `ok`；删除后目标地图、点位、任务、任务点计数均为 0。
-  - `office_room_test` 的数据库记录已删除，但同名 YAML+PGM 文件仍存在；可从清理前备份恢复该记录。
-- forbidden:
-  - 未经明确授权不得级联删除点位、任务、任务点。
-  - 不得删除或覆盖地图恢复文件。
-- validation:
-  - 决策后再次执行 SQLite `PRAGMA integrity_check`，并核对 WEB `/app/points` 列表。
-- rollback: 使用 `nav_api.db.pre-map-cleanup-20260819_141713.bak`，禁止直接覆盖当前库；应先停写并做新的当前库备份。
-
-
-
-
-
-
-
-'
 
 ## TASK-2026-08-20-008：更换 BOX 后重新连接和测试 R1 麦克风
 
@@ -341,7 +356,7 @@
 - technology: ros1（CURRENT）
 - lifecycle: CURRENT
 - migration: false
-- status: pending_confirmation（仅记录需求与前置事实，未执行任何实现/部署/网络/系统修改）
+- status: partially_confirmed（2026-08-25 已确认图传接口与 APP 服务目标；仍未执行任何实现/部署/网络/系统修改）
 - user_goal: 测试「在图传/数传链路下进行导航任务创建等操作是否比 Wi-Fi/热点链路更顺畅」。
 - knowledge_source: `.ai-workspace/knowledge/2026-08-21-video-data-link-handoff.md`（同事资料登记，2026-08-21；已按 2026-08-21 现场终端输出增量更新）
 - raw_source: `F:\同事文档\导航，图传，数传 副本\导航，图传，数传 副本.md`（仅登记路径，未复制大附件）
@@ -352,10 +367,11 @@
 - forbidden:
   - 不得修改任何业务仓库、APP、导航代码、Jetson、Docker、udev 或 Git 历史。
   - 不得复制 `rtsp_server.tar.gz` / `scout_mini_navigation.tar.gz` / 1GB 导航 tar.gz 或其他大附件到本工作区。
-  - 不得将 `192.168.144.87` 当作 APP rosbridge / 导航 API 的目标 IP。
-  - 未经用户明确授权，不得猜测前端 APP 的目标 IP、端口、协议或配置文件路径。
+  - 不得混淆同一主机上的业务入口：`192.168.144.87:9090` 为 APP 图传模式 core rosbridge，`:5000` 为 API；`:8889/live` 仍仅作视频入口。
+  - 除已确认的图传 rosbridge/API 目标外，未经用户明确授权，不得猜测 RTSP/WebRTC 的具体路径、8554/8889 协议关系或配置文件路径。
   - 未经现场/用户授权，不得在 Jetson 上执行 CRLF 修复命令（如 `sed -i 's/\r$//'` / `dos2unix`）或 `rtsp_start.sh` 启动命令；本次仅在工作区登记现场证据。
 - confirmed_facts_from_handoff:
+  - 2026-08-25 实机确认：`192.168.144.87` 是 Jetson `eth2` 地址；APP 图传模式使用 `ws://192.168.144.87:9090` core rosbridge，HTTP API 使用 `http://192.168.144.87:5000`。
   - 需配置 `/etc/udev/rules.d/99-serial-aliases.rules`（资料提示，落地状态待确认）。
   - 部署包提示：`rtsp_server.tar.gz`、`scout_mini_navigation.tar.gz`（仅记录存在）。
   - 图传脚本（**资料路径名小写 `scout_mini_navigation` 与现场实际大写 `Scout_mini_navigation` 不一致，CONFIRMED**）：
@@ -380,37 +396,37 @@
           - 成功创建 tmux 会话 `rtsp_stream`。
           - 窗口 0：`/home/jetson/rtsp_server/mediamtx`（RTSP 服务端 mediamtx）。
           - 窗口 1：`/home/jetson/SLAMIBOT_D360_Framework/src/oak-camera_driver/scripts/oak_rtsp_pusher.py`（OAK 摄像头推流脚本）。
-          - 终端输出 RTSP 地址模板：`rtsp://<本机IP>:8554/live`（具体本机 IP 未在用户输出中出现，仍 `NEEDS_CONFIRMATION`）。
+          - 终端输出 RTSP 地址模板：`rtsp://<本机IP>:8554/live`；2026-08-25 已确认图传侧 Jetson 地址为 `192.168.144.87`，但 `rtsp://192.168.144.87:8554/live` 是否为实际可用入口仍 `NEEDS_CONFIRMATION`。
           - FFmpeg 已识别输入流：`rawvideo BGR24 1248x240 10fps`，编码器初始化为 `libx264`，未观察到启动失败日志。
       - **结论（已确认）**：`rtsp_start.sh` 脚本启动阶段已成功（CRLF 修复生效、tmux 会话与两个子窗口创建、FFmpeg 输入流被识别、libx264 初始化）。
-      - **仍 `NEEDS_CONFIRMATION`**：实际本机 IP、接收机侧是否能成功 `rtsp://<本机IP>:8554/live` 拉流、视频画面是否正常、网络链路（端口 8554 可达性 / NAT / 防火墙）、前端 APP 是否能连入并显示图传。
-  - WebRTC 视频入口：`http://192.168.144.87:8889/live`（仅作视频查看入口登记，**不**当作 APP rosbridge / 导航 API 目标 IP）。
+      - **仍 `NEEDS_CONFIRMATION`**：RTSP 的实际监听地址/路径与 8554 可达性、接收机侧能否拉流、视频画面、NAT / 防火墙，以及前端 APP 的视频显示路径；这不影响已确认的 `192.168.144.87:9090/:5000` 控制与 API 入口。
+  - 视频入口登记：`http://192.168.144.87:8889/live` 仍仅用于视频查看；同一主机的 `:9090` 和 `:5000` 分别是 APP 图传模式 rosbridge 与 API 目标。8889 的具体协议及其与 RTSP 8554 的关系仍 `NEEDS_CONFIRMATION`。
   - 导航 Web：`http://192.168.117.6:9000/`，账号 `admin`（密码/鉴权未提供）。
   - 机器狗连通性提示：`ping 192.168.123.161`。
   - 图传探针 topic：`/SLB_CAM_A/compressed`。
 - needs_confirmation:
-  - 数传串口实际节点名与 udev 别名；物理网卡 `eth1` / `eth30` 是否存在及角色。
-  - 前端 APP 切换到图传/数传链路时的实际配置文件、协议、端口、目标 IP（候选均不确认）。
+  - 数传串口实际节点名与 udev 别名；`eth2` 已确认承担图传地址，旧资料中的 `eth1` / `eth30` 是否存在及角色仍待确认。
+  - APP 图传模式 rosbridge/API 目标已确认；端点自动切换的具体配置来源，以及视频 RTSP/WebRTC 的协议、路径和端口关系仍待确认。
   - udev 规则 `99-serial-aliases.rules` 具体内容；SBUS 波特率/帧格式；图传 TCP/UDP 端口与码率。
   - `rtsp_start.sh` 内部依赖（gstreamer / ffmpeg / v4l2 / 摄像头设备节点 / 推流参数）：UNKNOWN，未在本次会话读取脚本内容。
-  - 图传接收机 IP、端口、TCP/UDP 链路选型：UNKNOWN（资料 `192.168.144.87:8889/live` 仅作 WebRTC 视频入口登记，不直接作为推流目标）。
+  - 图传接收/推流的 RTSP 路径、8554/8889 协议关系及 TCP/UDP 选型：`NEEDS_CONFIRMATION`；`192.168.144.87` 主机地址已确认，`:8889/live` 仅作视频入口，不替代 `:9090/:5000`。
   - `rtsp_start_udp.sh` / `rtsp_stop.sh` 在现场 `Scout_mini_navigation/script/` 是否存在：`NEEDS_CONFIRMATION`。
   - `sbus_start.sh` 同时出现在 `Scout_mini_navigation/script/` 与 `SLAMIBOT_D360_Framework/script/` 两处的权威启动入口归属：`NEEDS_CONFIRMATION`。
   - **图传启动成功后（2026-08-21 现场输出）新增 NEEDS_CONFIRMATION**：
-      - 实际本机 IP（`rtsp://<本机IP>:8554/live` 中占位符的真实值）。
-      - 接收机侧是否能成功拉流 `rtsp://<本机IP>:8554/live`。
+      - `rtsp://192.168.144.87:8554/live` 是否为实际监听且可拉流的入口（主机地址已确认，RTSP 路径/端口仍待验证）。
+      - 接收机侧是否能成功拉流候选地址 `rtsp://192.168.144.87:8554/live`。
       - 视频画面是否正常（分辨率、色彩、码率）。
       - 网络链路（端口 8554 可达性、NAT / 防火墙）。
-      - 前端 APP 是否能连入并显示图传。
+      - 前端 APP 是否能通过待确认的视频入口连入并显示图传；rosbridge `:9090` 与 API `:5000` 目标已确认。
       - `mediamtx` 实际监听地址 / 配置 / 鉴权 / 路径；`oak_rtsp_pusher.py` 推送参数（编码、码率、分辨率）：UNKNOWN，未读取相关配置。
 - todo:
-  - 1. 由用户给出前端 APP 在图传/数传链路下的目标地址与协议，或确认沿用 `192.168.117.6` / `192.168.31.135` + 9090 现有路径。
+  - 1. 已于 2026-08-25 确认 APP 图传模式使用 `192.168.144.87:9090` rosbridge 与 `192.168.144.87:5000` API；后续仅需确认端点切换来源和视频 RTSP/WebRTC 入口。
   - 2. 由用户在 Jetson 上确认数传串口设备名与 udev 落地状态；不要 Agent 擅自写入 `99-serial-aliases.rules`。
-  - 3. 确认 `eth1` / `eth30` 是否存在并承担图传/数传。
+  - 3. `eth2` 图传角色已确认；继续核对旧资料中的 `eth1` / `eth30` 是否存在及是否另承担数传。
   - 4. 在用户授权后，再讨论是否执行 `rtsp_start.sh` / `rtsp_start_udp.sh` / `sbus_start.sh` 与导航任务创建联调。
   - 5. **CRLF 修复（`rtsp_start.sh`）**：已于 2026-08-21 由现场/用户执行 `sed -i 's/\r$//' rtsp_start.sh`，`head` / `file` / `bash -n` / `./rtsp_start.sh` 启动阶段已通过；tmux 会话 `rtsp_stream` 已成功创建，窗口 0 mediamtx / 窗口 1 oak_rtsp_pusher.py；FFmpeg 已识别 `rawvideo BGR24 1248x240 10fps` 并初始化 `libx264`。
   - 6. **下一步（待现场/用户回传）**：
-      - 实际本机 IP（替换 `rtsp://<本机IP>:8554/live` 中的占位符）。
+      - 验证 `rtsp://192.168.144.87:8554/live` 是否为实际监听/可拉流入口，并确认 8554/8889 的协议关系。
       - 接收机侧拉流结果（VLC / ffplay / 其它 RTSP 客户端）。
       - 视频画面是否正常；网络端口 8554 是否可达。
       - 前端 APP 是否能接入并显示图传。
@@ -418,7 +434,7 @@
   - 7. 联调结果（顺/卡顿）登记到本条目与 `completed.md`，并独立于 `TASK-2026-08-21-001` BOX 任务。
 - validation:
   - 当前不运行任何测试、构建、仿真、Jetson 操作；不执行网络或系统变更；不远程登录 Jetson。
-  - 用户给出明确目标地址/接口契约后，再按 `testing-rules.md` 选取与风险相称的验证。
+  - rosbridge/API 目标地址已确认；后续仅在用户授权后对 RTSP/WebRTC 视频路径或图传联调按 `testing-rules.md` 选取与风险相称的验证。
   - 本次新增的「CRLF 修复后启动结果」属于现场用户操作的回传登记，Agent 不擅自执行；现场/用户已自行执行 `sed -i 's/\r$//' rtsp_start.sh` 与 `./rtsp_start.sh`。
 - rollback:
   - 本任务仅做登记，未触碰任何业务仓库；若误改，按 `git-safety.md` 用 `git checkout -- <file>` 回退或删除目录。
@@ -810,3 +826,42 @@
 - 验证：`dinggu7_6_display.pcd` 加载成功，`/global_cloud_navigation` 发布 `PointCloud2`，rosbridge 已订阅，用户确认 3D 点云恢复。
 - 时间浪费原因：前期错误地把问题按容器整体恢复和代码不一致方向排查，重复检查了已确认的底盘模式代码；实际点云故障是激活地图缺少 PCD 资源，且已有地图切换机制在导航已运行时不会自动补启动 PCD。
 - 后续规则：恢复优先对比云端提交和实际挂载路径；对地图/数据库等运行数据只做必要核对；先验证激活地图资源与 PCD publisher，再考虑代码修改。
+
+- voice_integration_review_2026_08_24:
+  - 新项目：`F:\Linux_cnenesr_e75f07b62_v1.0.8_v2.2.15-rc5`；AIKIT 离线命令词识别入口为 `run_mic.py`，已具备 `GET /api/voice/words` 与 `POST /api/voice/intent` 闭环；用户确认识别正常。
+  - `d360_nav2D/src/nav_api/fastapi_service/voice.py` 当前 dog_action 派发依赖不存在的 `dog.py`，因此真实机器狗动作尚未接通；仅做只读分析，未修改业务代码。
+  - `d360_nav2D/go2_webrtc/test_new_dds.py` 与 `webrtc_sport_client.py` 存在已实现的 Go2 `Move/StopMove/StandUp/StandDown/Sit/Hello` 调用，可作为真机驱动适配来源；DDS/WebRTC 路径选择仍 `NEEDS_CONFIRMATION`。
+  - 声卡双进程同时读取冲突按用户要求最后处理；当前不得启动第二个麦克风采集进程。
+
+### 2026-08-25 APP PR #10 read-only review
+- repository: `F:\SLAMIBotApp` / `electech6/SLAMIBotApp`; PR head `a516f90`，base merge-point `80fe739`。
+- scope: 旧 Web 导航页新增手动拍照、照片历史与预览，接口为 `POST /api/capture/photo`、`GET /api/capture/list`、`/captures/*`。
+- verdict: 功能方向有价值且与 D360 本机拍照 API 契约一致，但禁止直接 checkout/merge；PR 基于 2026-08-05 旧 Web 代码，当前 2026-08-24 原生 Compose/Filament 分支已删除 `web/src`，`NavigationModule.tsx` 与 `vite.config.ts` 为 modify/delete 冲突。
+- native_gap: 当前 Kotlin 导航页已有“抓帧”入口，但 `NativeNavigationRepository.captureVisibleFrame()` 调用 `/api/go2/capture/visible`，当前 D360 未发现该接口。
+- recommendation: 第一阶段在当前 Kotlin 架构中把现有“抓帧”改接 `/api/capture/photo` 并展示成功/失败；第二阶段再原生实现 `/api/capture/list` 历史列表和 `/captures/*` 预览。不得恢复旧 Web 目录。
+- validation: READ_ONLY Git/代码审查；APP 工作树未修改，tests/build: SKIPPED。
+
+## TASK-2026-08-25-002：D360 图传网络下手动遥控延迟快速定位与优化
+
+- status: app_fix_implemented_pending_build_and_device_validation
+- technology: ROS1 Noetic CURRENT + Android Kotlin/Compose
+- scope: APP正式修复已完成本地实现与静态diff验收；未修改Jetson/ROS/Docker，未构建、未安装、未ADB、未SSH。
+- goal: 在不改变`/map`和25Hz `/cmd_vel_web`的前提下，避免图传链路默认订阅点云导致遥控高延迟。
+- procedure: `.ai-workspace/procedures/manual-teleop-latency-quick-validation.md`
+- evidence:
+  - 实验A仅关闭APP `/global_cloud_navigation`网络订阅，9090连接由3条降为2条；控制候选RTT由最终1099.28ms降至约36.0–41.5ms，Send-Q峰值由8018降至546且未持续增长。
+  - 用户反馈几乎无延迟、手感好；单变量A/B已确认点云大流是图传手动遥控延迟主因。
+- app_implementation:
+  - 图传ROS端点`192.168.144.87:9090`默认不建立点云WebSocket；Wi-Fi/非图传端点默认开启点云。
+  - 导航Dashboard增加用户可见“点云”开关；开启时真实connect订阅，关闭时真实disconnect并停用/清理renderer。
+  - Session启停与close幂等，关闭后阻止旧WebSocket回调残留重连；图传开启点云时显示延迟警示。
+  - 保持`/map`订阅和`/cmd_vel_web` 25Hz（40ms）不变；未加入latest-only或queueSize策略。
+- unchanged_infrastructure: Jetson、ROS1节点、Docker、rosbridge接口和发布端均未修改。
+- validation:
+  - STATIC_DIFF_REVIEW_PASS；`git diff --check` PASS。
+  - BUILD/INSTALL/ADB/DEVICE_TEST: SKIPPED（按本轮要求）。
+- next_action:
+  1. 构建并安装APP；分别使用Wi-Fi `192.168.31.135:9090`与图传`192.168.144.87:9090`验收默认开关状态。
+  2. 图传默认关闭点云时复测连续遥控启停；再显式开启/关闭点云，确认9090连接数与延迟可逆变化且无重复连接。
+  3. 验证退出导航会话后点云、地图和控制WebSocket均释放；后退更慢仍需客观量化，当前为`NEEDS_CONFIRMATION`。
+- forbidden: 不停止ROS侧`map_server`或点云发布节点；不修改Docker/ROS；不使用ROS2/DDS QoS解释当前ROS1链路。
