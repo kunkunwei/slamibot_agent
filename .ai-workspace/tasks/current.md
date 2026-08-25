@@ -833,10 +833,17 @@
   - `d360_nav2D/go2_webrtc/test_new_dds.py` 与 `webrtc_sport_client.py` 存在已实现的 Go2 `Move/StopMove/StandUp/StandDown/Sit/Hello` 调用，可作为真机驱动适配来源；DDS/WebRTC 路径选择仍 `NEEDS_CONFIRMATION`。
   - 声卡双进程同时读取冲突按用户要求最后处理；当前不得启动第二个麦克风采集进程。
 
-### 2026-08-25 APP PR #10 read-only review
-- repository: `F:\SLAMIBotApp` / `electech6/SLAMIBotApp`; PR head `a516f90`，base merge-point `80fe739`。
-- scope: 旧 Web 导航页新增手动拍照、照片历史与预览，接口为 `POST /api/capture/photo`、`GET /api/capture/list`、`/captures/*`。
-- verdict: 功能方向有价值且与 D360 本机拍照 API 契约一致，但禁止直接 checkout/merge；PR 基于 2026-08-05 旧 Web 代码，当前 2026-08-24 原生 Compose/Filament 分支已删除 `web/src`，`NavigationModule.tsx` 与 `vite.config.ts` 为 modify/delete 冲突。
-- native_gap: 当前 Kotlin 导航页已有“抓帧”入口，但 `NativeNavigationRepository.captureVisibleFrame()` 调用 `/api/go2/capture/visible`，当前 D360 未发现该接口。
-- recommendation: 第一阶段在当前 Kotlin 架构中把现有“抓帧”改接 `/api/capture/photo` 并展示成功/失败；第二阶段再原生实现 `/api/capture/list` 历史列表和 `/captures/*` 预览。不得恢复旧 Web 目录。
-- validation: READ_ONLY Git/代码审查；APP 工作树未修改，tests/build: SKIPPED。
+## TASK-2026-08-25-003：原生 APP 融合 PR #10 手动拍照能力
+- repository: `F:\SLAMIBotApp` / branch `codex/native-compose-filament` / base HEAD `b808a9f`。
+- status: source_pushed_pending_user_build_and_device_test。
+- app_commit: `4fc7815`，已推送 `origin/codex/native-compose-filament`。
+- origin_review: PR #10 head `a516f90` 基于旧 Web 页面；因当前分支已删除 `web/src`，禁止直接 checkout/merge，改为按现有 Compose/Filament 架构重写。
+- implemented:
+  - 实时视频卡片“抓帧”改为“拍照/拍照中…”，调用 `POST /api/capture/photo`，请求 `{"source":"manual"}`。
+  - 解析后端 `fileName`/`url`，通过 `GET /captures/<fileName>` 下载实际 JPEG，并显示全屏原生预览；返回键或“关闭”按钮退出预览。
+  - 拍照使用独立 `captureJob`/`captureInFlight`，不占用导航 `commandJob`，避免阻塞遥控和导航命令。
+  - 已清除不存在的旧接口 `/api/go2/capture/visible`；未恢复旧 Web 目录；历史照片列表暂不实现。
+- protected_behavior: 保留 `b808a9f` 图传低延迟优化，未修改点云开关、`/map` 订阅、`/cmd_vel_web` 25Hz、Jetson、ROS 或 Docker。
+- changed_files: `D360ApiClient.kt`、`NativeNavigationRepository.kt`、`NativeNavigationController.kt`、`NativeNavigationScreen.kt`。
+- validation: `git diff --check` PASS；旧接口全局搜索为 0；Gradle/build/device test: SKIPPED（用户要求自行编译测试）。
+- next: 用户编译安装后，连接已加载 capture 后端的机器人，验证按钮防重复点击、照片保存、全屏预览和返回键关闭；通过后再决定是否做历史照片列表及提交上传。

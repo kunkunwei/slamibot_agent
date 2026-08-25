@@ -1,11 +1,13 @@
 # 最新上下文检查点
 - updated: 2026-08-25 CST
-- latest_task: D360图传手动遥控延迟正式APP优化已完成并通过用户真机验收。
-- root_cause: 实验A确认`/global_cloud_navigation`点云大流是图传遥控延迟主因；关闭后RTT、RTO和Send-Q显著改善。
-- app_fix: 图传`192.168.144.87:9090`默认关闭点云网络订阅；Wi-Fi/非图传默认开启。
-- ui_validation: 用户已测试图传模式与Dashboard点云开关；开关可逆，真实connect/disconnect，功能正常。
-- unchanged: `/map`继续订阅；`/cmd_vel_web`保持25Hz（40ms）；未改Jetson、ROS、Docker或发布端。
-- app_commit: `b808a9fcb6466c4b482fd9b9ba3e2e2c74494659`，已推送`origin/codex/native-compose-filament`。
-- status: COMPLETED / USER_DEVICE_VALIDATED。
-- this_update: 仅同步工作台任务状态；未构建、未测试、未ADB、未SSH、未push工作台分支。
-- history: 完整结论见`.ai-workspace/tasks/completed.md`中的`TASK-2026-08-25-002`。
+- current_task: TASK-2026-08-25-003 原生 APP 手动拍照融合，源码已推送，等待用户编译和真机验收。
+- app_repo: F:\SLAMIBotApp；branch=codex/native-compose-filament；base=b808a9f；commit=4fc7815（已推送）。
+- integration_rule: PR #10 是旧 Web 实现，未 checkout/merge，未恢复 web/src；按当前 Compose/Filament 重写。
+- app_api: POST /api/capture/photo，body={"source":"manual"}；成功后 GET /captures/<fileName> 下载 JPEG。
+- app_ui: 实时视频按钮显示“拍照/拍照中…”；保存成功后显示全屏原生照片预览，可用返回键或“关闭”退出。
+- isolation: 拍照使用独立 captureJob/captureInFlight，不占用 commandJob，不阻塞导航/遥控命令。
+- unchanged: b808a9f 图传点云默认关闭优化、/map 订阅、/cmd_vel_web 25Hz 均未修改。
+- excluded: 历史照片列表、Jetson、ROS、Docker、后端部署、APP 编译安装均未执行。
+- validation: git diff --check PASS；旧 /api/go2/capture/visible 引用为 0；tests/build SKIPPED (user fast mode)。
+- user_file_preserved: F:\SLAMIBotApp\teleop-A-pointcloud-off.txt 仍为未跟踪文件，未修改、未提交。
+- next: 用户编译安装并真机验证拍照保存、预览、返回键和遥控无回归；通过后再提交/上传或继续历史列表。
