@@ -128,3 +128,13 @@
 - 切换到具有完整点云资源的 `dinggu7_6` 后，通过既有导航接口恢复 publisher，`/global_cloud_navigation` 正常发布，用户确认 3D 点云恢复。
 - 未覆盖容器、未修改地图/数据库、未重启整个 scout-nav；底盘模式和手动控制未被破坏。
 - 经验：恢复任务必须先以云端仓库为代码基线，再用最小命令核对实际挂载、激活地图资源和 publisher 状态，避免无关的容器级操作与重复读取。
+## TASK-2026-08-25-002：D360 图传网络下手动遥控延迟快速定位与优化
+- status: completed
+- completed_at: 2026-08-25（用户真机验收确认）
+- result:
+  - 实验A确认`/global_cloud_navigation`点云大流是图传手动遥控延迟主因；关闭点云后控制链路RTT与Send-Q显著下降。
+  - APP正式实现图传`192.168.144.87:9090`默认关闭点云网络订阅，Wi-Fi/非图传默认开启；Dashboard开关可真实connect/disconnect，开关操作可逆。
+  - 用户已测试图传模式和点云开关，确认功能正常，正式优化通过真机验收。
+  - 保持`/map`订阅和`/cmd_vel_web` 25Hz不变；未修改Jetson、ROS、Docker或发布端。
+- app_commit: `b808a9fcb6466c4b482fd9b9ba3e2e2c74494659`（已推送`origin/codex/native-compose-filament`）
+- validation: USER_DEVICE_VALIDATED；本次仅同步工作台状态，未重新构建、测试、ADB或SSH。

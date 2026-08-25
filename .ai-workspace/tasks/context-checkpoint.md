@@ -1,15 +1,11 @@
 # 最新上下文检查点
 - updated: 2026-08-25 CST
-- latest_task: D360图传手动遥控延迟正式APP修复已实现，待构建/安装/真机验收。
-- experiment_a: 仅关闭APP `/global_cloud_navigation`网络订阅，保留`/map`和25Hz `/cmd_vel_web`；9090由3条连接降至2条。
-- evidence: 控制候选RTT由最终1099.28ms降至约36.0–41.5ms；RTO由2832ms降至约240–244ms；Send-Q峰值由8018降至546且未持续增长。
-- conclusion: 单变量A/B已确认点云大流是图传遥控延迟主因；用户反馈关闭后几乎无延迟、手感好。
+- latest_task: D360图传手动遥控延迟正式APP优化已完成并通过用户真机验收。
+- root_cause: 实验A确认`/global_cloud_navigation`点云大流是图传遥控延迟主因；关闭后RTT、RTO和Send-Q显著改善。
 - app_fix: 图传`192.168.144.87:9090`默认关闭点云网络订阅；Wi-Fi/非图传默认开启。
-- ui: 导航Dashboard提供“点云”开关；显式开启真实connect，关闭真实disconnect并停用/清理renderer；图传开启时提示可能增加遥控延迟。
-- lifecycle: Session点云启停与close幂等，旧WebSocket回调受generation保护，无重复connect设计。
+- ui_validation: 用户已测试图传模式与Dashboard点云开关；开关可逆，真实connect/disconnect，功能正常。
 - unchanged: `/map`继续订阅；`/cmd_vel_web`保持25Hz（40ms）；未改Jetson、ROS、Docker或发布端。
-- code_review: 4个Kotlin文件静态diff验收PASS；`git diff --check` PASS。
-- tests: BUILD/INSTALL/ADB/DEVICE_TEST SKIPPED；未SSH。
-- unresolved: 后退更慢未客观量化，`NEEDS_CONFIRMATION`。
-- next: 构建安装后分别验收Wi-Fi默认点云开启、图传默认关闭；验证开关连接数可逆、遥控延迟和退出会话资源释放。
-- procedure: `.ai-workspace/procedures/manual-teleop-latency-quick-validation.md`
+- app_commit: `b808a9fcb6466c4b482fd9b9ba3e2e2c74494659`，已推送`origin/codex/native-compose-filament`。
+- status: COMPLETED / USER_DEVICE_VALIDATED。
+- this_update: 仅同步工作台任务状态；未构建、未测试、未ADB、未SSH、未push工作台分支。
+- history: 完整结论见`.ai-workspace/tasks/completed.md`中的`TASK-2026-08-25-002`。
