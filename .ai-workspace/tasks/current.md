@@ -2,6 +2,23 @@
 
 > 只记录尚未完全验收或仍需人工决策的任务。已完成操作及证据见 `completed.md`。
 
+## TASK-2026-08-27-002：workspace 历史清理 pr1-deploy.tar（1.9GB 误提交）+ 同步云端
+
+- status: **resolved**（2026-08-27 完成；branch `codex/teleop-pointcloud-low-latency-docs` 已推送远端 3130bb6）
+- history_rewrite: **true**（用户明确授权「重写历史去掉tar」）
+- from: `15de77b`（旧分支 `codex/teleop-pointcloud-low-latency-docs` 顶端，11 个提交含 tar）
+- to: `3130bb6`（新分支 `codex/teleop-pointcloud-low-latency-docs`，同 11 个提交但 tar 剔除）
+- reason: `b77f6a5` 文档提交误带入 `pr1-deploy.tar`（1894MB 部署包），直接推送远端将耗时约 30 分钟且 GitHub 永久多 1.9GB。
+- method: 非 filter-branch。旧分支改名 `codex/...-old-1.9gb` 备份（保留全部旧提交/tar blob）→ 基于远端 main 基线 `61c6767` 新建干净分支 → 按原顺序 cherry-pick 11 个提交，`b77f6a5` 用 `-n` + `git rm --cached pr1-deploy.tar` 剔除 tar 后 `commit -C` 复用原消息 → 其余 10 个顺序 cherry-pick。
+- verification:
+  - `git diff --stat 15de77b 3130bb6` = 仅 `pr1-deploy.tar` 一项（Bin 1986242560 → 0 bytes），其余内容逐字节一致。
+  - 新分支历史 tar 引用 0；推送数据量 1.9MB。
+  - `git push -u` 5.5s 成功；远端 `refs/heads/codex/teleop-pointcloud-low-latency-docs = 3130bb6`，`main = 61c6767` 未动。
+- rollback: 完整回退到旧状态 = `git checkout codex/teleop-pointcloud-low-latency-docs-old-1.9gb`（本地保留，未推送，含 1.9GB 对象）。
+- leftover:
+  - `pr1-deploy.tar` 现为工作目录未跟踪文件（1.9GB，已不在任何 git 提交）。若确认无用，可单独授权删除释放磁盘。
+  - 本地备份分支 `codex/teleop-pointcloud-low-latency-docs-old-1.9gb` 保留；确认新分支无误后可授权删除该备份分支及对应对象（需 `git gc` 清理，另行授权）。
+
 ## TASK-2026-08-27-001：开始作业视频 /keyframe 无发布者（stitcher 在 roslaunch 上下文自杀）
 
 - status: **open**（二进制健康已证明，焦点在 launch 上下文差异）
