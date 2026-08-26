@@ -2,19 +2,74 @@
 
 > 只记录尚未完全验收或仍需人工决策的任务。已完成操作及证据见 `completed.md`。
 
+## TASK-2026-08-27-001：开始作业视频 /keyframe 无发布者（stitcher 在 roslaunch 上下文自杀）
+
+- status: **open**（二进制健康已证明，焦点在 launch 上下文差异）
+- project: firmware-sensors（OAK 相机 + keyframe 拼接）+ 开始作业 APP 视频
+- technology: ROS1 Noetic（CURRENT）；不是迁移任务。
+- handoff: `known-issues/oak-keyframe-stitcher-dies-in-roslaunch-2026-08-27.md`
+- focus:
+  - 开始作业视频 = `/keyframe`（`oak_keyframe_stitcher` 发布），非 go2 图传。
+  - install 二进制 `docker exec` 单独跑**存活 25s 正常**（订阅三路相机、发布 /keyframe）；只在 sensors.launch 上下文 ~4s `interrupted` 退出。
+  - source/install 两份 sensors.launch 字节一致，均**无 respawn**；`/use_sim_time=true`、`/clock` 200Hz。
+  - 三路 `/SLB_CAM_A/B/C/compressed` 10Hz 正常；`/keyframe` `Publishers: None`。相机过热（100°C→78°C）曾致无帧，降温后相机恢复但 stitcher 未拉起（无 respawn）。
+- next_step: 复现时抓 stitcher 完整日志拿 `signal_shutdown` reason；对比 docker exec vs roslaunch 环境差异（sim-time/node 名/rosmaster）；或给 sensors.launch stitcher 加 `respawn="true"`（业务代码，需授权）。
+- risk: 若不修，开始作业始终无视频；APP 端「rosbridge 未连接」文案与真实连接状态不符易误导。
+- tests: 已验证 install 二进制手动运行 25s 健康；launch 上下文自杀原因待抓。
+
+## TASK-2026-08-26-001：生产 hotfix — /scan 断链 + 3D 箭头(/robot_map_pose) + 膨胀 0.10
+
+- status: **awaiting_nav_stack_restart**（2026-08-26 交接；用户计划重新开会话，重启导航栈后验证）
+- project: navigation-ros1-d360 + Jetson Docker（scout-nav）
+- technology: ROS1 Noetic（CURRENT）；不是迁移任务。
+- handoff: 完整交接见 `procedures/hotfix-2026-08-26-scan-3d-arrow-inflation-validation.md`
+- focus: 三个问题互为一条根因链，全部卡在同一个待验证点——**重启导航栈让 robot_state_publisher 存活**。
+  - ① 膨胀 0.10/12（三处一致）：本地 3 yaml + 板上 src/install/share + 参数服务器已同步；生效需重启 move_base。
+  - ② /robot_map_pose 转发（APP 3D 箭头）：本地 ros_client.py +27 行，仅同步 27 行到板上 src+install 两份，容器已 `docker restart scout-nav`（uvicorn PID 175）；等 /amcl_pose 有消息即注册发布者。
+  - ③ /scan 断链（导航无反应根因）：`robot_state_publisher` 未运行（`scout_mini_robot_base.launch:59`）→ 无 laser→base_link TF → pointcloud_to_laserscan 无法 transform → /scan 空 → AMCL 无定位。参数服务器 /robot_description 完整（laser_joint fixed base_link→laser），RSP 存活即恢复。
+- key_facts:
+  - 容器 import **install 版** ros_client.py；板上 src=install，本地比板上多 34 行（27 转发 + 7 `get_scout_detection_snapshot`，后者未上板，板上 base_mode 不调用）。
+  - `nav-api-entrypoint` 是 bash 脚本 `wait $API_PID` 结尾，无 supervisord → **不能只 kill uvicorn（容器会退出），只能 `docker restart scout-nav`**。
+  - costmap 膨胀参数需带 `inflation_layer/` 前缀查，无前缀报 not set；costmap_2d 无 dynamic_reconfigure，改膨胀必须重启 move_base。
+  - 用户粘贴过的"简化版" ros_client.py 是历史旧版，非板上运行版。
+- next_step: 用户重启导航栈 → 跑 `procedures/hotfix-2026-08-26-scan-3d-arrow-inflation-validation.md` 第 2 步验证命令（`rostopic hz /scan`、`/amcl_pose`、`info /robot_map_pose`、`rosparam get .../inflation_radius`）。
+- risk: 若重启后 RSP 仍"0.3s finished cleanly"秒退 → 需改 launch 顺序（业务代码，先与用户确认再动）。
+- rollback: 板上 src 在 git 可 `git checkout -- <file>`；install 可重新构建覆盖；本地 F:\d360_nav2D 在分支 `codex/scout-nav-recovery-20260826`（ros_client.py +27 未提交）。
+- tests: 已 py_compile 通过（本地 + 板上）；端到端验证待重启后执行。
+
+## TASK-2026-08-25-002：scout-nav install-only 镜像检查与重构
+
+- status: blocked_pending_scope_and_storage_decision
+- project: navigation-ros1-d360 + Jetson Docker
+- technology: ROS1 Noetic（CURRENT）；不是迁移任务。
+- authorization: 用户已确认 Jetson 开机，并授权 SSH、远端 Dockerfile 修改和 BUILD；未授权 DEPLOY、重启、清理或删除镜像。
+- readonly_findings:
+  - Jetson Dockerfile：`/home/jetson/Scout_mini_navigation/Dockerfile`；第 96 行复制完整 `src/`。
+  - 现有镜像该层约 12.3GB；宿主机 `src/` 约 26GB，其中 `src/my_nav` 约 25GB。
+  - `install/` 约 172MB，但不包含 `my_nav` launch/config；FastAPI 也不是完整 install 产物。
+  - entrypoint、launch_manager、maps/db 挂载仍依赖 `/Scout_mini_navigation/src/...`。
+  - `install/lib/nav_api/nav_multi_node.py` 与当前源码哈希不同，直接改 install-only 会产生代码回退。
+  - 根分区 233GB/已用 200GB/剩余 21GB（91%）；当前不适合直接 Docker BUILD，且禁止自行 prune/删除旧镜像。
+  - `scout-nav` 容器对象当前为 exited，exit code 0；本次未启动、停止、重启或删除。
+- decision_needed:
+  1. 推荐扩大范围做正确 install-only 改造：补安装规则、nav_api 独立打包、运行路径/挂载契约调整、同版本重建 install。
+  2. 或仅做不可部署的 slim diagnostic 候选。
+  3. 构建前需确认替代构建位置，或另行授权受控磁盘处理。
+- changes: Jetson NONE；业务仓库 NONE；BUILD NOT_RUN。
+
 ## TASK-2026-08-25-001：AIKIT 语音识别 × d360_nav2D × Go2 真机动作联调测试
 
 - parent: `TASK-2026-08-21-001`
-- scheduled_for: 2026-08-25（明日测试）
-- status: scheduled
-- current_scope: WORKSPACE_DOCUMENTATION_ONLY（2026-08-24）；真机测试、代码修改、BUILD/DEPLOY 需明日按阶段授权。
+- scheduled_for: 2026-08-25（今日开始测试）
+- status: local_backend_integrated_pending_runtime_validation_and_arm64_sdk
+- current_scope: 用户已授权 AIKIT 先在 Jetson 宿主机前台快速联调；不进入 `scout-nav`，不注册 systemd，不重启容器。
 - goal: 验证“环形麦 AIKIT 识别 → d360_nav2D 动态词表/语音意图 → 唯一 dog 适配层 → Go2 真实动作”的完整链路，并确认失败响应、停止抢占和限时移动安全机制。
 - procedure: `.ai-workspace/procedures/voice-go2-integration-validation.md`
 - technology: ROS1 CURRENT + 独立 Go2 控制适配；不是 ROS1→ROS2 迁移任务。
 - prerequisites:
-  - 用户明确告知 Jetson 已开机；当前仍不得尝试 SSH。
+  - 用户已确认 Jetson 开机；本轮由用户在 Jetson 本地执行命令，Agent 未发起 SSH。
   - 现场控制链路确认使用 `DDS` 或 `WebRTC`，不得同时启用。
-  - 后端真实 `dog.py`、命令词扩充和失败语义修复已完成并通过任务范围 diff 检查。
+  - 动态命令词已在运行服务中可读；本地已新增 `dog.py` 安全适配层，运行容器与 Go2 真机派发仍未部署/验证。
   - 静态动作映射、移动速度与持续时间由用户确认；未知参数保持 `NEEDS_CONFIRMATION`。
   - 现场具备物理急停/接管条件，测试区域清空。
 - stages:
@@ -29,10 +84,16 @@
   - 不把 copy 成功当作运行时已加载；需要重载时先停止并申请最小 DEPLOY 授权。
   - 不混发 ROS1 Scout `/cmd_vel` 与 Go2 DDS/WebRTC 控制。
   - 未确认的 `crouch`/`handshake` 映射和移动参数不得上真机。
+- voice_validation_2026_08_25: 本次只验证 Jetson 宿主机 `/home/jetson/xf_chat_standalone` 在线Demo；`--silence-timeout 4` 下六麦/VAD/在线ASR/LLM/TTS/扬声器闭环PASS。此结果不等于F盘AIKIT离线命令词代码已整合或进入容器；AIKIT项目部署、后端 `/api/voice/intent` 对接和Go2真实动作仍未完成，APP talkback与点位到达TTS也未随本项验收。
+- aikit_host_plan_2026_08_25: 运行位置确定为 Jetson 宿主机独立目录，链路为 AIKIT → `GET /api/voice/words` → `POST /api/voice/intent`；F盘 `run_mic.py` 已具备动态词表和 HTTP 对接，无需先重写。
+- blocker_2026_08_25: 当前 `libs/libaikit.so` 与 `libs/eabb2f029_v1009_aee.so` 的 ELF Machine=62（x86_64），Jetson 为 AArch64（应为 Machine=183），当前包不能在 Jetson 直接加载。未复制、未启动、未修改 Jetson。需同事提供能力 `e75f07b62` 对应 Linux ARM64 SDK 及匹配资源后再继续。
 - evidence_required: 逐条记录口述词、识别文本、HTTP 返回、驱动返回、实际动作、停止结果及 PASS/FAIL/BLOCKED。
 - rollback: 异常时立即 `StopMove()`/物理接管；只结束本次临时测试进程，不触碰导航主进程；禁止硬重置或清理 Git。
-- validation: NOT_RUN（按用户要求延期至 2026-08-25）。
-- business_changes: NONE（2026-08-24 仅创建工作台任务与测试流程）。
+- validation_2026_08_25: `GET /api/voice/words` PASS，返回包含“起立”等命令词；用户输入的 `POST /api/voice/intent` 是交互式表单工具调用，并非接口要求的 JSON 请求，因此意图派发与声音均尚未验证。`/api/voice/intent` 本身不负责 TTS 播报。
+- audio_fix_2026_08_25: 根因位于容器 `/usr/local/bin/nav-api-entrypoint:98` 写死 `AUDIO_MIC_DEVICE=plughw:3,0`；PID1 对 Uvicorn 执行 `wait`，API退出会 cleanup rosbridge/nav_multi/nginx 并使容器退出。已仅在本机 `F:\d360_nav2D\docker-entrypoint.sh` 改为 `export AUDIO_MIC_DEVICE="${AUDIO_MIC_DEVICE:-plughw:CARD=L6Microphone,DEV=0}"`，`git diff --check` PASS；Jetson运行文件和进程未修改，APP talkback 当前仍未恢复。
+- local_integration_2026_08_25: `F:\d360_nav2D` 已新增默认禁用的 `dog.py`，支持 `disabled/mock/webrtc`；首轮仅开放 `stop/stand/hello`，普通动作互斥、stop 优先、shutdown 执行 StopMove+cleanup。`voice.py` 增加“停止/别动”，失败改为顶层 `success=false`，动态词表不再公布未实现的 crouch/handshake。WebRTC 初始化新增 `enable_free_walk=False`，避免语音驱动连接时隐式 FreeWalk。
+- local_validation_2026_08_25: `py_compile` PASS；pytest/HTTP 运行测试因本机 Python 缺少 pytest 与 FastAPI 依赖未执行；未连接 Jetson、未部署容器、未执行 Go2 动作。
+- business_changes: LOCAL_ONLY，尚未提交/推送；仓库已有大量用户未提交改动，需避免整文件误提交。
 
 ## TASK-2026-08-21-001：图传接收机 IP、BOX 麦克风、任务 service 模式与 GO2 适配
 
@@ -846,4 +907,74 @@
 - protected_behavior: 保留 `b808a9f` 图传低延迟优化，未修改点云开关、`/map` 订阅、`/cmd_vel_web` 25Hz、Jetson、ROS 或 Docker。
 - changed_files: `D360ApiClient.kt`、`NativeNavigationRepository.kt`、`NativeNavigationController.kt`、`NativeNavigationScreen.kt`。
 - validation: `git diff --check` PASS；旧接口全局搜索为 0；Gradle/build/device test: SKIPPED（用户要求自行编译测试）。
-- next: 用户编译安装后，连接已加载 capture 后端的机器人，验证按钮防重复点击、照片保存、全屏预览和返回键关闭；通过后记录真机验收，再决定是否做历史照片列表或发起合并。
+- backend_runtime_check_2026_08_25:
+  - Jetson 已从热点切回 Wi-Fi；`jetson@192.168.31.135` SSH 成功，`wlan0=192.168.31.135/24`。
+  - `0.0.0.0:5000` 正常监听；Uvicorn PID 147 从 `/Scout_mini_navigation/src/nav_api/fastapi_service/app.py` 运行，未启用 `--reload`。
+  - 当前 `/openapi.json` 不包含 `/api/capture/photo`；宿主与容器的 `fastapi_service/capture.py` 均不存在，`app.py` 均未注册 `capture_router`。
+  - 宿主 nav_api 源码未 bind mount 到容器（仅 maps、db 被挂载）；本机 `F:\d360_nav2D` 有 capture 实现，但尚未部署到 Jetson。
+  - 本轮仅只读检查；未调用拍照 POST，未复制、修改、重启、停进程或操作 ROS/Docker 生命周期。
+- backend_quick_deploy_2026_08_25:
+  - 用户已授权快速 DEPLOY；采用独立临时模块 `manual_capture.py`，未覆盖 `ros_client.py`、`database.py`、`schema.sql` 或数据库。
+  - 已部署到宿主 `/home/jetson/Scout_mini_navigation/src/nav_api/fastapi_service/` 与容器 `/Scout_mini_navigation/src/nav_api/fastapi_service/`；`app.py` 仅新增两个 router 注册。
+  - 回滚备份：宿主与容器 `.codex-backup/manual-capture-20260825-1515/app.py.before`；原始 SHA256=`b778c9b...`。
+  - 独立导入验证 PASS；新磁盘代码的 OpenAPI 可生成 `/api/capture/photo` 与 `/captures/{file_name}`。
+  - 临时 `127.0.0.1:5002` 服务启动/接口验证 PASS，实际 POST 返回未收到 `/SLB_CAM_B/compressed`；A/B/C 三路 topic 当前均 `Publishers: None`。
+  - 临时 5002 服务已结束；原 PID1、rosbridge PID61、nav_multi PID109、Uvicorn PID147 均未变化，5000 `/health` 正常。
+  - 运行中 5000 仍未加载新路由：PID1 入口脚本直接 `wait` Uvicorn，终止 PID147 会清理全部子进程并触发容器退出/重启，违反“不重启 scout-nav”约束。
+- runtime_update_2026_08_25_1931:
+  - 用户停止并启动 `firmware-sensors` 后，`oak_hardware_trigger_ros` 曾以新 URI `ubuntu:41735` 注册，但很快再次退出；`docker top` 仅剩 `oak_keyframe_stitcher`。
+  - 新日志：timeshare ready 后报 `RuntimeError: No available devices`；当前 `lsusb`/拓扑均无 03e7/Luxonis，OAK 已不在USB总线上；三路图像与点位/手动拍照不可用。
+  - `/scout_base_node` 重启后仍未重新注册，ping 旧 URI 拒绝连接；当前禁止导航和遥控。
+- reboot_update_2026_08_25: 用户完整重启 Jetson 后确认相机恢复出图；`firmware-sensors` 暂不再操作。
+- point_capture_runtime_verified: OpenAPI 已加载 `/api/capture/photo`、`/api/capture/list`；正式 capture/point_arrival/ros_client/app 文件存在且 dispatcher 启动；运行中的 nav_multi 发布 `/nav_multi/point_arrived`，scout_nav_rosbridge 已订阅。无需重新部署/重启，待手动拍照和真实到点闭环验证。
+- status: camera_recovered_point_arrival_deployment_verification_pending。
+- next: 不再做容器级反复重启/cleanup；推荐机器人与Jetson完整断电，检查/重插OAK USB3数据线及供电后重新上电，再验证 03e7:f63b、SuperSpeed、底盘节点和三路图像。
+
+### 2026-08-25 WebRTC / Go2 控制只读核验
+- 自研 ROS2 3D 仓库 `F:\3d_nav` 已实现 `/cmd_vel` → `go2_cmd_vel_bridge.py` → `unitree_webrtc_connect` LocalSTA/DataChannel → Unitree Sport `Move/StopMove`；包含手动 enable、速度限幅、心跳/指令超时、故障 disarm 和停机兜底，源码已提交并与 `origin/master` 同步到 `1658816`。
+- `unitree_go2_pct_scan_navigation.launch.py` 与通用 launch 默认 `start_go2_bridge:=false`，代码存在不代表默认启动。
+- ROS1 `d360_nav2D/go2_webrtc` 仅有键盘/驱动测试脚本；`src/nav_api/fastapi_service/dog.py` 在本地和 Jetson 均不存在，`voice.py` 的 dog_action 因此未接通真实机器狗。
+- 原生 APP 仅发布 ROS1 `/cmd_vel_web`，并通过 `/api/go2/stream/visible` 显示视频；未发现 APP 直接使用 WebRTC DataChannel 或调用 `/api/dog/action`。
+- Jetson 2026-08-25 14:56 CST 只读核验：wlan0=192.168.31.135，未运行 `go2_cmd_vel_bridge`/Go2 WebRTC 控制进程；外协 `d360_navigation_container` 已停止 10 天；当前 `192.168.123.161` 经 wlan0 默认网关路由且 ping 100% 丢包。
+- 结论：自研 ROS2 3D 的 Go2 WebRTC 底层运动桥已实现；当前 APP/ROS1/语音到 Go2 的完整业务控制闭环未实现且运行态未启用。未发送任何机器狗命令，未启动/停止服务。
+
+### TASK-2026-08-25-004：nav_multi重启复现、受控恢复与正式修复
+- status: deploy_failed_auto_rollback_duplicate_rosrun_executable。
+- root_cause: nav_multi在`/use_sim_time=true`建立前执行`rospy.init_node()`，因此整机重启后不会订阅`/clock`，导航goal误用系统墙钟。
+- local_scope: `F:\d360_nav2D`的`docker-entrypoint.sh`、`src/nav_api/scripts/nav_multi_node.py`、`src/nav_api/scripts/launch_manager.py`。
+- implementation:
+  - entrypoint等待ROS Master后先固定`/use_sim_time=true`，再启动nav_multi。
+  - entrypoint不再全局等待`/clock`，避免时钟缺失时阻塞rosbridge、Nginx和FastAPI。
+  - nav_multi在初始化后自行等待有效`/clock`，时钟就绪前不注册导航Service；默认持续等待并自动恢复。
+  - 切换/启动导航前进行5秒ROS时间fail-fast预检，不停止现有模式、不自动重启节点。
+- verification: Python `py_compile` PASS；Bash `-n` PASS；entrypoint顺序断言PASS；`git diff --check` PASS；Shell文件仍为LF。
+- deploy: 2026-08-26 已构建 `scout-nav:0cf1d78-20260826` 并受控切换；因 rosrun 检测到 install/src 两个同名 nav_multi 可执行文件而失败，健康检查触发自动回滚；旧容器已恢复且 `/health` 正常。
+- next: 取得BUILD/DEPLOY明确授权后构建安全分支并部署；整机重启验证nav_multi唯一、订阅`/clock`、goal时间与ROS时钟一致、APP/Web导航可启动并输出有效路径/cmd_vel。
+- constraints: ROS1 CURRENT；禁止容器restart、killall/pkill、手工重复roslaunch、Git历史改写。## TASK-2026-08-25-005：地图保存与手动降采样流程修复
+
+- status: local_implementation_complete_deploy_pending
+- scope: 本机 `F:\d360_nav2D` + `F:\SLAMIBotApp`；ROS1 CURRENT。
+- user_decision: APP 地图列表已有“降采样”按钮；保存地图后不自动降采样，由用户手动触发。
+- backend:
+  - `/api/map/save` 只保存原始 PCD/2D 地图，返回 `displayPcdStatus=missing`。
+  - `/api/map/downsample` 使用单 worker 后台串行执行，支持去重、状态、失败重试和临时文件原子替换。
+  - `/api/map/list` 返回 `hasDisplayPcd`、`displayPcdStatus`、`displayPcdError`。
+  - display PCD 完成后，仅在激活地图且导航运行时尝试启动 PCD publisher。
+- app_web: 保留原手动按钮；显示未生成/生成中/失败/已就绪，处理中轮询，失败可重试；保存提示明确需手动降采样。
+- verification: Python `py_compile` PASS；任务范围 `git diff --check` PASS；APP/Web build SKIPPED。
+- deploy: NOT_RUN；未连接或操作 Jetson/容器。
+- next: 用户审阅差异；随后决定提交、部署及 1.4GB PCD 真机验证。
+
+## TASK-2026-08-26-001：Scout/Go2 底盘自动探测与 APP 手动切换
+
+- status: local_implementation_complete_build_deploy_validation_pending
+- scope: `F:\d360_nav2D` + `F:\SLAMIBotApp`；ROS1 CURRENT。
+- implementation: 后端新增 AUTO/MANUAL 选择策略、Scout 节点+心跳就绪探测、Go2 只读网络候选；APP 新增“自动/Scout/Go2”三选及探测状态显示。
+- safety: Go2 网络可达不等于身份或 ready；未接入/启动 WebRTC bridge，未调用 enable，未发送运动指令。
+- commits: d360 `445ffd7` 已推送 `origin/codex/2026_8_25`；APP `4b5d996` 已推送 `origin/codex/native-compose-filament`。
+- verification: Python `py_compile` PASS；任务范围 `git diff --check` PASS；Gradle/Android build SKIPPED (user fast mode)。
+- jetson: 仅只读核验；`start_go2_bridge=false`，Go2 身份和 ROS1 驱动仍待确认。
+- next: 需明确 BUILD/DEPLOY 授权后再部署；随后进行无运动状态接口验收和 APP 手动选择验收。
+
+
+- 2026-08-26：已生成 Claude Code 执行交接：.ai-workspace/procedures/scout-nav-full-recovery-claude-handoff-2026-08-26.md；等待用户确认 Jetson 开机后按阶段 A 执行。

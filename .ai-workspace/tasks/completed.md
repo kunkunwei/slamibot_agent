@@ -128,6 +128,19 @@
 - 切换到具有完整点云资源的 `dinggu7_6` 后，通过既有导航接口恢复 publisher，`/global_cloud_navigation` 正常发布，用户确认 3D 点云恢复。
 - 未覆盖容器、未修改地图/数据库、未重启整个 scout-nav；底盘模式和手动控制未被破坏。
 - 经验：恢复任务必须先以云端仓库为代码基线，再用最小命令核对实际挂载、激活地图资源和 publisher 状态，避免无关的容器级操作与重复读取。
+
+## TASK-2026-08-24-001：APP/WEB 2D 地图缺失最小只读诊断路径
+- status: completed（方案输出；待 Jetson 开机后人工采证）
+- scope: 本地事实源、ROS1/双 rosbridge/Nginx/APP/WEB 契约只读分析；未连接 Jetson，未修改业务仓库。
+- result: 形成 `/map` 发布 → scout-nav/19090 → core 9090 → Nginx 80 → APP/WEB 订阅的优先命令与结果分支；共享故障先查 `/map`，不先猜客户端。
+- tests: SKIPPED (user explicitly prohibited remote operations)。
+## TASK-2026-08-19-004：地图清理遗留项人工决策
+
+- status: completed
+- completed_at: 2026-08-24（用户确认）
+- result: `test_map` 及其关联点位、任务和任务点已完成清理；用户确认本遗留决策任务结束，不再作为当前任务。
+- safety: 本次仅同步工作台任务状态，未连接 Jetson，未修改地图、数据库或业务代码。
+- tests: SKIPPED (workspace status sync only)
 ## TASK-2026-08-25-002：D360 图传网络下手动遥控延迟快速定位与优化
 - status: completed
 - completed_at: 2026-08-25（用户真机验收确认）

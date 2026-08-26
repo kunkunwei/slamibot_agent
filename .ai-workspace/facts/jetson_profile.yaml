@@ -3,7 +3,7 @@
 
 jetson:
   board: Jetson Orin NX
-  # 当前可靠入口（2026-08-20 15:22:32 CST 实测成功）；新会话必须优先使用 LAN。
+  # 当前可靠入口（2026-08-25 09:52:32 CST 再次实测成功）；新会话优先使用 LAN。
   ssh_host: 192.168.31.135
   ssh_port: 22
   ssh_user: jetson
@@ -13,9 +13,9 @@ jetson:
     host: 192.168.31.135
     port: 22
     user: jetson
-    auth: "C:\Users\kun\.ssh\id_rsa；BatchMode 免交互连接"
+    auth: 'C:\Users\kun\.ssh\id_rsa；BatchMode 免交互连接'
     status: CONFIRMED
-    verified_at: "2026-08-20 15:22:32 CST"
+    verified_at: "2026-08-25 09:52:32 CST"
     verified_result: "host=ubuntu user=jetson"
     priority: PRIMARY
   ssh_hotspot:
@@ -24,6 +24,13 @@ jetson:
     user: jetson
     status: NEEDS_CONFIRMATION
     priority: SECONDARY
+  ssh_video_link:
+    host: 192.168.144.87
+    port: 22
+    user: jetson
+    status: NEEDS_CONFIRMATION
+    note: "2026-08-25 已确认该地址绑定 Jetson eth2，APP 的 9090/5000 可用；尚未从当前电脑验证 SSH。"
+    priority: ALTERNATE
   ssh_public:
     host: 116.148.216.66
     port: 30046
@@ -61,9 +68,14 @@ jetson:
   network:                            # 来自同事文档 + 用户实时确认
     jetson_lan_ip: 192.168.31.135     # 用户 2026-08-17 确认（DHCP，可能再变；此前曾为 192.168.31.132）
     jetson_hotspot_ip: 192.168.117.6  # Jetson 开启热点时的固定使用地址
-    current_network: company_wifi
+    current_network: company_wifi_and_video_link
     current_reachable_ip: 192.168.31.135
-    current_network_updated_at: "2026-08-20"
+    current_network_updated_at: "2026-08-25"
+    video_link_ip: 192.168.144.87
+    video_link_peer: 192.168.144.11
+    video_link_interface: eth2
+    video_link_speed: 100Mb/s_full_duplex
+    video_link_note: "eth2 同时绑定 192.168.123.55/24 与 192.168.144.87/24；图传与 MID-360 网络共用物理口。"
     go2_ip: 192.168.123.161           # Unitree Go2（STA / WebRTC）
     mid360_ip: 192.168.123.120        # Livox MID-360 雷达
     host_livox_ip: 192.168.123.164    # 主机接收雷达网卡 IP
@@ -97,9 +109,40 @@ jetson:
     map_topic: { name: /map, publisher: /map_server, width: 1515, height: 852, resolution: 0.05 }
     plane_occ_map_topic: NOT_PRESENT
     status: CONFIRMED
+
+  runtime_2026_08_25:
+    verified_at: "2026-08-25 09:52-09:55 CST"
+    ssh_result: "LAN 192.168.31.135 成功；host=ubuntu user=jetson"
+    uptime_at_probe: "42 minutes"
+    active_containers: [core, firmware-sensors, scout-nav, ota_web]
+    scout_nav_image: scout-nav:latest
+    scout_nav_started_at: "2026-08-25T01:34:22Z"
+    listening_ports: [80, 5000, 9090, 19090]
+    interfaces:
+      eth0: [192.168.1.55/24]
+      wlan0: [192.168.31.135/24]
+      eth2: [192.168.123.55/24, 192.168.144.87/24]
+    video_link:
+      peer: 192.168.144.11
+      speed: 100Mb/s
+      duplex: full
+      rx_errors: 0
+      rx_dropped: 0
+      tx_errors: 0
+      tx_dropped: 0
+      qdisc: pfifo_fast
+      qdisc_backlog_at_probe: 0
+      app_tcp_sessions: ["192.168.144.87:9090", "192.168.144.87:5000"]
+      tcp_rtt_observed: "9090 约 25 ms；5000 约 28-37 ms，存在少量重传"
+    container_cpu_snapshot:
+      core: 66.96_percent
+      firmware_sensors: 52.99_percent
+      scout_nav: 46.35_percent
+      note: "单次 docker stats 快照；core 内 SystemMonitor 单进程约 56% CPU，需与遥控延迟分组复测，不可直接判为根因。"
+    status: CONFIRMED
   status: CONFIRMED
   power_state: ON_USER_CONFIRMED
-  power_state_updated_at: "2026-08-20"
+  power_state_updated_at: "2026-08-25"
   note: "Jetson 只作为远程开发/编译/测试/运行目标，禁止向其新增 Agent/RAG/向量库/AI 服务/后台进程。"
 
 

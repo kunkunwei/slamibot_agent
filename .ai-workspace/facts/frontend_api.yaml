@@ -15,8 +15,8 @@ frontend:
     - name: codex/native-compose-filament   # 新实现：原生 Kotlin+Compose+Filament（删除 web/）
       stack: [android, kotlin, jetpack-compose, filament]
       rosbridge_port: 9090                  # 客户端统一端口；本地 RobotEndpoint.kt 已改，尚未提交
-      implementation_status: UNCOMMITTED
-      head: f919874
+      implementation_status: COMMITTED_SYNCED
+      head: 0e01fed
       status: CONFIRMED
       note: D360 专属（D360ApiClient / D360Topics）；G20 手柄+外接手柄；点云 CBOR 直传（C++ 解码）；Filament 渲染；MJPEG 相机流；蓝牙耳机双向喊话；RTK/固件/项目管理原生页面
 
@@ -43,10 +43,10 @@ frontend:
     camera: MJPEG 流（MjpegStreamClient）
     sdk: rcsdk-v1.9.2.aar
     default_host: 192.168.117.6              # Jetson 热点地址；不是公司 Wi-Fi 地址
-    configurable_host: true                  # 公司 Wi-Fi 当前地址可填 192.168.31.135
+    configurable_host: true                  # Wi-Fi 可填 192.168.31.135；图传连接填 192.168.144.87
     websocket: "ws://<jetson-ip>:9090"
 
-  ros_server: 192.168.117.6（Jetson 热点）；192.168.31.135（公司 Wi-Fi，DHCP）；127.0.0.1（开发环境）
+  ros_server: 192.168.117.6（Jetson 热点）；192.168.31.135（公司 Wi-Fi）；192.168.144.87（图传）；127.0.0.1（开发环境）
 
   rosbridge_port:
     client: 9090          # Android APP 全部 ROS 功能统一走 core rosbridge
@@ -55,9 +55,80 @@ frontend:
     main_branch: 9090
     codex_branch: 9090
 
+  runtime_and_architecture_2026_08_25:
+    git:
+      branch: codex/native-compose-filament
+      local_head: 0e01fed
+      remote_head: 0e01fed
+      working_tree: CLEAN
+    endpoints:
+      manual_navigation_ros:
+        fixed_websocket_port: 9090
+        wifi: "ws://192.168.31.135:9090"
+        video_link: "ws://192.168.144.87:9090"
+        hotspot: "ws://192.168.117.6:9090"
+        note: "手动导航控制界面的ROS WebSocket只使用固定端口9090；已由后续ADB连接和用户量化数据确认。"
+        port_confirmation: CONFIRMED
+      observed_auxiliary_http:
+        video_link: "192.168.144.87:5000"
+        role: "先前实机观察到的 TCP/HTTP 连接；可能属于开始作业或视频 HTTP 链路，不属于手动导航控制界面的固定 ROS 端口，不得混入遥控链路。"
+        status: NEEDS_CONFIRMATION
+    sockets:
+      control: "NativeControlSession/RosbridgeSession；低速状态、服务和 /cmd_vel_web；独立 OkHttp WebSocket"
+      occupancy_grid: "NativeOccupancyGridClient；/map；独立 WebSocket；cbor-raw；queue_length=1"
+      point_cloud: "NativePointCloudClient；/global_cloud_navigation；独立 WebSocket；JSON 订阅、queue_length=1，收到文本后本地转 CBOR"
+      video: "MjpegStreamClient；作业/视频 HTTP 链路线索可能使用 5000；与手动导航 ROS WebSocket :9090 分离。"
+    adb_quantification_2026_08_25:
+      routes:
+        wifi: { destination: 192.168.31.135, dev: wlan0, src: 192.168.31.220, via: NONE, status: CONFIRMED }
+        video_link: { destination: 192.168.144.87, dev: ar_net0, src: 192.168.144.11, via: NONE, topology: same_subnet_direct, status: CONFIRMED }
+      ping_samples:
+        wifi: "前12样本多为1.4-8.7ms；seq13-22突发175-324ms后恢复；遥控同期顺畅；无完整统计行。"
+        video_link: "前10样本约306-406ms，主要395-406ms；持续高RTT；无完整统计行。"
+      rosbridge_9090_sockets:
+        established_source_ports: [43634, 43612, 43622]
+        control_candidate_43612: "bytes_acked增长；Send-Q最终8018；notsent最终729；RTT最终1099.28ms；RTO最终2.832s；unacked最终8；retrans=0/2样本内未见增长。"
+        large_receive_43634: "bytes_received约144MB增至150MB；RTT约426-480ms；rcv_rtt最终1188ms；地图/点云等大订阅推断，具体Topic NEEDS_CONFIRMATION。"
+        receive_43622: "接收约1.3MB；RTT约414-470ms；具体Topic NEEDS_CONFIRMATION。"
+      conclusion: "图传持续高RTT与疑似控制Socket发送积压已客观确认；多个WebSocket虽独立，仍共享ar_net0/图传/Jetson eth2。"
+      experiment_a_point_cloud_disabled:
+        date: 2026-08-25
+        configuration: "仅关闭APP对/global_cloud_navigation的网络订阅；保留/map和25Hz /cmd_vel_web。"
+        established_source_ports: [40690, 40686]
+        control_candidate_40686:
+          rtt_ms: "约36.0-41.5"
+          rto_ms: "约240-244"
+          send_queue_samples: [0, 146, 328, 364, 546, 368, 183]
+          send_queue_peak: 546
+          notsent_observation: "仅一次184；未见持续增长"
+        other_40690: "RTT约37ms；流量极少。"
+        user_observation: "几乎无延迟、手感好。"
+        conclusion: "与基线最终RTT 1099.28ms、RTO 2832ms、Send-Q 8018、notsent 729相比显著改善；单变量A/B确认点云大流为图传遥控延迟主因。"
+        decision: "保持/map和25Hz /cmd_vel_web；停止停地图及15/10Hz实验；正式修复在手动低延迟模式暂停点云网络订阅。"
+        status: CONFIRMED
+    teleop:
+      source_topic: /cmd_vel_web
+      message_type: geometry_msgs/Twist
+      app_publish_rate: 25Hz
+      app_publish_interval_ms: 40
+      enable_api: "/api/teleop_key/enable?enabled=true"
+      enable_behavior: "第一次非零摇杆触发异步 HTTP enable，同时立即继续发 Twist；存在首动竞态风险。"
+      websocket_queue_monitoring: NOT_IMPLEMENTED
+      advertise_queue_size: NOT_EXPLICIT
+    map:
+      topic: /map
+      behavior: "导航会话连接时持续保持订阅；地图本身为静态 latched，适合后续改为首帧成功后 unsubscribe。"
+    latency_risk_order:
+      - confirmed_video_link_sustained_high_rtt
+      - confirmed_control_candidate_send_queue_backpressure
+      - confirmed_point_cloud_subscription_competition_primary_cause
+      - tcp_old_twist_queue_without_latest_only
+      - teleop_enable_async_race_deprioritized_by_wifi_test
+      - tcp_nodelay_per_segment
+    status: CONFIRMED
   implementation:
     app_change: "F:\\SLAMIBotApp\\app\\app\\src\\main\\java\\com\\example\\metacam\\RobotEndpoint.kt: DEFAULT_ROSBRIDGE_PORT 19090 -> 9090"
-    app_change_state: UNCOMMITTED
+    app_change_state: COMMITTED_SYNCED
     jetson_web_proxy: "Nginx /rosbridge -> 127.0.0.1:9090"
     verification_2026_08_19:
       targeted_robot_endpoint_test: PASS

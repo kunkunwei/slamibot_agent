@@ -96,3 +96,5 @@
 ## 已知问题索引补充（2026-08-21）
 - APP/Web 地图、点云不显示的快速诊断：`.ai-workspace/known-issues/app-map-cloud-quick-triage-2026-08-21.md`
 - 新会话遇到类似显示问题时，优先读取该记录，按“激活地图 → 资源文件 → 真实进程 → Topic 消息 → 既有启动接口”的顺序排查；禁止默认全局搜索。
+
+- APP/Web 2D 栅格地图无消息的快速排查：`.ai-workspace/known-issues/app-2d-map-quick-triage-2026-08-24.md`

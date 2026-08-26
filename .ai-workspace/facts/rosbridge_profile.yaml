@@ -61,17 +61,101 @@ rosbridge:
     historical_rollback_container: scout-nav-before-map2d-20260820-0958
     historical_rollback_container_present: false
 
+  runtime_2026_08_25:
+    verified_at: "2026-08-25 09:52-09:56 CST"
+    ports_listening: [9090, 19090]
+    nodes_present: [/rosbridge_websocket, /scout_nav_rosbridge]
+    client_connection: "192.168.144.11 -> 192.168.144.87:9090 ESTABLISHED"
+    android_adb_quantification:
+      route: { destination: 192.168.144.87, dev: ar_net0, src: 192.168.144.11, via: NONE, topology: same_subnet_direct }
+      ping: "前10样本约306-406ms，主要395-406ms；无完整统计行。"
+      established_source_ports: [43634, 43612, 43622]
+      control_candidate_43612:
+        send_queue_samples: [1314, 1460, 3813, 720, 364, 183, 8018]
+        notsent_samples: [584, 489, 180, 182, 729]
+        rtt: "先约353-432ms，曾降至68ms，最终1099.28ms"
+        rto: "先约1.1-1.27s，最终2.832s"
+        final_unacked: 8
+        retrans_observation: "0/2；样本内未见增长"
+        role_status: "控制发送Socket候选；具体业务绑定 NEEDS_CONFIRMATION"
+      large_receive_43634:
+        bytes_received: "约144MB增长至150MB"
+        rtt: "约426-480ms"
+        final_rcv_rtt_ms: 1188
+        role_status: "地图/点云等大订阅推断；具体Topic NEEDS_CONFIRMATION"
+      receive_43622:
+        bytes_received: "约1.3MB"
+        rtt: "约414-470ms"
+        role_status: NEEDS_CONFIRMATION
+      conclusion: "已客观确认图传高RTT与控制候选Socket Send-Q/notsent积压；多个9090 WebSocket共享ar_net0、图传和Jetson eth2。"
+    experiment_a_point_cloud_disabled:
+      date: 2026-08-25
+      configuration: "APP仅停止/global_cloud_navigation网络订阅；保留/map和25Hz /cmd_vel_web。"
+      established_source_ports: [40690, 40686]
+      control_candidate_40686:
+        rtt_ms: "约36.0-41.5"
+        rto_ms: "约240-244"
+        send_queue_samples: [0, 146, 328, 364, 546, 368, 183]
+        send_queue_peak: 546
+        notsent_observation: "仅一次184；未见持续增长"
+      other_40690: "RTT约37ms；流量极少。"
+      comparison_to_baseline: "基线控制候选最终RTT 1099.28ms、RTO 2832ms、Send-Q 8018、notsent 729；实验A显著改善。"
+      conclusion: "单变量A/B确认/global_cloud_navigation点云大流是图传遥控延迟主因。"
+      status: CONFIRMED
+    core_9090:
+      provider: core
+      node: /rosbridge_websocket
+      use_compression: false
+      publications: [/cmd_vel_web, /client_count, /connected_clients]
+      subscriptions: [/global_cloud_navigation, /driver_status, /storage]
+    nav_internal_19090:
+      provider: scout-nav
+      node: /scout_nav_rosbridge
+      use_compression: true
+      binding: 127.0.0.1
+      role: "FastAPI roslibpy 内部桥接；本次观察到累计接收约 64 MB 的本机回环数据。"
+    teleop_path:
+      - "APP NativeControlSession / OkHttp WebSocket -> 9090"
+      - "ROS /cmd_vel_web"
+      - "FastAPI teleop / roslibpy -> 19090"
+      - "ROS /cmd_vel"
+      - "scout_base_node -> CAN -> Scout mini"
+    map_runtime:
+      topic: /map
+      publisher: /map_server
+      semantics: "static latched OccupancyGrid；加载/切图时发布，不是 1 Hz 循环发布"
+      subscribers_at_probe: [/amcl, /move_base]
+      app_subscriber_at_probe: NOT_PRESENT
+      six_second_rate_probe: NO_NEW_MESSAGES
+    point_cloud_runtime:
+      topic: /global_cloud_navigation
+      publisher: /pcd_map_publisher_489_1787622077842
+      subscriber: /rosbridge_websocket
+      six_second_rate_probe: NO_NEW_MESSAGES
+    latency_notes:
+      - "ROS1 不具备 ROS2/DDS Topic QoS；TCP_NODELAY 只能作为逐段低延迟优化。"
+      - "Android量化已确认图传持续高RTT和控制候选Socket发送积压；不是单纯主观感觉。"
+      - "控制、地图、点云在APP中使用独立WebSocket，但仍竞争同一ar_net0、图传物理链路与Jetson eth2。"
+      - "实验A仅暂停/global_cloud_navigation后控制指标和手感显著改善，单变量A/B已确认点云大流为主因。"
+      - "正式修复应在手动低延迟模式暂停点云网络订阅并按需恢复；保持/map和25Hz /cmd_vel_web。"
+      - "latest-only、queueSize监控和watchdog保留为后续安全加固；停止停地图及15/10Hz实验。"
+      - "map_server为静态latched发布者，不先停止或shutdown。"
+    status: CONFIRMED
   contract_notes:
     - 两套 rosbridge 共用一个 ROS Master 和同一 Topic/Service 空间；端口只隔离调用职责，不隔离 ROS 数据域。
     - scout-nav rosbridge 必须使用唯一节点名，避免与 core 的 /rosbridge_websocket 重名互踢。
-    - APP 默认热点地址是 192.168.117.6；公司 Wi-Fi 当前地址是 192.168.31.135，二者都应使用 9090。
+    - APP 热点地址 192.168.117.6、公司 Wi-Fi 地址 192.168.31.135、图传地址 192.168.144.87 均使用 core 9090。
     - FastAPI /health 的 rosbridgeConnected 表示内部 19090 状态，不代表 Android 到 9090 的链路。
     - core 9090 当前有未持久化的 CBOR 兼容 live patch；不得把探针通过等同于 APP UI 联调通过。
 
   topics:
     - { name: /rtk/gga, msg_type: std_msgs/String, note: NMEA GPGGA }
     - { name: /rtcm/data, msg_type: std_msgs/UInt8MultiArray, note: RTCM 差分数据 }
-    - { name: NEEDS_CONFIRMATION, note: 点云、地图、位姿、控制及设备状态 Topic 名称待完整回填 }
+    - { name: /cmd_vel_web, msg_type: geometry_msgs/Twist, note: APP 25 Hz 手动遥控输入 }
+    - { name: /cmd_vel, msg_type: geometry_msgs/Twist, note: FastAPI teleop 50 Hz 输出到底盘 }
+    - { name: /map, msg_type: nav_msgs/OccupancyGrid, note: map_server 静态 latched 地图 }
+    - { name: /global_cloud_navigation, msg_type: sensor_msgs/PointCloud2, note: APP 导航点云 }
+    - { name: NEEDS_CONFIRMATION, note: 其余位姿和设备状态 Topic 待完整回填 }
   services: []
   params: []
   message_format: "JSON；部分点云/地图链路使用 CBOR"
