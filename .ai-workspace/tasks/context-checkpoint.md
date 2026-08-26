@@ -74,3 +74,48 @@
 - **④ 动作栏 404（已修复）**：容器缺 `action.py` + models 请求模型 + app 挂载。热修：`docker cp action.py`、models.py 追加 NavigationAction*Request（5 类）、app.py import+include。验证 `/api/action/list` 返回 6 默认动作；`execute` 返回"暂未实现"（supported:false）。备份：容器 `/tmp/base-mode-align-backup-20260826/`（models_before_action.py、app_before_action.py）。
 - **架构澄清**：宿主机视角的 `containerd-shim→nav-api-entrypoint→uvicorn→scout_base` 即 scout-nav 容器（同一进程双 PID namespace 视角），**无双 uvicorn / 无双 scout_base**。宿主机直跑 `project_control` roslaunch（roscore/livox/oak/camera_service）+ 容器跑导航/底盘/API。
 - **安全**：teleop enabled=False、nav_multi IDLE、无活跃 cmd_vel → 小车完全静止。
+
+## 2026-08-26 会话（晚）：容器自动自检自愈 + 5001 监控缺数据根因
+
+- **容器重启自检自愈（任务完成，entrypoint 部署）**：
+  - 新脚本 `nav-healthcheck.sh`（容器 `/usr/local/bin/nav-healthcheck.sh`）：自检 nav_multi 服务、rosbridge、底盘、相机、地图、时钟、SystemMonitor 遥测；容器内节点可自愈（pkill+重启），宿主机依赖（oak/livox/map/scan）只报告。
+  - **关键修复**：master 重启后 `/use_sim_time` 参数丢失 → nav_multi 时间门控拒绝启动。自检在重启 nav_multi 前 `rosparam set /use_sim_time true`，实测 nav_multi 重启后成功注册。
+  - entrypoint `/usr/local/bin/nav-api-entrypoint` 加自检守护：容器启动 20s（用户确认保持）后首次自检 + 每 60s 周期复查（后台子进程，**不阻塞启动**）。备份 `nav-api-entrypoint.orig-backup-20260826`，部署版 `nav-api-entrypoint.healthcheck-20260826`。
+  - **容器启动顺序**已按 `core → firmware-sensors → scout-nav` 依赖在脚本注释标注。
+- **5001 监控缺数据（温度/电池/雷达）+ 蓝灯闪烁 根因（已确诊+修复）**：
+  - 根因链：STM32 主控 CH340 USB 串口（`/dev/ttyUSB1`→`/dev/ttySTM32`，USB 设备 `1-2.1.3`）硬件掉线（dmesg `failed to send/receive control message: -110`，复位后 `can't set config #1, error -110` 无法重新枚举），同 Hub `1-2.1` 的 RTK 串口（ttyUSB0）同时失联 → Hub/供电/线缆问题（软件无法恢复）→ SystemMonitor 打开串口 EIO 崩溃退出（core.launch 无 respawn）→ `/battery` `/cpu_temperature` `/cpu` `/memory` `/storage` `/topic_frequencies` 全无 → led_control 收不到电池 → 蓝灯闪烁。
+  - 雷达实际正常（`/livox/lidar/pointcloud` 有数据），5001 页面雷达频率依赖 `/topic_frequencies`（SystemMonitor 发布）故显示空。
+  - **修复**：用户物理重启 D360 后 STM32 USB 重新枚举成功 → SystemMonitor 恢复，`/battery`/`/cpu_temperature`（65.7°C）有数据，底盘 SCOUT ready、`/odom` 恢复，全链路自检 OK。
+  - 5001 = SLAMIBOT 设备控制系统（连 9090 rosbridge，core 容器）；5000 = scout-nav FastAPI。
+- **当前现场（2026-08-26 晚，重启后）**：相机 10Hz ✓、底盘 SCOUT ready + /odom ✓、/clock ✓、/battery ✓、nav_multi ✓、rosbridge ✓；/cmd_vel 无数据 = 车静止；/map /scan 需导航模式激活（预期）。
+- **遗留**：STM32 USB Hub（1-2.1）掉线根因待观察（可能接触/供电，复发需物理检查或换 Hub）；App 底盘切换 timeout（5.8s 成功但 APP 超时）未深入；/rtk/gnss 无数据（RTK 未定位，待用户确认是否需连 NTRIP）。
+
+## 2026-08-26 会话（深夜）：热修验证 + robot_map_pose 容器同步 + 导航规划失败诊断
+
+- **热修验证（TASK-2026-08-26-001，只读）**：`/scan` 10Hz ✅、`/amcl_pose` 有消息 ✅、TF 链完整（map→odom(amcl)+odom→base_link+base_link→laser）✅、`/map` 563×217 有效 ✅、导航模式 + `/global_cloud_navigation` 仅 1 个 PCD publisher ✅。
+- **膨胀参数 0.10 未生效为预期**：move_base 重启时加载旧 yaml（0.33/0.05）；0.10/12 是之后手动改的；需再重启 move_base 才生效。板上 src+install 的 tuned2 yaml 均已是 0.10/12（用户确认）。
+- **根因：robot_map_pose 27 行转发只同步到宿主机，从未进入容器**：
+  - 宿主机 `/home/jetson/Scout_mini_navigation/{src,install}/.../ros_client.py`：grep robot_map_pose=11（464 行）。
+  - 容器内 `/Scout_mini_navigation/install/lib/python3/dist-packages/fastapi_service/ros_client.py`：grep=0（433 行，19:44 底盘热修版）。
+  - 容器 Mounts 只挂 PCD/maps/db，install 目录非 bind mount → docker restart 不传播宿主机文件。
+- **修复（方案 A，用户授权）**：docker cp 宿主机 install 版覆盖容器内 → grep=11、464 行、py_compile OK；`docker restart scout-nav`（用户执行）。
+- **验证通过**：`/robot_map_pose` Publishers 出现 `/scout_nav_rosbridge` ✅；`/scan` 保持 10Hz ✅；APP 三角箭头能跟随真机移动 ✅、APP 可设置初始位姿 ✅（3D 箭头修复完成）。
+- **新问题：导航任务不执行**：`/nav_multi/status` = FAILED，taskName=临时导航，move_base 状态码 4（ABORTED），text="Failed to find a valid plan. Even after executing recovery behaviors."（全局规划失败）。
+  - TF/map/amcl_pose/costmap 均正常；当前无活跃 goal；`/move_base/GlobalPlanner/plan` 无新消息。
+  - 待办：复现任务，抓目标点坐标与失败瞬间代价图，判断目标点不可达 / 起点在占据区。
+- **日志采集器已部署**：`/home/jetson/nav_task_logger.sh`（daemon PID 47360 运行中，监听 /nav_multi/status）。
+  - 每次任务自动采集到 `/home/jetson/nav_logs/task_<时间戳>/`（baseline/goal/status/feedback/amcl_pose/tf/rosout/final 快照）。
+  - 本地源文件：`.ai-workspace/tmp/nav_task_logger.sh`（修复过 daemon 分支 local 报错）。
+- **容器内备份**：`/tmp/rosclient-robot-map-pose-backup-20260826/ros_client.py`（覆盖前旧版）。
+- **下一步**：用户在 APP 复现导航任务 → 读 nav_logs 分析 plan failed 根因；膨胀参数待重启 move_base 后验证 0.10；Phase C 固化待授权。
+
+## 2026-08-26 深夜：APP 手动标点 Y 镜像 bug（实证 + 修复）
+
+- **症状**：APP 3D 点云手动标点定位 → 箭头落在镜像位置（与按下点差别大）；导航后位姿不收敛、箭头一直错；自动重定位效果差。WEB 端手动定位正常。
+- **排除**：`/global_cloud_navigation` frame_id=**map**（与 /map、/robot_map_pose 同帧，无帧不对齐）；后端链路正确（WEB 共用同一 /api/map/set_pose→/initialpose→AMCL，正常）。
+- **根因（代码）**：APP `FilamentPointCloudView.kt` `groundIntersection` 在 filament 场景 Y=0 平面打射线后返回 `(filamentX, filamentZ)`，直接当 ROS (x,y) 发送。但渲染边界变换 `ROS_TO_FILAMENT_MATRIX` 是 `(x,y,z)->(x,z,-y)`，即 `filamentZ = -y_ros`——**缺一步逆变换，y 轴镜像**。拾取结果消费链：`handlePickTouch` → `onGroundPicked` → `NativeNavigationScreen.setInitialPose` → `/api/map/set_pose`。
+- **实证（板上点云探针，10 样本全中）**：对每次 `/initialpose` 发出坐标与点云几何比对——9/9 次镜像点距 < 发出点距；7/9 镜像点几乎正好落在几何上（≤0.033m），发出点常空在 0.5~5m 外（见 `/home/jetson/initialpose_multi.log`、`probe_multi.py`、`pick_test_232657.txt`）。首样本：发出点 0 点、镜像 143 点 NEAR。
+- **修复**：`F:\SLAMIBotApp` `groundIntersection` 返回值改为 `(filamentX, -filamentZ, 0f)`，注释同步更新。yaw 无需改（坐标修正后 `atan2(dy,dx)` 自动得正确 ROS yaw，与 WEB `atan2(world.y-press.y, world.x-press.x)` 一致）。
+- **提交**：APP `a931ee2` `codex/native-compose-filament`（已推送 github electech6/SLAMIBotApp）。
+- **为何标得准也不收敛**：镜像使发出的坐标翻到对称空旷处，AMCL 从错位起步、激光匹配不到、永不收敛；与标点精度无关。
+- **下一步**：用户重建/重装 APP → 复测手动标点（箭头应落在按下处）+ 导航收敛。若仍不收敛再查 AMCL 参数（update_min_a/d）与地图匹配。板上遗留只读探针脚本可留证。
