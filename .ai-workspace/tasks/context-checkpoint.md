@@ -61,3 +61,16 @@
 - **验证通过**：`/health` OK + rosbridgeConnected=true；`/api/teleop_key/status` `maxLinear/maxAngular=1.5`；`/api/base_mode/status` 返回 `bases.SCOUT/GO2`（含 detected/candidateDetected/networkReachable/identityVerified/robotIp/interface/reason/lastSeen）+ `policy/selectedBase/activeBase/detectedBase/modeLabel/control/teleopEnabled/ready/reason`；`switch?mode=auto` → policy=AUTO；`mode=scout` → 底盘断开正确 fail-closed（ready=false, reason=SCOUT_HEARTBEAT_STALE）；`mode=go2` → GO2_DRIVER_NOT_CONFIGURED。
 - **本地源码**：`F:\d360_nav2D\src\nav_api\fastapi_service\base_mode.py` 与容器已一致（973 行，commit 445ffd7 "feat: add safe chassis auto detection policy"）。
 - **遗留**：底盘(BOX)仍断开，Scout `ready=false`（heartbeat stale）为预期；Phase C 固化时需将 base_mode/ros_client 热修并入正式部署。
+
+## 2026-08-26 会话：底盘自动重连 / 时间同步 / 拍照 / 动作 404 四项处理
+
+- **① 底盘自动重连（已完成+验证，commit 6b5582c）**：
+  - 根因：容器旧版外部 Scout 采纳路径死锁（`/scout_base_node` 僵尸注册 → ready=false 但永不重启驱动）。
+  - 修复：外部采纳路径心跳过期时 CAN 自检 → `rosnode kill` 清僵尸注册 → fall through 完整启动流程重新拉起；幂等分支共享 `_reconnect_can_locked()`。
+  - 实测：驱动失联后 `switch?mode=scout` → 自动重启驱动 → `/scout_status` 恢复 50Hz。
+  - 注意：**重启 uvicorn 会连带终止 managed roslaunch**（FastAPI shutdown 清理子进程）→ 底盘失联，需再次 switch 重连。
+- **② 导航时间同步（已确认正常）**：`use_sim_time=true`、`/clock` 200Hz（ROS 虚拟时间 1776215178 ≈ 2026-04-15，比 wall 早 133 天 = by design，雷达驱动发布）、`/nav_multi/execute` 服务已注册（时间 gate 通过）、`/nav_multi/status=IDLE`。
+- **③ APP 拍照（根因明确，阻塞 root 权限）**：OAK 相机 USB 在（`03e7:f63b`），宿主机 `oak_hardware_trigger_ros` 进程活（root 启动，`/root/SLAMIBOT_D360_Framework`，jetson 无 sudo 密码）但 **"总帧数：0 | 0.00 FPS"、`/driver_status=data:9`** → 相机 pipeline 初始化失败。话题配置确认未变（`/SLB_CAM_B/compressed`）。恢复需 root 重启 oak 驱动或检查相机；jetson 用户无法代为执行。
+- **④ 动作栏 404（已修复）**：容器缺 `action.py` + models 请求模型 + app 挂载。热修：`docker cp action.py`、models.py 追加 NavigationAction*Request（5 类）、app.py import+include。验证 `/api/action/list` 返回 6 默认动作；`execute` 返回"暂未实现"（supported:false）。备份：容器 `/tmp/base-mode-align-backup-20260826/`（models_before_action.py、app_before_action.py）。
+- **架构澄清**：宿主机视角的 `containerd-shim→nav-api-entrypoint→uvicorn→scout_base` 即 scout-nav 容器（同一进程双 PID namespace 视角），**无双 uvicorn / 无双 scout_base**。宿主机直跑 `project_control` roslaunch（roscore/livox/oak/camera_service）+ 容器跑导航/底盘/API。
+- **安全**：teleop enabled=False、nav_multi IDLE、无活跃 cmd_vel → 小车完全静止。
