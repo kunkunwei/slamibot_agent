@@ -2,6 +2,43 @@
 
 > 只记录尚未完全验收或仍需人工决策的任务。已完成操作及证据见 `completed.md`。
 
+## TASK-2026-08-27-003：scout-nav 2D 导航容器接入 WebRTC 控制宇树 GO2
+
+- status: **open**（待另一 AI / 开发接手实施；本会话只产出方案，未改任何代码/容器/镜像）
+- project: navigation-ros1-d360（scout-nav 容器 `scout-nav-timefix-20260827`）
+- technology: ROS1 Noetic（CURRENT）；不是迁移任务。
+- handoff: `procedures/go2-webrtc-control-handoff-2026-08-27.md`（完整交接，自包含，以该文档为准）
+- plan_draft: `tasks/go2-webrtc-port-plan-2026-08-27.md`（方案初稿）
+- goal: 让 `switch(mode=go2)` 真正接通 WebRTC：Init Go2SdkManager(WebRTC) → 连接 GO2 → `ready=true` + `armed`，运动控制接入现有 `/cmd_vel_web` 摇杆（或独立 `/cmd_vel` 桥），scout 模式不受影响。
+- current_facts:
+  - base_mode.py（容器 install = 宿主机 src，md5 一致）状态机支持 GO2，但 `_switch_to_go2_locked()` 只置 `reason="GO2_DRIVER_NOT_CONFIGURED"`（`base_mode.py:456-459,616-630`），`_probe_go2()` 仅网络探测（route/ping/neigh，`base_mode.py:331-361`），注释明说 `no WebRTC Init()`（`:56-57`）。
+  - 容器内**无** unitree_webrtc_connect / unitree_sdk2py / go2 模块；Python 3.8.10，`NetworkMode=host`，`192.168.123.161 dev eth2 src 192.168.123.55` 路由已通。
+  - 外协参考实现（完整 WebRTC 链路）：`/home/jetson/docker_ws_backup/src/robot_web_controller/scripts/robot/unitree_go2/{sdk/go2_sdk_manager.py, sdk/webrtc_sport_client.py, go2_control.py}`；`common.py:124-128,282-287` `get_go2_sdk_manager()`。
+  - 依赖宿主机已装齐（python3.8，与容器二进制兼容）：`unitree_webrtc_connect 2.1.2` + `aiortc 1.9.0` + `aioice` + `av 12.3.0` + `websockets 13.1` 等，位于 `/home/jetson/.local/lib/python3.8/site-packages/`；`unitree_sdk2py 1.0.1` 源码 `/home/jetson/unitree_sdk2_python`。
+  - 已有 teleop 链路：`/cmd_vel_web` → teleop.py → `/cmd_vel`（`teleop.py:52`）。
+- plan:
+  - A. 依赖部署进容器 `/usr/local/lib/python3.8/dist-packages/`；持久化：(a) `Scout_mini_navigation/vendor/` + Dockerfile rebuild（推荐）或 (b) docker commit。
+  - B. 新增 `fastapi_service/go2/`（go2_sdk_manager.py + webrtc_sport_client.py，去掉外协 common 耦合）+ 改 `base_mode.py` 的 `_switch_to_go2_locked()`/`shutdown()`/`status`。
+  - C. 运动 gate：GO2 就绪 + teleop enabled 才 Move；静止 StopMove；异常兜底。
+  - D. action.py 底盘动作路由到 sport_client（可选二期）。
+- authorization_needed:
+  - 依赖持久化方式（vendor+Dockerfile vs docker commit）
+  - 运动链路（/cmd_vel_web 复用 vs 独立 /cmd_vel 桥）
+  - 是否含视频 VideoClient（一期建议只做运动）
+  - 实机联调需 GO2 + DEPLOY 授权（现场物理急停条件）
+- next_step: 读 `procedures/go2-webrtc-control-handoff-2026-08-27.md` → 按第 7 节向用户确认 4 个授权点 → 实施阶段1（依赖+移植+base_mode 接通，静态验证）。
+- risk:
+  - av/cryptography 编译扩展兼容：宿主机与容器均 python3.8，实测 import 后再固化镜像。
+  - GO2 固件 api_id 与 unitree_webrtc_connect 2.1.2 匹配：外协同型号已验证，实机确认返回码。
+  - 运动安全：strict gate + watchdog + 异常 StopMove；与 scout 互斥（base_mode 已保证）。
+  - 外协容器内 unitree_webrtc_connect 未被镜像 find/pip 命中——接手先澄清外协实际加载路径。
+- forbidden:
+  - 不改 scout 底盘链路、rosbridge/前后端契约、地图/数据库、Git 历史；不做 ROS2 迁移。
+  - 宿主机 git 有大量未提交修改，只动任务 scope 文件，禁止 `git add -A`。
+  - 容器重启丢容器内依赖（非镜像层）→ 依赖必须走持久化方案。
+- rollback: 本次无代码改动；实施后按 git-safety（`git checkout -- <file>` / 任务分支）回退；镜像依赖回退靠 docker commit 前标签或 rebuild。
+- tests: SKIPPED (planning only)；本会话未改代码、未跑构建。
+
 ## TASK-2026-08-27-002：workspace 历史清理 pr1-deploy.tar（1.9GB 误提交）+ 同步云端
 
 - status: **resolved**（2026-08-27 完成；branch `codex/teleop-pointcloud-low-latency-docs` 已推送远端 3130bb6）
@@ -21,7 +58,7 @@
 
 ## TASK-2026-08-27-001：开始作业视频 /keyframe 无发布者（stitcher 在 roslaunch 上下文自杀）
 
-- status: **open**（二进制健康已证明，焦点在 launch 上下文差异）
+- status: **awaiting_runtime_or_fix_authorization**（2026-08-27 现场复核：直接故障与 rosbridge 误报均已确认）
 - project: firmware-sensors（OAK 相机 + keyframe 拼接）+ 开始作业 APP 视频
 - technology: ROS1 Noetic（CURRENT）；不是迁移任务。
 - handoff: `known-issues/oak-keyframe-stitcher-dies-in-roslaunch-2026-08-27.md`
@@ -30,9 +67,12 @@
   - install 二进制 `docker exec` 单独跑**存活 25s 正常**（订阅三路相机、发布 /keyframe）；只在 sensors.launch 上下文 ~4s `interrupted` 退出。
   - source/install 两份 sensors.launch 字节一致，均**无 respawn**；`/use_sim_time=true`、`/clock` 200Hz。
   - 三路 `/SLB_CAM_A/B/C/compressed` 10Hz 正常；`/keyframe` `Publishers: None`。相机过热（100°C→78°C）曾致无帧，降温后相机恢复但 stitcher 未拉起（无 respawn）。
-- next_step: 复现时抓 stitcher 完整日志拿 `signal_shutdown` reason；对比 docker exec vs roslaunch 环境差异（sim-time/node 名/rosmaster）；或给 sensors.launch stitcher 加 `respawn="true"`（业务代码，需授权）。
+  - 2026-08-27 13:05 CST 图传现场：`192.168.144.87:9090` 有两条来自 APP `192.168.144.11` 的 ESTABLISHED 连接；`/rosbridge_websocket` 存活并订阅 `/keyframe`，证明 APP 的“rosbridge 未连接”提示与实际链路不符。
+  - 当前 launch UUID 日志：stitcher 启动后约 4.5 秒记录 `[KeyframeStitcher] interrupted` → `signal_shutdown [atexit]`，roslaunch 判定 exit code 0；无 respawn。
+  - 实时频率：A/B 约 10Hz，C 约 6.7Hz；`/clock` 约 200Hz，`/use_sim_time=true`。
+- next_step: 用户选择并授权临时单独启动 stitcher，或正式修改 launch/节点并部署；APP 状态文案应独立区分 rosbridge 连接与 `/keyframe` 无帧。
 - risk: 若不修，开始作业始终无视频；APP 端「rosbridge 未连接」文案与真实连接状态不符易误导。
-- tests: 已验证 install 二进制手动运行 25s 健康；launch 上下文自杀原因待抓。
+- tests: SSH 只读现场复核完成；未启动节点、未重启容器、未修改远端文件。
 
 ## TASK-2026-08-26-001：生产 hotfix — /scan 断链 + 3D 箭头(/robot_map_pose) + 膨胀 0.10
 

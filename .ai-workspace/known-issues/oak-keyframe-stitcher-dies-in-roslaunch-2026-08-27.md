@@ -30,3 +30,15 @@
 2. 对比 `docker exec` 直接跑 vs `roslaunch sensors.launch` 的环境差异（sim-time、node 名、`__log`、rosmaster 连接）。
 3. 短期规避：sensors.launch 给 stitcher 加 `respawn="true"`（业务代码，需授权）。
 4. 或按用户选择的方案 A 结论推进：已证明二进制健康，焦点收敛到 launch 上下文的环境差异。
+
+## 2026-08-27 13:05 CST 图传链路现场复核
+
+- Jetson `eth2` 正常绑定 `192.168.144.87/24`；9090、5000 均监听 `0.0.0.0`。
+- `ss` 显示两条 `192.168.144.11 -> 192.168.144.87:9090` ESTABLISHED 连接。
+- `/rosbridge_websocket`、`/scout_nav_rosbridge` 存活；前者已订阅 `/keyframe`。
+- `/keyframe` 类型为 `sensor_msgs/CompressedImage`，但 `Publishers: None`，6 秒内无消息。
+- A/B 相机约 10Hz，C 约 6.7Hz；相机发布节点存活，stitcher 进程不存在。
+- 当前 launch 日志精确记录：stitcher 成功启动后约 4.5 秒输出 `[KeyframeStitcher] interrupted`，随后 `signal_shutdown [atexit]`；roslaunch 判定 `process has finished cleanly`，exit code 0。
+- `/use_sim_time=true`，`/clock` 约 200Hz；launch 仍无 respawn。
+- 结论：APP 无视频的直接原因是 `/keyframe` 生产者退出；“rosbridge 未连接”不是网络事实，而是 APP 状态呈现问题。
+- 本次仅 SSH 只读采证，未启动节点、重启容器或修改远端文件。
