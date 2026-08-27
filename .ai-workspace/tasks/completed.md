@@ -151,3 +151,13 @@
   - 保持`/map`订阅和`/cmd_vel_web` 25Hz不变；未修改Jetson、ROS、Docker或发布端。
 - app_commit: `b808a9fcb6466c4b482fd9b9ba3e2e2c74494659`（已推送`origin/codex/native-compose-filament`）
 - validation: USER_DEVICE_VALIDATED；本次仅同步工作台状态，未重新构建、测试、ADB或SSH。
+
+## TASK-2026-08-27-003：移除 APP 导航摇杆上方控制模式标签
+
+- status: completed
+- scope: 仅 `F:\SLAMIBotApp\app\app\src\main\java\com\example\metacam\NativeNavigationScreen.kt`。
+- result: 删除导航 Dashboard 左下角摇杆上方“当前控制：自动导航/手动遥控”独立显示标签。
+- preserved: 摇杆启用条件、自动/手动切换逻辑、侧边控制设置与状态显示均保留。
+- app_commit: `a6caadc`，已推送 `origin/codex/native-compose-filament`。
+- validation: `git diff --check` PASS；tests: SKIPPED (user fast mode)。
+- safety: 未连接 Jetson，未修改 ROS1、Docker、rosbridge 或 Git 历史。
