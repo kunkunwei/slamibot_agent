@@ -141,8 +141,8 @@ jetson:
       note: "单次 docker stats 快照；core 内 SystemMonitor 单进程约 56% CPU，需与遥控延迟分组复测，不可直接判为根因。"
     status: CONFIRMED
   status: CONFIRMED
-  power_state: ON_USER_CONFIRMED
-  power_state_updated_at: "2026-08-25"
+  power_state: OFF_USER_CONFIRMED
+  power_state_updated_at: "2026-08-28"
   note: "Jetson 只作为远程开发/编译/测试/运行目标，禁止向其新增 Agent/RAG/向量库/AI 服务/后台进程。"
 
 

@@ -14,12 +14,16 @@
 
 ## 当前已配置状态
 
-### Codex 主模型和手动配置档
+### Kimi Code 主从模型配置
 
-- 当前默认主模型：`gpt-5.6-luna`，默认 reasoning：`low`
-- 模型目录同时包含并已实际验证：
-  - `gpt-5.6-sol`
-  - `gpt-5.6-luna`
+- 配置：`C:\Users\kun\.kimi-code\config.toml`。
+- 主代理：`custom/gpt-5.6-sol`，effective effort `high`；负责需求理解、方向控制、风险/接口裁决、委派和最终验收。
+- 默认子代理：`custom/gpt-5.6-luna`，effective effort `low`；负责文件/日志/Git 扫描、长输出压缩、独立检索和明确范围内执行。
+- `[secondary_model]` 模型池同时包含 Luna 和 Sol；Windows 用户环境变量 `KIMI_CODE_EXPERIMENTAL_SECONDARY_MODEL=1` 必须生效，`Agent`/`AgentSwarm` 才会暴露 `model` 参数。
+- 配置或环境变量变化后运行 `/reload` 或新建 Kimi Code 进程；当前已绑定的子代理不热切换。可用 `/secondary-model`（别名 `/subagent-model`）确认新子代理默认模型。
+
+### Codex 手动配置档
+
 - CLI 配置档：
   - `C:\Users\kun\.codex\sol.config.toml`
   - `C:\Users\kun\.codex\luna.config.toml`
@@ -30,19 +34,18 @@ codex -p sol -C F:\slamibot_agent
 codex -p luna -C F:\slamibot_agent
 ```
 
-账号或 Provider 切换后，先确认上述两个模型仍被当前 Provider 支持，不要直接覆盖整个 `C:\Users\kun\.codex\config.toml`。
+账号或 Provider 切换后，先确认上述两个模型仍被当前 Provider 支持，不要直接覆盖整个 Kimi/Codex 配置文件。
 
 ### Sol / Luna 自动路由
 
 完整规则：`.ai-workspace/agents/model-routing.md`
 
-- Luna 是默认主协调模型，负责日常工具调用、文件/日志/Git 检查、lane 拆分、Claude Code MCP 调用和简短汇总。
-- 单 lane 普通任务的 Sol 请求目标为 0；不使用 Sol 做例行搜索、Git 检查、结果转述或最终审查。
-- 前端/后端/导航至少两个 lane 相互依赖，或需关联 API/WebSocket/rosbridge/ROS/容器/网络解释同一故障时，必须在形成根因和实施方案前自动调用 Sol，不等待 Luna 失败或用户点名。
-- 接口契约/protected 接口、高风险迁移/部署/数据操作、证据冲突或用户明确要求时同样强制 Sol；默认先咨询一轮。
-- 多 lane 但完全独立、无共享接口和共同故障现象时仍由 Luna 协调。
-- 实际业务代码修改仍优先委派 Claude Code MCP，Codex 独立验收。
-- 模型切换不扩大 SSH、Docker、ROS、Git 或文件权限。
+- Sol 是默认主协调模型，保持完整用户上下文，负责需求理解、任务边界、复杂因果、风险裁决和最终验收。
+- 1–2 次简单工具调用由 Sol 直接完成；超过约 3 次搜索/读取、长文件/长日志或独立并行扫描优先委派 Luna low。
+- Luna 不解释模糊需求、不裁决接口、不扩大 scope；Sol 的委派必须包含目标、最小必要事实、`cwd`、允许/禁止路径、权限、验证和返回格式。
+- 复杂耦合、接口契约/protected 接口、高风险迁移/部署/数据操作和证据冲突由 Sol 主代理直接处理；只有额外独立专家分析确有价值时才创建 Sol 子代理。
+- 实际业务代码修改仍优先委派 Claude Code MCP；仅在 MCP 可用性故障时由 Luna low 按原 scope 单次接管，Sol 主代理独立验收。
+- 模型切换不扩大 SSH、Docker、ROS、Git 或文件权限；MCP 失败不取消复杂度和权限门禁。
 
 
 ### 小任务后的上下文压缩
@@ -64,6 +67,15 @@ codex -p luna -C F:\slamibot_agent
   - `jetson_read_only`：固定 SSH 白名单只读检查
 
 MCP 是 stdio 按需启动，不需要常驻服务。配置不会热加载：修改配置或切换账号后，应重启 Codex 或新建任务；首次委派时自动启动 MCP。
+
+#### MCP 不可用时的自动降级
+
+- 触发：工具未注册/未暴露、MCP 初始化或传输连接失败、Claude CLI 无法启动、认证/Provider/网络/限流不可用、无有效响应或超时。
+- 动作：Sol 主代理自动创建或复用 Luna 执行子代理；Kimi Code 绑定 `custom/gpt-5.6-luna`，由模型条目保证 effective effort 为 low，并原样传递原委派的 `prompt`、`cwd`、`mode`、`lane`、允许/禁止路径、测试策略和验收要求。
+- 限制：每个委派最多降级一次；不重试 Claude，不递归回退；`edit`、`read_only`、`jetson_read_only` 的权限语义保持不变。
+- 禁止绕过：用户/权限策略拒绝、scope/cwd 校验失败、参数错误、危险操作确认、protected 边界，以及 Claude 已正常执行后的普通实现/测试失败。
+- 报告：写明 `fallback: claude-code MCP -> gpt-5.6-luna (low)`、原始失败类别、Luna 修改和 Sol 主代理独立验证结果。
+- 实现位置：这是主代理编排层规则；不要修改 MCP Server 让它反向启动子代理，因为 MCP 未注册或失联时 Server 无法承担回退。
 
 检查注册状态：
 

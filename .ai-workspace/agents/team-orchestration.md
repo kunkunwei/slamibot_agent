@@ -16,20 +16,20 @@
 
 ## 角色
 
-- Codex Luna：默认主协调，负责需求拆分、各 lane 快速扫描、Claude Code MCP 调用、联调定位和简短汇总。
-- Codex Sol：当前后端/前端/导航至少两个 lane 需要共同解释同一端到端现象、存在共享接口/跨层因果链、protected 接口或高风险决策时必须自动介入；不等待 Luna 失败或用户点名，也不参与常规全量复查。
-- Claude Code：按 lane 实施代码修改；最多同时运行 2 个任务，其余由 MCP 排队。
+- Sol 主代理：负责理解用户需求、拆分 lane、判断共享接口和跨层因果、编写委派提示、联调定位及最终验收。
+- Luna 执行子代理：默认使用 low，负责各 lane 边界明确的扫描、日志压缩、Git/diff 检查和独立并行检索；不自行解释模糊需求或裁决接口。
+- Claude Code：按 lane 实施代码修改；最多同时运行 2 个任务，其余由 MCP 排队。MCP 可用性故障时由 Luna 按原 scope 单次接管。
 - 用户：手动运行、操作设备/界面、观察现象并提供复现步骤、抓包或日志。
 
 ## 复杂度门禁
 
-开始实施或联调定位前先判断：
+开始实施或联调定位前由 Sol 主代理判断：
 
-- `simple`：单 lane，或多个 lane 完全独立且没有共享接口/共同故障现象；由 Luna 协调。
-- `complex-coupled`：至少两个 lane 相互依赖，或需要关联 API、WebSocket、rosbridge、ROS、容器、网络抓包/日志解释同一现象；必须先由 Luna 收集最小事实，再自动调用 Sol 给出跨层因果判断和 lane 归属。
-- 用户明确要求 Sol 时，无条件按 `complex-coupled` 处理。
+- `simple`：单 lane，或多个 lane 完全独立且没有共享接口/共同故障现象；Sol 确定边界后，可由 Luna 执行扫描、检查和其它机械支线。
+- `complex-coupled`：至少两个 lane 相互依赖，或需要关联 API、WebSocket、rosbridge、ROS、容器、网络抓包/日志解释同一现象；由 Sol 主代理建立跨层因果判断和 lane 归属。
+- 只有额外的独立并行复杂分析确有价值或用户明确要求时，才创建 Sol 子代理；不得重复主代理已经承担的判断。
 
-Sol 给出判断后直接进入各 lane 实施和用户联调，不增加重型阶段三审计。
+Sol 完成判断后直接进入各 lane 实施和用户联调，不增加重型阶段三审计。Claude Code MCP 失败只替换实施者，不改变复杂度门禁。
 ## 流程
 
 ### 0. 仅在接口变化时确认契约
@@ -40,10 +40,15 @@ Sol 给出判断后直接进入各 lane 实施和用户联调，不增加重型�
 
 只启动实际涉及的 lane；不是每个任务都固定启动三组。
 
-- Codex 给每个 lane 明确 `cwd`、允许路径、禁止路径和预期结果。
-- 小任务优先 Luna 分析，Claude Code 单次实施。
+- Sol 主代理给每个 lane 明确目标、最小必要事实、`cwd`、允许/禁止路径、权限模式、验证要求和返回格式。
+- 1–2 次简单工具调用由 Sol 直接完成；超过约 3 次搜索/读取、长文件/长日志或多个独立扫描支线优先交给 Luna，避免中间输出进入 Sol 上下文。
+- 普通业务代码优先由 Claude Code 单次实施；Luna 主要承担扫描、检查和 MCP 失败后的后备实施。
+- MCP 工具未注册/未暴露、初始化或连接失败、Claude CLI 无法启动、认证/Provider/网络/限流不可用、无有效响应或超时时，自动创建或复用 Luna low 接管该 lane；Kimi Code 绑定 `custom/gpt-5.6-luna`。
+- Luna 必须继承原 `prompt`、`cwd`、`mode`、`lane`、允许/禁止路径和测试策略；每个委派最多降级一次，不重试 Claude，不递归回退，也不得与仍在运行的 Claude 任务修改同一文件。
+- 用户/权限策略拒绝、scope/cwd 或参数错误、危险操作确认、protected 边界和普通实现/测试失败不得触发降级。
 - 默认不备份、不构建、不测试、不自动回环。
-- Claude Code 返回：lane、状态、修改文件、摘要、`tests: SKIPPED (user fast mode)`、建议用户观察的现象。
+- Claude Code 正常完成时返回：lane、状态、修改文件、摘要、`tests: SKIPPED (user fast mode)`、建议用户观察的现象。
+- Luna 完成时只返回结论、关键证据、修改摘要和验证；降级任务额外标记 `fallback: claude-code MCP -> gpt-5.6-luna (low)` 及原始失败类别。
 
 ### 2. 轻量收口并上传
 

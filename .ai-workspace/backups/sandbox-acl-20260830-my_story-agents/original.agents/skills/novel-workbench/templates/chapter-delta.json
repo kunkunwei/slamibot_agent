@@ -1,0 +1,192 @@
+{
+  "schema_version": "0.1",
+  "chapter_id": "ch-0001",
+  "arc_id": "arc-001",
+  "status": "candidate",
+  "status_values": [
+    "candidate",
+    "confirmed",
+    "rejected",
+    "applied"
+  ],
+  "status_transitions": [
+    {
+      "from": "candidate",
+      "to": "confirmed",
+      "condition": "all change objects are accepted or rejected and no blocking open conflict remains"
+    },
+    {
+      "from": "candidate",
+      "to": "rejected",
+      "condition": "review rejects the delta as a whole"
+    },
+    {
+      "from": "confirmed",
+      "to": "applied",
+      "condition": "formal State/Canon, summary, and handoff synchronization completes"
+    }
+  ],
+  "review_status_values": [
+    "proposed",
+    "accepted",
+    "rejected"
+  ],
+  "conflict_severity_values": [
+    "low",
+    "medium",
+    "high",
+    "critical"
+  ],
+  "conflict_status_values": [
+    "open",
+    "waived",
+    "resolved"
+  ],
+  "source_files": [
+    "novel/plans/ch-0001.md",
+    "novel/drafts/ch-0001.md"
+  ],
+  "extracted_by": "gpt-5.6-luna",
+  "confirmed_by": null,
+  "confirmed_at": null,
+  "confirmation_basis": null,
+  "applied_by": null,
+  "applied_at": null,
+  "facts": [
+    {
+      "fact_id": "fact-ch-0001-001",
+      "statement": "顾沉舟的姓名出现在王城资格审查名单上。",
+      "source_scene": "scene-03",
+      "effective_chapter": "ch-0001",
+      "affected_entities": [
+        "char-gu-chenzhou",
+        "loc-screening-hall"
+      ],
+      "review_status": "proposed",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "review_basis": null
+    }
+  ],
+  "character_changes": [
+    {
+      "character_id": "char-lin-yan",
+      "field": "current_goal",
+      "before": "取得进入王城核心区的资格",
+      "after": "完成审查并追查顾沉舟姓名异常",
+      "source_scene": "scene-03",
+      "review_status": "proposed",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "review_basis": null
+    }
+  ],
+  "relationship_changes": [
+    {
+      "relationship_id": "rel-lin-yan-zhou-ce",
+      "field": "debt",
+      "before": "无已登记担保债",
+      "after": "林砚欠周策一次资格担保债",
+      "source_scene": "scene-02",
+      "review_status": "proposed",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "review_basis": null
+    }
+  ],
+  "knowledge_changes": [
+    {
+      "knowledge_id": "knowledge-lin-yan-dead-name",
+      "character_id": "char-lin-yan",
+      "before": "只知道顾沉舟三年前已经死亡",
+      "after": "知道顾沉舟姓名出现在审查名单且有人应答，但不知道应答者身份",
+      "source_scene": "scene-03",
+      "effective_chapter": "ch-0001",
+      "review_status": "proposed",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "review_basis": null
+    }
+  ],
+  "location_changes": [
+    {
+      "location_id": "loc-screening-hall",
+      "field": "access_state",
+      "before": "林砚无听证资格",
+      "after": "林砚获得一次临时听证资格",
+      "source_scene": "scene-01",
+      "review_status": "proposed",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "review_basis": null
+    }
+  ],
+  "item_changes": [
+    {
+      "item_id": "item-temporary-pass",
+      "field": "condition",
+      "before": "未附加审查标记",
+      "after": "附加审查标记，仍由林砚持有",
+      "source_scene": "scene-02",
+      "review_status": "proposed",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "review_basis": null
+    }
+  ],
+  "timeline_events": [
+    {
+      "event_id": "event-ch-0001-screening",
+      "time": "王城历七月十二日午后",
+      "location_id": "loc-screening-hall",
+      "participants": [
+        "char-lin-yan",
+        "char-shen-lan"
+      ],
+      "event": "林砚接受资格审查并听见顾沉舟被唱名。",
+      "review_status": "proposed",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "review_basis": null
+    }
+  ],
+  "hook_changes": [
+    {
+      "hook_id": "hook-dead-name-on-list",
+      "action": "created",
+      "source_scene": "scene-03",
+      "payoff_window": "ch-0024 至 ch-0030",
+      "narrative_debt": "解释已故者姓名进入名单及应答者身份",
+      "review_status": "proposed",
+      "reviewed_by": null,
+      "reviewed_at": null,
+      "review_basis": null
+    }
+  ],
+  "conflicts": [
+    {
+      "id": "conflict-ch-0001-001",
+      "severity": "high",
+      "claim": "名单中的姓名和现场应答是否意味着顾沉舟本人仍然存活",
+      "evidence": [
+        {
+          "source": "novel/canon/characters/char-gu-chenzhou.md",
+          "supports": "顾沉舟三年前死亡是已确认事实"
+        },
+        {
+          "source": "novel/drafts/ch-0001.md#scene-03",
+          "supports": "有人在顾沉舟被唱名后应答，但正文未确认应答者身份"
+        }
+      ],
+      "affected_chapters": [
+        "ch-0001"
+      ],
+      "status": "open",
+      "waiver": {
+        "reason": null,
+        "approved_by": null,
+        "approved_at": null
+      }
+    }
+  ]
+}

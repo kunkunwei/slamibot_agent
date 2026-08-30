@@ -90,20 +90,23 @@
 - 只读分析使用 `mode: read_only`；用户已授权本地文件修改时使用 `mode: edit`。Codex 必须传入明确的 `cwd`、允许修改路径、禁止事项和验收要求。
 - Jetson 状态、日志、容器列表、节点、端口和远端 Git 状态等默认只读检查，可自动使用 `mode: jetson_read_only`；该模式只能调用固定白名单助手，禁止任意 SSH 命令。
 - `BUILD`、`DEPLOY` 必须在当前任务中明确授权后执行；不得通过 `jetson_read_only` 绕过授权。`DANGEROUS`（删除、prune、改系统、重启、磁盘清理等）永远逐次人工确认。
-- Claude Code 完成后，Codex 必须独立检查本地/远端 `git status` 与差异；普通小改不强制测试。高风险任务或用户明确要求时才检查相应测试输出。
-- Codex/CC Switch 配置变更不会热加载到已打开任务；新增或调整 MCP 后应新建任务或重启 Codex，再进行调用验证。
+- Claude Code MCP 工具未注册/未暴露、初始化或传输连接失败、Claude CLI 无法启动、认证/Provider/网络/限流导致不可用、无有效响应或超时时，主代理自动创建或复用 Luna 执行子代理接管同一委派；Kimi Code 使用 `custom/gpt-5.6-luna`，其有效 `default_effort` 必须为 `low`。
+- Luna 降级必须原样继承委派的 `prompt`、`cwd`、`mode`、`lane`、允许/禁止路径、测试策略和安全边界；`edit` 仅在原授权范围内写入，`read_only` 与 `jetson_read_only` 继续只读。每个委派最多降级一次，不重试 Claude，不递归回退。
+- 不得用 Luna 降级绕过用户或权限策略拒绝、scope/cwd 校验失败、参数错误、危险操作确认、protected 边界，或 Claude 已正常执行后返回的普通实现/测试失败。
+- 降级发生后，最终报告必须标注 `fallback: claude-code MCP -> gpt-5.6-luna (low)`、原始失败类别、Luna 的修改以及主代理的独立验证结果。
+- Claude Code 或 Luna 降级完成后，主代理必须独立检查本地/远端 `git status` 与差异；普通小改不强制测试。高风险任务或用户明确要求时才检查相应测试输出。
+- Codex/CC Switch/Kimi Code 配置变更不会自动改变已经绑定的会话；新增模型池、调整 MCP 或修改启动环境变量后应 `/reload`、新建任务或重启客户端再验证。
 
-## Codex Subagent：Sol / Luna 自动路由
+## Sol 主代理 / Luna 执行子代理路由
 
-- 模型路由规则见 `.ai-workspace/agents/model-routing.md`，默认主模型使用 `gpt-5.6-luna`，无需用户每次指定。
-- Luna 负责日常协调、文件/日志/Git 检查、lane 拆分、Claude Code MCP 调用、任务范围 diff 和简短汇总；单 lane 普通任务的 Sol 请求目标为 0。
-- 满足任一条件时必须自动创建或复用 `gpt-5.6-sol` subagent，不得等待用户点名：前端/后端/导航中至少两个 lane 存在相互依赖的端到端联调；故障现象可能跨 API、HTTP/WebSocket、rosbridge、ROS Topic/Service/Action 或网络层传播；需要修改/裁决接口契约或 protected 接口；存在高风险迁移/部署/数据操作；Luna 一次定位后仍有多个根因假设或无法确定根因。
-- 复杂联调触发后，Luna 只收集最小必要事实，随后在制定根因结论或实施方案前立即调用 Sol；不再把 Sol 仅作为“Luna 失败后的可选升级”。
-- 多 lane 但修改完全独立、无共享接口、无端到端因果链时不触发 Sol。用户明确要求 Sol 时必须立即调用。
-- Sol 委派必须问题边界明确，默认先咨询一轮；只有新增证据实质改变判断时才继续原 Sol 会话。不得把 Sol 用作例行最终审查、机械 Git 检查、普通文件搜索或 Claude Code 结果转述。
-- 独立且非阻塞的并行扫描可创建或复用 Luna subagent；已有同类 Luna 时优先复用，不为增加 UI 显示次数重复创建。
-- 创建 subagent 时必须显式传入目标模型；模型切换不构成权限升级。
-- 实际业务代码修改仍遵循 Claude Code MCP 自动委派与 Codex 独立验收协议。
+- 完整规则见 `.ai-workspace/agents/model-routing.md`。Kimi Code 主代理固定使用 `custom/gpt-5.6-sol`（high），负责需求理解、方向控制、任务拆分、风险和接口裁决、委派提示以及最终验收。
+- 默认执行子代理使用 `custom/gpt-5.6-luna`（low），负责边界明确的文件/日志/Git 扫描、长输出压缩、独立并行检索、机械检查和 Claude Code MCP 失败后的单次接管。
+- 只需 1–2 次简单工具调用时由 Sol 主代理直接完成；预计超过约 3 次搜索/读取、需要读取长文件或会产生大量日志时，优先委派 Luna，避免把中间输出灌入 Sol 上下文。
+- Luna 不负责解释模糊需求、裁决接口或自行扩大 scope。Sol 必须在委派中明确目标、必要事实、`cwd`、允许/禁止路径、验证要求和返回格式；Luna 只返回结论、关键证据和修改摘要。
+- 复杂耦合、protected 接口、高风险迁移/部署/数据操作、证据冲突等判断由 Sol 主代理直接处理。只有独立并行专家分析确有价值时才额外创建 Sol 子代理，不得为重复审查或增加 UI 显示而消耗第二份 Sol Token。
+- 多 lane 但修改完全独立时可并行创建 Luna 子代理；已有同类 Luna 时优先复用。模型切换不扩大文件、Git、SSH、Docker、ROS 或 Jetson 权限。
+- Kimi Code 启用 `[secondary_model]` 模型池后，创建新子代理必须使用池中的正确模型别名；未暴露 `model` 参数时不得声称已切换，应报告模型池/实验开关未生效。
+- 实际业务代码修改仍优先遵循 Claude Code MCP 自动委派；仅在上述 MCP 可用性故障时由 Luna 按原 scope 接管，并继续由 Sol 主代理独立验收。
 - 当前 Jetson 关机；在用户明确告知开机前不得尝试 SSH。开机后仍默认从只读白名单验证开始。
 
 
@@ -122,7 +125,7 @@
 - Git 仓库中的普通修改默认不制作额外时间戳备份；Git 提交和远端分支承担版本留存。历史改写、批量删除、非 Git 配置覆盖等危险操作仍必须备份并单独授权。
 - 用户已对“及时上传 GitHub”给出常规授权：仅提交任务 scope 内文件，禁止 force push；当前分支为受保护分支或远端/分支不明确时，创建并推送 `codex/*` 安全分支，不擅自合并。
 - 即使跳过测试，也必须明确报告 `tests: SKIPPED (user fast mode)`；“已上传”只表示代码已保存到远端，不等同于功能已验证。
-- 简单修改优先使用 Luna；复杂架构、疑难调试、跨仓库整合才使用 Sol。
+- 主代理保持 Sol；边界明确的简单执行支线优先委派 Luna low，复杂架构、疑难调试和跨仓库整合由 Sol 主代理裁决。
 
 ## 三项目轻量并行与直接联调
 

@@ -161,3 +161,61 @@
 - app_commit: `a6caadc`，已推送 `origin/codex/native-compose-filament`。
 - validation: `git diff --check` PASS；tests: SKIPPED (user fast mode)。
 - safety: 未连接 Jetson，未修改 ROS1、Docker、rosbridge 或 Git 历史。
+
+## TASK-2026-08-27-004A：Jetson MJPEG 后端部署
+
+- status: completed（2026-08-27）
+- scope: `scout-nav-timefix-20260827` 的 FastAPI `app.py`/`capture.py`；未编译、未构建镜像、未删除或重建容器。
+- result: 新增 `GET /api/camera/stream.mjpeg`，同步宿主 src、容器 src 与 install；保留全部现场后端补全、自愈和导航修复。
+- backup: `/home/jetson/slamibot-backups/mjpeg-20260827-160108`。
+- validation: D360 重启后 health/launch/base_mode 200；MJPEG 4 秒 32 帧且 JPEG 边界完整；局域网可访问；拍照 POST 200；容器稳定且 RestartCount=0。
+- tests: Jetson runtime smoke PASS；build/compile SKIPPED（用户要求只复制）。
+## TASK-2026-08-27-004B：导航 MJPEG 视频与拍照真机验收
+
+- status: completed（2026-08-27，用户真机确认）
+- result: APP 导航控制页实时视频与拍照功能均正常；视频地址为 `/api/camera/stream.mjpeg`。
+- source: ROS1 `/SLB_CAM_B/compressed` 经 FastAPI 最新帧缓存转换为 HTTP MJPEG，不是 RTSP。
+- follow_up: 功能验收完成；约 22–23 Mbps 的 MJPEG 带宽及摇杆延迟作为独立优化项保留在 known issue。
+- validation: USER_DEVICE_VALIDATED；本次仅同步工作台日志，未修改 Jetson/ROS/Docker 运行态。
+
+## TASK-2026-08-27-005：近期工作周会报告整理
+
+- status: completed
+- scope: 仅本地文档 `docs/weekly-report-2026-08-27.md` 与工作台任务记录；未修改业务代码或运行环境。
+- result: 将容器、ROS、APP、导航、音视频和售后工作去重整理为周报，并附约 3 分钟口头汇报稿。
+- accuracy: 区分已确认事实、部分解决项和待验证推测；未将孤儿进程/TCP 端口机制写成已证实唯一根因。
+- validation: Markdown 文本检查完成；tests: SKIPPED（文档任务）。
+- safety: 未连接 Jetson，未操作 Docker/ROS，未提交或推送 Git。
+
+## TASK-2026-08-27-006：Claude Code MCP 失败自动降级到 Luna
+
+- status: completed
+- scope: 本地工作台编排规则与交接文档；未修改 MCP Server、业务代码或运行环境。
+- result: Claude Code MCP 未注册/连接失败/CLI、认证、Provider、网络、限流、无响应或超时时，自动由 `gpt-5.6-luna` 以 `reasoning_effort: low` 按原委派 scope 单次接管。
+- guardrails: 不绕过用户或权限拒绝、scope/cwd/参数错误、危险操作确认、protected 边界或普通实现/测试失败；MCP 失败不取消 Sol 门禁。
+- reporting: 降级结果统一标记 `fallback: claude-code MCP -> gpt-5.6-luna (low)`，并记录原始失败类别与 Codex 独立验证。
+- validation: 规则文件一致性与任务范围 diff 检查；tests: SKIPPED (documentation/policy only)。
+- safety: 未连接 Jetson，未修改 ROS、Docker、Git 历史或 MCP JavaScript 实现。
+
+## TASK-2026-08-28-002：Sol 主代理与 Luna 执行子代理配置
+
+- status: completed
+- scope: Kimi Code 用户配置与本地工作台模型路由规则；未修改业务代码或 MCP Server。
+- main_agent: `custom/gpt-5.6-sol`，effective effort `high`，负责需求理解、方向控制、风险/接口裁决和最终验收。
+- secondary_agent: 默认 `custom/gpt-5.6-luna`，effective effort `low`；模型池同时保留 Sol 供确有价值的独立专家分析。
+- runtime: 已配置 `[secondary_model]`，并永久设置 Windows 用户环境变量 `KIMI_CODE_EXPERIMENTAL_SECONDARY_MODEL=1`；新 Kimi 进程生效。
+- routing: 1–2 次简单调用由 Sol 直接完成；超过约 3 次搜索/读取、长文件/长日志或独立并行扫描优先委派 Luna。
+- validation: 候选和正式配置均通过 `kimi doctor`；结构差异仅为 Luna effort 与 `secondary_model`；工作台规则一致性、任务范围 diff 与 `git diff --check` 均 PASS。
+- backup: `C:\Users\kun\.kimi-code\config.toml.20260828-125627.bak`。
+- tests: SKIPPED (configuration/policy only)；未连接 Jetson，未修改 ROS、Docker 或 Git 历史。
+
+## TASK-2026-08-30-001：Codex Windows 沙箱读取器 ACL 修复
+
+- status: completed
+- symptom: `exec_command` 与 Node REPL 均在进程启动前失败，错误为 `helper_unknown_error: setup refresh had errors`。
+- root_cause: `F:\my_story\.agents` 被 `CodexSandboxOffline` 持有；沙箱 setup refresh 无权写入保护性 deny ACE，日志报 `SetNamedSecurityInfoW ... error 5`。
+- fix: 无删除移动原目录至 `.ai-workspace/backups/sandbox-acl-20260830-my_story-agents/original.agents`，再复制回原路径以恢复正常所有权。
+- integrity: `.agents` 共 13 个文件，修复前后及备份 SHA-256 全量一致；用户已有 Git 修改保持不变。
+- validation: 沙箱内 PowerShell PASS；Node REPL 工作台读取 PASS；后续 setup refresh 多次 `errors=[]`，`setup_error.json` 已清除。
+- safety: 未连接 Jetson，未修改 ROS/Docker/业务文件内容/Git 历史或远端；保留原目录与 ACL/哈希清单用于回滚。
+- tests: PASS（执行器与 Node REPL 定向运行验证）。

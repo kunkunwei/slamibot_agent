@@ -1,0 +1,73 @@
+{
+  "CapturedAt": "2026-08-30T14:00:14.6572321+08:00",
+  "Source": "F:\\my_story\\.agents",
+  "Owner": "DESKTOP-Q61VPR2\\CodexSandboxOffline",
+  "Sddl": "O:S-1-5-21-2718563576-3115071193-2156385622-1010G:S-1-5-21-2718563576-3115071193-2156385622-513D:AI(A;OICIID;0x1301bf;;;S-1-5-21-2718563576-3115071193-2156385622-1009)(A;OICIID;0x1301bf;;;S-1-5-21-4087181316-1221292972-1931039105-1388377281)(A;ID;FA;;;BA)(A;OICIIOID;GA;;;BA)(A;ID;FA;;;SY)(A;OICIIOID;GA;;;SY)(A;ID;0x1301bf;;;AU)(A;OICIIOID;SDGXGWGR;;;AU)(A;ID;0x1200a9;;;BU)(A;OICIIOID;GXGR;;;BU)",
+  "Files": [
+    {
+      "Relative": "skills\\novel-workbench\\references\\chapter-writing.md",
+      "Length": 3750,
+      "SHA256": "C0E64E7B9765DA806359478D586F4F8480EF4A826228485831FCC5B9FA45AFF4"
+    },
+    {
+      "Relative": "skills\\novel-workbench\\references\\context-routing.md",
+      "Length": 2290,
+      "SHA256": "4D6C093E7C34B94DD0B65B75C8FDE3EB3B5E1F340C5C0E59B7A9D625CA39F8F2"
+    },
+    {
+      "Relative": "skills\\novel-workbench\\references\\continuity.md",
+      "Length": 3389,
+      "SHA256": "F8AB00F8709C14E013A7ADFCE40ECFA4247B414878BFCFF3E26699EA3FF87851"
+    },
+    {
+      "Relative": "skills\\novel-workbench\\references\\literary-techniques.md",
+      "Length": 2772,
+      "SHA256": "5B34D0D30B3DEA846B31DF2729E3F5F3353333D0C4576C6E398E6218CBEF5DAB"
+    },
+    {
+      "Relative": "skills\\novel-workbench\\references\\model-routing.md",
+      "Length": 4358,
+      "SHA256": "2BCA3788667092C608BB9D8FD6999CF046C74E87A1EFB5DF4E067E8177743271"
+    },
+    {
+      "Relative": "skills\\novel-workbench\\references\\planning.md",
+      "Length": 2224,
+      "SHA256": "5B7E9B9B84EBC74DED6F657D75F7FFE77B29EA39AE763D461D899604F958FAF1"
+    },
+    {
+      "Relative": "skills\\novel-workbench\\references\\revision.md",
+      "Length": 1848,
+      "SHA256": "9B2A3EC6DA32F7B30EBF3CD8BC2D9C6942A42A14FF38375060C61205D7574B58"
+    },
+    {
+      "Relative": "skills\\novel-workbench\\SKILL.md",
+      "Length": 6638,
+      "SHA256": "9201235CF4E0E553C410377F766AD1F77E362514A2AFA980D51FB684D14F7A33"
+    },
+    {
+      "Relative": "skills\\novel-workbench\\templates\\arc-plan.md",
+      "Length": 2979,
+      "SHA256": "F2A5C49D6A9BB7E5EE8E992866A82E3E1EB6066B21607E0C6514FD213626C3BB"
+    },
+    {
+      "Relative": "skills\\novel-workbench\\templates\\chapter-contract.md",
+      "Length": 4132,
+      "SHA256": "BA548A78AB4F63467F90A9817FCF917E2E60133E2E05ECAD90FCF5B3AB5780CE"
+    },
+    {
+      "Relative": "skills\\novel-workbench\\templates\\chapter-delta.json",
+      "Length": 5083,
+      "SHA256": "6DB0D9EA6D98946466B2BAA99FBE5F24E7DE2C0771690F3307711D0464DA7F5B"
+    },
+    {
+      "Relative": "skills\\novel-workbench\\templates\\chapter-summary.md",
+      "Length": 1948,
+      "SHA256": "D83AEFC860923A27BA2A68346ECAE24044273887C5CBF7E1D1F1DE7846504A55"
+    },
+    {
+      "Relative": "skills\\novel-workbench\\templates\\session-handoff.md",
+      "Length": 1671,
+      "SHA256": "3A7ECCBC39E719CA2839B25A509F96091520EA218579BC76DA695239F2C1BD7A"
+    }
+  ]
+}

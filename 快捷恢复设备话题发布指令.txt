@@ -1,0 +1,26 @@
+相机出图：
+先用前台方式恢复，便于直接观察日志：
+docker exec -it firmware-sensors bash
+source /root/SLAMIBOT_D360_Framework/install/setup.bash
+rosrun ros1_oak_ffc_sync oak_keyframe_stitcher
+正常情况下会看到类似：
+[KeyframeStitcher] subscribed to SLB_CAM_A/compressed
+[KeyframeStitcher] subscribed to SLB_CAM_B/compressed
+[KeyframeStitcher] subscribed to SLB_CAM_C/compressed
+[KeyframeStitcher] publishing stitched keyframe on /keyframe @ 5.0 Hz
+这个终端先保持打开，不要按 Ctrl+C。然后打开另一个 SSH 终端验证：
+rostopic info /keyframe
+rostopic hz /keyframe
+预期：
+Publishers:
+ * /oak_keyframe_stitcher
+频率应接近：
+average rate: 5.0
+确认正常后，APP“开始作业”左下角画面应该自动恢复。
+如果希望直接后台启动，也可以在 Jetson 宿主机执行：
+docker exec -d firmware-sensors bash -lc \
+  'source /root/SLAMIBOT_D360_Framework/install/setup.bash && exec rosrun ros1_oak_ffc_sync oak_keyframe_stitcher'
+然后检查：
+rosnode list | grep oak_keyframe
+rostopic info /keyframe
+rostopic hz /keyframe

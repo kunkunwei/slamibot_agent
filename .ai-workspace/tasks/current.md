@@ -431,14 +431,18 @@
 - technology: ros1 + move_base + costmap_2d
 - lifecycle: CURRENT
 - migration: false
-- status: diagnosed
-- current_scope: READ_ONLY
+- status: local_cli_implementation_complete_deploy_pending
+- current_scope: LOCAL_CODE_ONLY
 - symptom: 建图期间存在的临时障碍被写入二维静态地图；实物移走后，全局规划仍将该区域视为占据栅格。
 - root_cause: 地图保存流程将 FAST_LIO 累积 PCD 投影为 PGM；导航的 `global_costmap/static_map: true` 加载该 PGM。`/scan` 虽启用 `marking` 与 `clearing`，但清除只作用于实时障碍层，不能擦除静态地图占据单元。
 - preferred_solution: 静态地图只保留墙体、固定设施等结构；桌椅、纸箱、车辆等可移动物体交给实时 obstacle layer 标记和射线清除。
-- immediate_options: 清场重建地图，或对确认区域离线修补 PGM/源 PCD 后生成新地图版本并人工验收。
+- implementation_2026_08_28: 本机 `F:\d360_nav2D` 新增 `pcd_map_cleaner.py`，直接流式清理 binary PCD 的 box/polygon+Z 区域，完整保留 intensity/normal/curvature，并可一键重建 PCD/PGM/YAML/display PCD；不做格式转换。
+- safety: dry-run、5% 默认删除比例保护、拒绝原地/覆盖、临时文件与 no-clobber 原子发布；新地图目录全部产物成功后才形成，不操作数据库、切图或 ROS 生命周期。
+- runtime_baseline: 真正运行容器为 `scout-nav-timefix-20260827`，镜像 `scout-nav:jetson0826-src-timefix-20260827`；活动地图 `map25`，完整 PCD 约 4383 万点/1.4 GiB/8字段 binary。
+- verification: `test_pcd_map_cleaner.py` 16 passed；CLI help、`py_compile`、任务范围 `git -c core.whitespace=cr-at-eol diff --check` PASS。
+- deploy: NOT_RUN；未写 Jetson、未构建镜像、未注册或切换地图。
+- next: 用户确认区域坐标与后续 BUILD/DEPLOY 后，在新地图名上先 dry-run，再做 1.4 GiB 真图清理和人工验收；WEB/APP 编辑功能后续复用同一 regions JSON/核心函数。
 - advanced_option: 若必须自动消除静态残影，新增保守的可变覆盖层，基于多帧、多视角自由空间证据及可编辑区域白名单覆盖静态占据；不得直接无条件清除静态层。
-- validation: 对比 `/map`、`/move_base/global_costmap/costmap`、`/move_base/local_costmap/costmap` 与 `/scan`，确认残影首先存在于 `/map`。
 - forbidden: 未授权不修改地图文件、costmap 参数、ROS 接口或 Jetson 运行环境。
 
 ## TASK-2026-08-20-010：导航点位与任务接口产品化审计
@@ -924,9 +928,37 @@
 - root cause: map/navigation/PCD processes are not running. `/map_server`, `/amcl`, `/move_base`, PCD publisher and base perception nodes remain only as stale ROS master registrations and reject XML-RPC; `/api/launch/status` reports idle/all false.
 - mount/config blocker: isolated PR1 DB returns empty map/point/task lists, so there is no active map for `switch_to_navigation`; current mounted maps files exist but DB metadata is absent.
 - deployment blocker: running nav_multi comes from image `install/lib` and differs from mounted PR1 source; installed script lacks `/nav_multi/point_arrived`, so real PR1 arrival-capture T2 would be invalid even after navigation starts.
-- frontend/nginx verdict: static files and proxy are serving normally; frontend subscribes `/map` and `/global_cloud_navigation`; rosbridge-connected state does not imply those publishers are alive.
+- frontend/nginx verdict: static files and proxy are serving normally；前端订阅 `/map` 和 `/global_cloud_navigation`；rosbridge-connected 不代表 publisher 在线。
 - validation: READ_ONLY SSH checks only; no files/processes/containers modified, stopped or restarted.
 - next: separately authorize a corrected PR1 test deployment (DB/map metadata preservation + PR1 nav_multi install/source alignment + navigation mode startup), then re-check live nodes/topics before robot motion testing.
+
+### TASK-2026-08-21-011 current deployment audit (2026-08-28)
+- status: **deployed_core_confirmed / original_contract_partial / T1_synthetic_and_T2_motion_pending**；旧的 `blocked_by_test_deployment` 已被当前运行证据解除。
+- original_contract: TaskPoint action 非空优先、否则回退 PointPosition；nav_multi 在 move_base SUCCEEDED 后等待默认 0.5s 并发布 `/nav_multi/point_arrived` JSON；ros_client 订阅；`action=photo` 抓 `/SLB_CAM_B/compressed` 最新帧；写 `Captures`；提供 POST `/api/capture/photo`、GET `/api/capture/list` 和 `/captures/<file>`；空/未知 action 不影响导航。
+- runtime: 容器 `scout-nav-timefix-20260827` / 镜像 `scout-nav:jetson0826-src-timefix-20260827` running；实际 Uvicorn 从 install dist-packages 加载；导航模式 running，map25 active，map_server/amcl/move_base/nav_multi/scan/odom/tf/PCD 均真实在线。
+- confirmed_chain: `/nav_multi/point_arrived` 类型 `std_msgs/String`，publisher `/nav_multi`、subscriber `/scout_nav_rosbridge`；nav_multi install 与容器 src SHA 一致；运行代码带 0.5s settle、runId/arrivalId、action/actionContent；app lifespan 启动 point_arrival dispatcher、ros_client 和 camera cache。
+- capture_runtime: OpenAPI 含 `/api/capture/photo` 与 `/api/capture/list`；`Captures` schema 正确且 `PRAGMA integrity_check=ok`；9 条记录全部 `source=manual`；最新 JPEG `/captures/...jpg` HTTP 200；相机 `/SLB_CAM_B/compressed` publisher/subscriber 在线。
+- configured_T2: active map25 的点位 1/2/3 配置 `action=photo`；启用任务 `taskId=25`/`任务2` 属于 map25，前两个 TaskPoint 已显式复制 `action=photo` 与 actionContent。
+- missing_evidence: `Captures` 中 `source=point_action` 为 0，说明尚无自动到点拍照成功证据；本轮未发布合成事件、未调用写 API、未执行导航/机器人运动。
+- contract_gap: 运行版 `navigation.py` 只透传 `TaskPoint.action/actionContent`，没有原 PR 要求的“TaskPoint 为空时回退 PointPosition”；当前任务2不受影响，但通用契约仍是 partial。本机源码已有 fallback 逻辑，尚未证明与运行 install 对齐。
+- reproducibility_gap: 运行 install 的 `point_arrival.py` 在 Jetson src 中不存在；`app.py`、`navigation.py` install 与容器 src SHA 不一致。当前热写功能在线，但从现有 Jetson 源码重建可能丢失，必须先回源到正式仓库/镜像。
+- unrelated_defect: OpenAPI 暴露 `/nav_multi/next|end|passage`，但 ROS 端三个 service 不存在；这些不是原 PR1 必需项，不计入 PR1 完成标准，另立任务修复。
+- local_validation: `F:\d360_nav2D\src\nav_api\tests\test_point_arrival.py` 使用 `.venv-pr1-test` 运行 `10 passed`；前两次失败仅为 PYTHONPATH/解释器依赖配置，不是功能失败。
+- storage_observability_audit: 手动和自动拍照均复用同一 `CaptureService/_save_record` 与 `CAPTURE_DIR`，用 `source=manual|point_action` 区分；但当前 Uvicorn 未设置 `CAPTURE_DIR`，实际默认落到 `/Scout_mini_navigation/install/lib/python3/dist-packages/db/captures`，该目录不是 bind mount。
+- split_storage: 当前 DB 9 条 manual；install 层有 id4-9 对应 6 张 JPEG，宿主持久目录 `/home/jetson/Scout_mini_navigation/src/nav_api/db/captures` 有 id1-3 对应 3 张；静态 `/captures` 当前只挂 install 目录，因此新 6 张可访问、旧 3 张 404。容器重建后新 6 张有丢失风险，而 DB 会保留。
+- ui_gap: APP 只有手动拍照即时预览，WEB 使用另一条 Go2 抓帧接口；两端均未调用 `/api/capture/list`，没有历史图库、manual/point_action 标签或自动拍照结果反馈。
+- proposed_minimum: 先把 `CAPTURE_DIR` 固定到 `/data/scout-nav/db/captures` 并受控合并现有 9 张；列表 API 增加文件存在标志；APP 复用现有拍照预览，增加最近照片入口、全部/手动/自动筛选、刷新和上一张/下一张。该方案能观测保存成功，失败状态仍需后续 capture-attempt/status 设计。
+- gallery_implementation_2026_08_28: 本机后端 `capture.py` 已改为 CAPTURE_DIR→SCOUT_NAV_DB_DIR→兼容默认优先级，list 增加 source 过滤和 fileExists；新增独立 `test_capture_history.py`。未改 app.py/语音/TTS/ROS/schema。
+- app_implementation: APP 新增 `CaptureGalleryPanel.kt` 与 `CaptureGalleryTest.kt`；Repository/Controller/Screen 仅在拍照区域最小接线。实时视频按钮改“照片”，面板含拍照、刷新、全部/手动/自动、最近10张；复用全屏预览并支持上一张/下一张。保留另一个 AI 的 voice composer/speakText/ensureNavigation 未提交改动。
+- fast_validation: 后端定向 `3 passed in 1.35s` + py_compile PASS；APP 仅 `CaptureGalleryTest`，Gradle `BUILD SUCCESSFUL in 28s` 且编译主 Kotlin；范围 diff-check PASS。未跑全量回归/仿真；用户随后已自行编译并安装含照片面板的 APK，Agent 未执行 ADB。
+- photo_merge: 未重启容器；仅 `cp -n -p` 无覆盖双向补齐 install 与 `/data/scout-nav/db/captures`。两目录各9张，逐文件 SHA-256 全一致，数据库9个 `/captures` URL 全部 HTTP 200；未删除文件、未改 DB。
+- backend_prewritten: staging `/home/jetson/capture-gallery-deploy-20260828-155618`，含 host-src/container-src/container-install 三份单文件回滚；新版 `capture.py` SHA `50b228514f64543677c80f6702c5dcb4212f6b4f49fdc2aa0058752c66f49caa` 已预写 Jetson host src、容器 src 和容器 install，三处 MATCH，py_compile PASS。
+- no_reload_proof: 容器 ID/StartedAt 和 Uvicorn PID 171 均未变，health 正常；当前 GET list 仍无 `fileExists`，证明内存仍运行旧模块，没有打扰语音进程。容器 restart policy=`unless-stopped`。
+- activation: 用户已手动重启 D360/容器，新 capture 与 APP 照片面板已由用户现场验证：可正常拍照并显示图片；照片功能 PASS，无需额外启动脚本。
+- voice_result_after_restart: 用户反馈语音播报未生效；该问题属于独立语音持久化链路，尚未采集重启后 supervisor/gateway/sherpa/5011/5000 日志，不能归因于照片改动。
+- power_state: 用户随后明确关闭 Jetson；自此禁止继续 SSH、容器、ROS 或设备检查，直到用户再次确认开机。
+- concurrency: 修改 `NativeNavigationScreen.kt` 时检测到外部 AI 更新，工具阻止旧视图写入；已重读最新文件后只做单行照片入口修改，随后定向编译通过，未覆盖语音代码；部署文件仅 capture.py，与语音模块无重叠。
+- next_safe_sequence: Jetson 下次开机后先只读检查 cron supervisor、5011、sherpa WAIT_WAKE 与 5000 health，定位语音播报；照片功能已用户验收，不重复回归。之后再决定 synthetic T1、任务2 T2及源码回源。
 
 ### 2026-08-21 规则增补：云端优先、快速恢复
 用户明确要求：后续 Jetson/Docker/后端恢复一律以云端 Git 仓库和已确认提交为唯一基线；只核对远端提交、运行路径和最小 scope，快速恢复，不遍历无关文件、不叠加临时补丁。修改后必须立即 `git status`、`git diff`、安全分支提交并推送云端，记录 commit；未推送不得宣称完成。
@@ -1035,3 +1067,110 @@
 
 
 - 2026-08-26：已生成 Claude Code 执行交接：.ai-workspace/procedures/scout-nav-full-recovery-claude-handoff-2026-08-26.md；等待用户确认 Jetson 开机后按阶段 A 执行。
+
+## TASK-2026-08-27-004：导航控制底部实时视频流补齐
+
+- status: local_implementation_complete_app_push_and_deploy_pending
+- scope: 后端 `src/nav_api/fastapi_service/{app.py,capture.py}`；APP `NativeNavigationSession.kt`、`RobotEndpoint.kt`、`RobotEndpointTest.kt`；ROS1 CURRENT。
+- base: 后端从 `codex/2026_8_25` 创建隔离分支；APP 从 `codex/native-compose-filament` 创建同名隔离分支 `codex/navigation-mjpeg-stream-20260827`。
+- implementation:
+  - 新增 `GET /api/camera/stream.mjpeg`，复用拍照的 `/SLB_CAM_B/compressed` 最新 JPEG 缓存。
+  - multipart MJPEG 默认 8 FPS，1–30 FPS 限制；无帧/陈旧帧 503，停帧超时断流；no-cache、`X-Accel-Buffering: no`。
+  - 不新增 ROS 订阅、不重新编码、不积压历史帧；现有拍照接口保持不变。
+  - APP 新增 `RobotEndpoint.cameraStreamUrl`，导航页改用通用 `/api/camera/stream.mjpeg`，删除 GO2 视频路径硬编码。
+- commits:
+  - backend `44f8745`，已推送 `kunkunwei/codex/navigation-mjpeg-stream-20260827`。
+  - app `b521d94`，仅本地提交；推送 `origin` 被安全审查阻止，等待用户明确确认 GitHub 远端归属和上传授权。
+- verification: 后端目标文件 `python -m py_compile` PASS；两仓任务范围 `git diff --check` PASS；原后端用户改动和原 APP 工作树均未污染。
+- tests: SKIPPED (user fast mode)；Gradle/Android build、真机视频、并发拍照和链路延迟未验证。
+- deploy: NOT_RUN；未 SSH、未操作 Jetson/Docker/ROS。部署前必须与容器上的后端补全、自愈和导航修复做任务范围 diff。
+- next: 用户授权 APP 分支上传；另行授权 BUILD/DEPLOY 后进行导航+视频+摇杆+拍照联合验收。
+
+## TASK-2026-08-27-004：导航控制底部 MJPEG 视频流
+
+- status: **feature_completed / bandwidth_optimization_pending**
+- validation: 用户已真机确认导航控制页实时视频与拍照均正常。
+- source_chain: OAK → ROS1 `/SLB_CAM_B/compressed` → FastAPI 最新 JPEG 缓存 → HTTP MJPEG `/api/camera/stream.mjpeg` → APP/浏览器；不是 RTSP。
+- backend: Jetson `scout-nav-timefix-20260827` 已部署并经 D360 重启激活；未编译或构建镜像；运行回归通过。
+- app: `F:\SLAMIBotApp` 提交 `645e1b4` 已改用通用 MJPEG 地址。
+- performance_issue: 默认约 8 FPS、单帧约 355 KB、估算 22–23 Mbps；与 rosbridge、地图/点云和遥控共享链路时摇杆延迟增大。
+- keyframe_probe: `/keyframe` 为 `sensor_msgs/CompressedImage`，但现场无发布者且无消息；直接走 rosbridge 9090 当前不可用，等尺寸 JPEG 还存在 Base64 膨胀和控制链路耦合。`r`n- optimization_order: ①保留 HTTP 5000/控制 9090 分离并先降至约 3–4 FPS；②核对消费者后降低源分辨率/JPEG quality；③评估后端缩放/重编码；④长期评估 H.264/RTSP/WebRTC。
+- next: 用户授权后实施 4 FPS 最小方案并真机对比视频吞吐、摇杆延迟、Send-Q 与 Jetson CPU。
+- constraints: 不假设 RTSP 已存在；未经授权不改 OAK 参数、不重启容器、不操作 ROS/Docker 运行态。
+- details: `.ai-workspace/known-issues/mjpeg-bandwidth-teleop-latency-2026-08-27.md`。
+- tests: USER_DEVICE_VALIDATED；带宽优化尚未执行。
+
+## TASK-2026-08-28-001：sherpa-onnx ListenGo 离线语音识别实机测试
+
+- status: **isolated_deploy_complete / free_run_and_wakeup_mock_validation_pass / real_dispatch_blocked**
+- source: `F:\run_mic_sherpa`（非 Git 仓库）；remote: `/home/jetson/run_mic_sherpa`；未进入容器、未注册 systemd。
+- environment: Jetson aarch64 / Python 3.8.10；venv 内 `sherpa-onnx 1.13.6`、`sounddevice 0.5.6`、`numpy 1.24.4`、`pyserial 3.5`；模型实际加载 PASS。
+- audio: ListenGo 单通道 16kHz，测试时 sounddevice 索引 25（索引会变化，运行前须重查）；1 秒采集打开 PASS，peak `0.0664`、RMS `0.000525`；`/dev/lg_speech_serial -> ttyUSB4`。
+- free_run_validation:
+  - “你好”→精确匹配 PASS；“导航到图书馆”转写为“早上到图书馆”后 fuzzy `0.67` 命中；“今天天气怎么样”未命中 PASS。
+  - 观察到误触发风险：环境口述“去标记笔录”以 fuzzy `0.60` 命中“去标记点一”，“在我跟前”以 `0.75` 命中“到我跟前”；当前阈值 `0.6` 不得直连真实动作端点。
+- wake_validation: 硬件唤醒、角度与波束下发 PASS；“你好”精确命中，安全 Mock 收到 `bearingDeg: 2.0`；同时观察到连续唤醒帧会打断当前识别轮次，需后续复测去抖行为。
+- server_safety: 临时 Mock 的 GET 转发真实 `/api/voice/words`，POST 只记录且绝不转发；全部 Mock POST `dispatched:false`，测试后 15000 端口、ASR/Mock 进程和串口占用均无残留。
+- blocker: 真实 `scout-nav-timefix-20260827` 不是全局 disabled/mock；运行代码无 `dog.py`，狗动作失败，但 `开始建图` 与有效导航点词仍可能真实派发，且派发失败仍返回顶层 `success=true`。禁止当前 ASR 直连真实 POST。
+- protected_runtime: `scout-nav-timefix-20260827` 始终 running，`/health` 正常；未重启/修改 Docker、Uvicorn、ROS、ALSA、udev 或系统服务，未执行机器人动作。
+- next: 先比较 `run_mic_bias.py` 并处理模糊匹配误触发/连续唤醒去抖；真实联调前必须部署可验证的全局 disabled/mock 或独立安全 allowlist。
+- tests: PASS（依赖导入、matcher、自带 ONNX recognizer、ListenGo 采集、free-run、硬件唤醒、Mock GET/POST、残留检查）；real action NOT_RUN。
+
+## TASK-2026-08-28-002：Scout 语音助手 + APP TTS + 导航/建图视频演示
+
+- status: **wake_ack_user_validated / production_sherpa_running / cron_reboot_persisted / reboot_validation_pending**
+- target: Scout ROS1 2D；ListenGo+sherpa 完整文本 → 后端确定性命令或 Spark Pro → 讯飞 TTS `x4_yezi` → BOX 扬声器；APP 支持文本播报。
+- backend: `F:\d360_nav2D` 新增 loopback `xf_assistant_gateway.py`、`/api/assistant/{turn,speak,status,jobs}`、raw PCM TTS、单扬声器锁、PTT/talkback 状态、动态真实点位、停止导航、点位追问和二次确认建图；LLM 输出绝不回流动作解析。
+- navigation_safety: 只接受精确 `导航到<点名>`；不存在点播报并开放一次约10秒直接点名追问；建图/模式切换中拒绝导航；`开始建图` 仅 ring_mic 且需第二次唤醒确认；`ensure_navigation` 建图中 fail-closed。
+- asr: `F:\run_mic_sherpa` 新增唤醒确认状态：`小飞小飞` 后异步 `/speak` 播放“我在”，job terminal + fresh idle + 800ms 尾保护后进入 LISTENING；14项定向测试与 py_compile PASS。
+- app: `F:\SLAMIBotApp` 现有输入框增加“语控/播报”；播报 POST `/api/assistant/speak`，语控 queued 仅显示“已提交”；用户已自行安装新 APK，Agent 未执行 ADB 安装。
+- validation: nav_api 全量 `37 passed`；APP 定向测试+assembleDebug PASS；用户真机确认 APP TTS、喊话/回传及“小飞小飞→我在”正常；安全代理曾准确识别“今天天气怎么样”且真实后端零 turn。
+- deploy_authorization: 用户明确确认 Jetson 已开机并允许 DEPLOY，选择完整真实助手；Scout 底盘已上电。
+- deploy_progress:
+  - staging/rollback: `/home/jetson/assistant-deploy-20260828-133655`；overlay rollback `rollback-20260828-141210`；sherpa backup `backups/20260828-155543`。
+  - backend: 11个overlay已写入当前容器install并经重启加载；5000健康。
+  - persistence: 远端无免密sudo，故采用用户 crontab 两条带 `SLAMIBOT_ASSISTANT_AUTOSTART` 标记的 `@reboot`，启动 `/home/jetson/assistant_runtime/{supervise_xf_gateway.sh,supervise_sherpa.sh}`；cron active，原crontab已备份。
+  - runtime: gateway稳定目录仅监听 `127.0.0.1:5011`且health PASS；生产sherpa PID运行参数直连 `127.0.0.1:5000`，L6/串口就绪，状态 WAIT_WAKE；15000安全代理已停止。
+  - safety: 容器 init PID `2737` 未因本任务变化；导航 IDLE、速度为零；未重启/停止/切换容器，未触碰点位拍照部署。
+  - residual: cron是5分钟无sudo快速持久化，后续有sudo时应迁移为systemd；仍需D360整机重启后验证自动恢复。另有一次TTS播放后aplay 30秒timeout待修。
+- preserved: d360既有用户改动未触碰；无Git commit/push；新镜像r1/r2未作为业务容器启动，旧镜像/容器均保留。
+- delegation_audit: 实现与部署使用 `custom/gpt-5.6-luna` low，主代理独立复核14项测试、crontab、进程参数、5011、WAIT_WAKE、导航与容器PID。
+- next: 用户重启D360后只读确认cron自动恢复gateway/sherpa、5000/5011健康与WAIT_WAKE，再测试“小飞小飞→我在→今天天气怎么样”；不要在照片验收期间说导航/建图命令。
+
+## TASK-2026-08-28-003：PCD 静态地图清障与一键重建
+
+- status: **paused_for_next_session / local_cli_complete / build_deploy_pending**
+- user_request: 直接修改一个完整 PCD，统一重建 `.pcd/.pgm/.yaml/_display.pcd`，不接受 PLY/LAS 等中转；后续再扩展 WEB/APP 3D 地图编辑。
+- local_repo: `F:\d360_nav2D`，分支 `codex/scout-nav-recovery-20260826`，基线 HEAD `80dc2ea96c0001ed51b7a0c9c7b7c62b64bc99b6`；仓库原有多项用户未提交改动，均保留。
+- runtime_baseline: 真正运行容器 `scout-nav-timefix-20260827`，镜像 `scout-nav:jetson0826-src-timefix-20260827`；名为 `scout-nav` 的旧容器已停止，不得混用。
+- active_map: `map25`；完整 `map25.pcd` 约 4383 万点/1.4 GiB，`DATA binary`，字段 `x y z intensity normal_x normal_y normal_z curvature`；地图目录为宿主 bind mount。
+- implementation:
+  - 新增 `src/nav_api/scripts/pcd_map_cleaner.py`：分块读取 binary structured PCD，支持 box 或 polygon+显式 Z 区域，完整保留全部 point record。
+  - `filter` 支持 dry-run 与直接输出 cleaned PCD；`rebuild` 在 staging 中调用现有 `pcd_to_map.py --fill-free` 和 `pcd_downsample.py --voxel-size 0.1`，全部校验后形成新地图目录。
+  - 默认最大删除比例 5%；拒绝原地、拒绝覆盖；临时文件采用 no-clobber 原子发布；不自动改数据库、切图或启停 ROS。
+  - `src/nav_api/CMakeLists.txt` 增加脚本安装项；新增 `src/nav_api/tests/test_pcd_map_cleaner.py`。
+- validation: 16 passed；CLI `--help`、`filter --help`、`rebuild --help`、`py_compile`、任务范围 `git -c core.whitespace=cr-at-eol diff --check` PASS。
+- fallback: `claude-code MCP -> gpt-5.6-luna (low)`；失败类别为当前会话未暴露 Claude Code MCP，主代理已独立审查并修复大文件额外扫描。
+- not_run: 未提交/推送；未把脚本写入 Jetson；未构建镜像；未对 1.4 GiB 真图 dry-run；未注册/切换新地图；未启停 ROS/Docker。
+- version_risk: 当前运行镜像的 `map_api.py` 是旧同步降采样版本且镜像内无本机新增 `pcd_downsample.py`；部署必须以目标镜像重新构建/受控更新，不能只复制 cleaner 脚本。
+- existing_converter_risks: `pcd_to_map.py` 放平后仍使用旋转前 `ground_z`，且未知格实际写白而非 205；本任务未混改，真图验收需比较地图边界、origin 与自由区。
+- resume_entry:
+  1. 先读 `.ai-workspace/tasks/context-checkpoint.md` 和本任务，检查 `F:\d360_nav2D` Git 状态，保留所有既有改动。
+  2. 重新只读确认运行容器仍是 `scout-nav-timefix-20260827`/目标镜像，确认活动地图与磁盘余量。
+  3. 与用户确定待删区域的 map 坐标和 `zMin/zMax`，保存 `version=1` regions JSON。
+  4. 取得明确 BUILD/DEPLOY 授权后部署；先对 `map25` 执行 `rebuild ... map25_clean_v1 --dry-run`，人工审查命中点数和删除比例。
+  5. 正式生成新版本但不立即切图；对比 cleaned PCD、PGM/YAML、display PCD，再注册并经 RViz/APP 人工验收后切换。
+  6. CLI 真图稳定后，WEB/APP 仅包装同一 regions JSON 和核心函数，使用后台任务、进度、预览与人工确认，不复制清理算法。
+- completion_criterion: 新地图版本在 3D 点云、`/map` 和 global costmap 中均移除指定残影，永久结构与坐标未偏移，原地图可随时切回，且用户人工验收通过。
+
+## TASK-2026-08-28-004：d360_nav2D 全量同步至 Gitee codex/2026_8_25
+
+- status: **completed / pushed / local_remote_sha_match**
+- user_scope: 用户明确要求把 `F:\d360_nav2D` 当前完整工作树同步到 `https://gitee.com/electech6/d360_nav2D/tree/codex%2F2026_8_25/`，包括其他 AI 修改，不遗漏本地内容。
+- before: 工作树位于 `codex/scout-nav-recovery-20260826` HEAD `80dc2ea`，含 23 个 status 条目；目标 `origin/codex/2026_8_25` 为 `25516eb`，确认是当前 HEAD 祖先，可无 force 快进。
+- audit: 未跟踪文件均为小型源码/测试/Dockerfile/文档；未发现私钥、真实 API secret/token/password、数据库、地图、日志、缓存或构建产物。测试中的 `credential=secret` 为脱敏假值。
+- commit: `a467ff87c48c8bc11a4718c6c621e2ac7d1b34aa`，message `feat: sync navigation assistant and capture updates`；24 个文件，2666 insertions/1451 deletions，包含所有已有用户/其他 AI 改动及 `pr-1.diff` 删除。
+- push: `origin`=`https://gitee.com/electech6/d360_nav2D.git`；`25516eb..a467ff8  HEAD -> codex/2026_8_25`；未 force、未改写历史。
+- local_alignment: 本地已切换到 `codex/2026_8_25`，tracking `origin/codex/2026_8_25`；local HEAD、tracking ref、Gitee ls-remote 三者均为 `a467ff87c48c8bc11a4718c6c621e2ac7d1b34aa`；工作树 clean。
+- tests: 本次同步未重复跑全量测试；沿用提交前各任务的定向结果（point-arrival 10 passed、capture-history 3 passed、PCD cleaner 16 passed 等）。
+- device: Jetson `OFF_USER_CONFIRMED`，本次未连接或操作 Jetson/容器/ROS。
