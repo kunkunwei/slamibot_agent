@@ -254,3 +254,9 @@ MID-360 有效点云包
 因此，`timeshare` 文件存在、OAK 日志显示 `Timeshare ready`，只能证明文件可打开，不能证明雷达时间仍然活跃。必须读取文件内容多次，确认第二个 64 位整数持续变化。
 
 当前客户现场若同时满足：5001 雷达不亮、`/livox/lidar` 无消息、timeshare 数值冻结、Livox 持续报 index/storage 错误、三路相机 Publisher 为 None，则优先判定为“雷达/时间同步上游先失活，OAK 硬触发链随后失效”。若雷达 Topic 和 timeshare 都持续更新，而相机仍无 Publisher 且出现 `X_LINK_ERROR`，则应判定为独立的 OAK USB/X-Link 故障，不能归因于雷达。
+
+## 十一、2026-09-05 现场验证：驱动退出可单独恢复
+
+已验证故障组合：A/B/C 无 Publisher；`/oak_hardware_trigger_ros` 为失效注册且 ping `connection refused`；容器内无对应真实进程；Livox、`/clock` 与 timeshare 仍健康。此时无需重启整个 `firmware-sensors`，确认无同名真实进程后，可按原 launch 参数单独启动驱动，A/B/C 与 `/keyframe` 恢复，现场 PASS。
+
+边界：该手动进程不受 roslaunch 管理且退出后不自启；禁止在真实进程存在时重复启动。若出现持续 `X_LINK_ERROR` 或 USB reset/disconnect，应升级为容器恢复或完整断电/USB3链路检查，不能反复拉起。ROS 时间只认 `/clock`；互联网 NTP不作为本故障恢复条件。完整命令与验收见 `.ai-workspace/procedures/oak-camera-node-quick-recovery-2026-09-05.md`。

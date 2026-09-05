@@ -24,6 +24,24 @@ Jetson 重启后，业务界面看不到相机图像。现场可能同时出现�
 
 注意：`rosnode cleanup` 只能清除失效注册，不能修复 OAK 硬件通信，也不会自动重新启动相机驱动。必须在清理后重新启动传感器容器并验证图像频率。
 
+### 2.1 优先单节点临时恢复（需现场授权）
+
+已确认本地源码快照中的节点配置为：`pkg=ros1_oak_ffc_sync`、`type=oak_hardware_trigger_ros`、`name=oak_hardware_trigger_ros`；私参数为 `fps=20`、`frame_id_prefix=oak_camera`。原 `sensors.launch` 未配置 `respawn`，因此单节点临时恢复应优先于整容器重启，但仅适用于已确认雷达/timeshare 健康且真实进程不存在的情况。
+
+先在容器内确认没有真实进程（不能只看 `rosnode list`）：
+
+```bash
+docker exec firmware-sensors bash -lc "pgrep -af 'oak_hardware_trigger_ros' || true"
+```
+
+确认无输出后，才可在容器内手动启动：
+
+```bash
+docker exec -it firmware-sensors bash -lc 'source /opt/ros/noetic/setup.bash; source /root/SLAMIBOT_D360_Framework/install/setup.bash; rosrun ros1_oak_ffc_sync oak_hardware_trigger_ros _fps:=20 _frame_id_prefix:=oak_camera __name:=oak_hardware_trigger_ros'
+```
+
+此命令是临时前台启动，不受 `roslaunch` 管理；退出终端或进程退出后不会自动拉起。若同名节点或真实进程已存在，可能发生 ROS 名称冲突；若另一进程已占用 OAK/USB 设备，可能发生设备争抢、X-Link 错误或导致两边同时异常。启动后必须复验真实进程、OAK Topic 频率与内容；无法确认进程不存在时，不要执行该命令。
+
 ## 3. 先确认雷达 → timeshare → 相机依赖链
 
 若 5001 监控中雷达不亮，或日志出现 `Storage point data failed`，优先执行以下只读检查，不要先重启容器：
@@ -424,3 +442,9 @@ OAK X_LINK_ERROR
 因此，故障后的`lsusb -t`显示480M只是设备崩溃后回落到Bootloader/USB2伴随总线的结果，不能据此断言设备从未连接USB3。三颗相机模组已经被DepthAI识别，FFC缺失也不是当前首要假设。首要怀疑应调整为USB3信号质量、USB数据线、Hub/端口、供电或OAK设备/固件运行稳定性。
 
 恢复优先级：完整断电复位；更换可靠的USB3数据线；绕过Hub直接连接Jetson USB3端口；检查Hub与OAK供电。重新上电时用`dmesg -w`观察`03e7:f63b`是否能持续保持SuperSpeed，并确认Pipeline运行后不再disconnect。若更换线缆、端口并完整断电后仍稳定复现同一时序，再进入DepthAI版本、设备固件和Pipeline配置兼容性调查。
+
+## 17. 2026-09-05 现场验证：单节点恢复 PASS
+
+现场组合为：`/SLB_CAM_A/compressed` 无 Publisher，`/oak_hardware_trigger_ros` ping 返回 `connection refused`，容器内驱动真实进程不存在；与此同时 Livox 节点存在、timeshare 第二个 64 位值持续增长。确认 ROS 使用 `/use_sim_time=true` 且 `/clock` 连续后，按源码参数在 `firmware-sensors` 内单独启动 `ros1_oak_ffc_sync/oak_hardware_trigger_ros`，相机恢复出图，现场 PASS。`/oak_keyframe_stitcher` 无需重启。
+
+本案例进一步确认：Jetson 系统墙钟/互联网 NTP不是 ROS 时间源，也不是 OAK 单节点恢复门槛；应判断 `/clock`、Livox 与 timeshare 连续性。可直接执行的一页式手册见：`.ai-workspace/procedures/oak-camera-node-quick-recovery-2026-09-05.md`。

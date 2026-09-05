@@ -10,6 +10,14 @@ navigation_ros1:
   build_tool: "catkin_make install"       # CONFIRMED：快速操作手册「catkin_make install -j6」
   workspace: /Scout_mini_navigation       # 容器内路径；宿主机 /home/jetson/Scout_mini_navigation
 
+  # 时间模型（CONFIRMED，2026-09-05 更正）
+  time_model:
+    use_sim_time: true                    # /use_sim_time=true；ROS 时间由仿真时钟模型驱动
+    clock_topic: /clock                   # /clock 是 ROS 时间权威来源
+    clock_authority: /clock               # 具体生产实现 UNKNOWN，不在此猜测
+    host_wall_clock_ntp: not_ros_time_source # Jetson host wall clock/NTP 不是 ROS 时间源
+    ntp_recovery_gate: false              # host wall clock/NTP 不是恢复门槛；需检查 /clock 连续性与数据健康
+
   # 定位 / 规划 / 建图
   localization: [amcl, fastlio_gravity_align]  # FAST_LIO/FAST_LIO_SAM/FAST_LIO_LOCALIZATION 被 CATKIN_IGNORE
   planner: teb_local_planner              # Dockerfile 安装 ros-noetic-teb-local-planner
