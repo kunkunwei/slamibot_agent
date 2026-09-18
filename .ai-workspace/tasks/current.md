@@ -1,5 +1,23 @@
 # 当前任务（current）
 
+## TASK-2026-09-18-ROS2-FOXGLOVE-CBOR：D360S ROS2 本地改造（foxglove_bridge + CDR 替换 rosbridge JSON；清理 SCAN/云台）
+
+- status: **pushed_to_gitee / hardware_unverified**
+- migration: true（ROS2 迁移专项的本地源码改造）
+- repo: Gitee `electech6/SLAMIBOT_D360_Framework` 分支 `codex/d360s-ros2-product-runtime`（基线 `8a81fe8`，非 main）→ 本地 `F:\SLAMIBOT_D360_Framework_ros2`，分支 `codex/d360s-foxglove-cbor`。
+- commit: `8e83f1c`，**已推送 Gitee `codex/d360s-foxglove-cbor`**（远端 = 本地）；`main`（`2924202`）与 `codex/d360s-ros2-product-runtime`（`8a81fe8`）未被触碰；origin 推送地址改用 SSH，拉取仍走 HTTPS。
+- rule_2026_09_18: 新增工作台规则「单一云端源同步规则」（`core/change-policy.md`）——禁止 copy / scp / 复制粘贴跨设备传源码或版本化配置（一律「推云端 → 其他设备 pull」）；D360/D360S 设备上部署时禁止随意开分支、禁止另做源码备份。已同步 `core/git-safety.md` 与 `AGENTS.md`，并消除 `git-safety.md:12`、`change-policy.md:59` 两处旧冲突。
+- scope: 仅该仓；APP（`SLAMIBotApp`）、ROS1 导航与固件未动。
+- server: `install.bash` 装 `ros-humble-foxglove-bridge`（不再装 rosbridge）；新增 `autostart_scripts/foxglove.service`（`ros2 launch foxglove_bridge foxglove_bridge_launch.xml port:=9090`）；`runtime.bash` 的 `SERVICES=(ota foxglove systemcontrol)`、9090 探活、进程白名单 `foxglove_bridge`；`rosbridge.service` 保留为回滚入口，不再进默认启动链。
+- client: 新增 `tools/foxglove-shim/`（`src/index.js` roslib 兼容层 + `build.mjs` esbuild 打包 + `test/mock-foxglove.test.mjs`）；产物 `ota_server/web_page/static/modules/foxglove-roslib.js`（95.4 KB，入库）；`templates/index.html` 换引用；`static/main.js` 相机帧与 `/project_image` 预览改 Blob（`toByteArray` / `jpegObjectUrl`）；删 `roslib.min.js`。
+- cleanup: 删 `web_page/`（SCAN 页）与 `src/gimbal_control/`（云台整包）；清 `enable_gimbal`（launch / systemcontrol.service / README）、`ttyGimbal` udev 规则、`svc_survey` 进程处理、`#pryPublished` 死选择器。
+- covered: ①相机/开始作业视频预览（`/SLB_A|B|C/compressed` → 二进制 CDR + Blob 直显）；②位姿与大消息（CDR）；③控制/状态/服务（CDR + Foxglove JSON service）。
+- key_facts: ROS2 侧原无任何 CBOR；ROS2 的 foxglove_bridge 在 `foxglove/foxglove-sdk`；`@foxglove/rosmsg` 会把 schema 前导 `====` 解成空根定义（已剥除+过滤）；`@foxglove/ws-protocol@0.8.0` 自带 server 不派发 `serviceCallRequest`（测试改用按规范手写的 mock 桥）；Foxglove 协议的服务调用仍为 JSON（低频）。
+- validation: mock 桥 `npm test` **8/8 PASS**（订阅/CDR 解码/服务往返/未知服务报错/参数读取/节流/重连）；`py_compile`、`bash -n`（6 个脚本）、`node --check`、`git diff --check` PASS；按 `gimbal|survey|pry|云台|扫拍` 大小写不敏感全仓 grep 仅剩 README 一句说明。
+- not_verified: `colcon build`、foxglove_bridge 真机启停、浏览器真实画面、相机流是否被 image→video 转码、`/device_type` 参数可读性；真机副作用：`provision.bash` 会重写 `99-serial-aliases.rules` 并 reload udev。
+- next: 授权后推 `codex/d360s-foxglove-cbor` 到 Gitee；有设备时先 `ros2 launch foxglove_bridge foxglove_bridge_launch.xml --show-args` 核参数并做白名单加固，再真机验收。
+- forbidden: 不改 Git 历史、不 force push、不合并 `main`/`dev_ros2`、不动其他 AI 的工作树。
+
 ## TASK-2026-09-05-MAP-CONSISTENCY：地图列表、删除和增量更新
 
 - status: **arm64_image_built / cloud_synced / deployment_pending**
