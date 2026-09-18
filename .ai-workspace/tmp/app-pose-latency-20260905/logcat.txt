@@ -1,0 +1,197 @@
+--------- beginning of system
+09-05 13:35:35.786  2166  7855 D ActivityManager: freezer override set to true
+09-05 13:35:35.788  2166  7855 D ActivityManager: sync unfroze 4085 org.codeaurora.dialer
+09-05 13:35:35.788  2166  7855 D ActivityManager: sync unfroze 4174 com.android.imsserviceentitlement
+09-05 13:35:35.789  2166  7855 D ActivityManager: sync unfroze 3252 com.android.deskclock
+09-05 13:35:35.790  2166  7855 D ActivityManager: sync unfroze 4526 com.android.statementservice
+09-05 13:35:35.791  2166  7855 D ActivityManager: sync unfroze 4716 com.qualcomm.timeservice
+09-05 13:35:35.792  2166  7855 D ActivityManager: sync unfroze 4767 com.qualcomm.qti.qms.service.trustzoneaccess
+09-05 13:35:35.792  2166  7855 D ActivityManager: sync unfroze 4457 com.android.providers.calendar
+09-05 13:35:35.793  2166  7855 D ActivityManager: sync unfroze 3178 android.process.acore
+09-05 13:35:35.793  2166  7855 D ActivityManager: sync unfroze 3086 com.qualcomm.qtil.btdsda
+09-05 13:35:35.794  2166  7855 D ActivityManager: sync unfroze 4481 com.android.remoteprovisioner
+09-05 13:35:35.795  2166  7855 D ActivityManager: sync unfroze 4437 com.android.permissioncontroller
+09-05 13:35:35.802  2166  7855 D ActivityManager: freezer override set to false
+--------- beginning of main
+09-05 13:35:35.900  8260  8260 W OnBackInvokedCallback: OnBackInvokedCallback is not enabled for the application.
+09-05 13:35:35.900  8260  8260 W OnBackInvokedCallback: Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+09-05 13:35:35.907  2166  7855 D CoreBackPreview: Window{2095ede u0 com.example.metacam.debug/com.example.metacam.MainActivity}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@1418b8c, mPriority=0}
+09-05 13:35:35.907  4284  4284 D DATA_STREAM: recv comm(8030/udp) data thread running
+09-05 13:35:35.919  2409  2409 I DisplayLayout: m_nBorad = true
+09-05 13:35:35.920  2409  2409 I DisplayLayout: m_nBorad = true
+09-05 13:35:35.934  2409  2409 I DisplayLayout: m_nBorad = true
+09-05 13:35:35.935  2409  2409 I DisplayLayout: m_nBorad = true
+09-05 13:35:35.946  8260  8283 E OpenGLRenderer: Unable to match the desired swap behavior.
+09-05 13:35:35.965  8260  8283 W Parcel  : Expecting binder but got null!
+09-05 13:35:36.115 18135 18135 I ip      : type=1400 audit(0.0:7464): avc: denied { search } for name="net" dev="dm-14" ino=53 scontext=u:r:system_app:s0 tcontext=u:object_r:net_data_file:s0 tclass=dir permissive=1
+09-05 13:35:37.370  4284  4316 D DATA_STREAM: recv_clients_tcp thread running
+09-05 13:35:37.549  2166  7855 I BatteryService: mLastBatteryTemperature:  366 batteryTemperature:  366
+09-05 13:35:37.552  2643  2643 D QtiCarrierConfigHelper: WARNING, no carrier configs on phone Id: 0
+09-05 13:35:37.553  2409  4844 D PowerUI : can't show warning due to - plugged: true status unknown: false
+09-05 13:35:37.554  2166 15710 I BatteryService: mLastBatteryTemperature:  366 batteryTemperature:  366
+09-05 13:35:37.554  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=53 totalBatteryCapacity=-2147483648
+09-05 13:35:38.118 18139 18139 I perfetto:     perfetto_cmd.cc:999 Connected to the Perfetto traced service, TTL: 40s
+09-05 13:35:38.121  1376  1376 I perfetto: ing_service_impl.cc:953 Configured tracing session 1, #sources:3, duration:40000 ms, #buffers:1, total buffer size:32768 KB, total sessions:1, uid:2000 session name: ""
+09-05 13:35:38.123  1372  1372 I traced_probes: type=1400 audit(0.0:7465): avc: denied { read } for name="format" dev="tracefs" ino=6309 scontext=u:r:traced_probes:s0 tcontext=u:object_r:debugfs_tracing_debug:s0 tclass=file permissive=1
+09-05 13:35:38.127  1372  1372 I traced_probes: type=1400 audit(0.0:7466): avc: denied { open } for path="/sys/kernel/tracing/events/block/block_bio_backmerge/format" dev="tracefs" ino=6309 scontext=u:r:traced_probes:s0 tcontext=u:object_r:debugfs_tracing_debug:s0 tclass=file permissive=1
+09-05 13:35:38.127  1372  1372 I traced_probes: type=1400 audit(0.0:7467): avc: denied { getattr } for path="/sys/kernel/tracing/events/block/block_bio_backmerge/format" dev="tracefs" ino=6309 scontext=u:r:traced_probes:s0 tcontext=u:object_r:debugfs_tracing_debug:s0 tclass=file permissive=1
+09-05 13:35:38.214   895   895 E android.hardware.atrace@1.0-service: Failed to enable tracing on: /sys/kernel/tracing/events/mdss/enable
+09-05 13:35:38.211   895   895 I atrace@1.0-serv: type=1400 audit(0.0:7468): avc: denied { write } for name="enable" dev="tracefs" ino=24862 scontext=u:r:hal_atrace_default:s0 tcontext=u:object_r:debugfs_tracing_debug:s0 tclass=file permissive=1
+09-05 13:35:38.211   895   895 I atrace@1.0-serv: type=1400 audit(0.0:7469): avc: denied { open } for path="/sys/kernel/tracing/events/sde/enable" dev="tracefs" ino=24862 scontext=u:r:hal_atrace_default:s0 tcontext=u:object_r:debugfs_tracing_debug:s0 tclass=file permissive=1
+09-05 13:35:38.215   895   895 E android.hardware.atrace@1.0-service: Failed to enable tracing on: /sys/kernel/tracing/events/mali_systrace/enable
+09-05 13:35:38.216   895   895 E android.hardware.atrace@1.0-service: Failed to disable tracing on: /sys/kernel/tracing/events/mdss/enable
+09-05 13:35:38.216   895   895 E android.hardware.atrace@1.0-service: Failed to disable tracing on: /sys/kernel/tracing/events/mali_systrace/enable
+09-05 13:35:38.216   895   895 E android.hardware.atrace@1.0-service: Failed to disable tracing on: /sys/kernel/tracing/events/kmem/ion_alloc_buffer_start/enable
+09-05 13:35:38.216   895   895 E android.hardware.atrace@1.0-service: Failed to enable tracing on: /sys/kernel/tracing/events/kmem/ion_alloc_buffer_start/enable
+09-05 13:35:38.217   895   895 E android.hardware.atrace@1.0-service: Failed to disable tracing on: /sys/kernel/tracing/events/mdss/enable
+09-05 13:35:38.217   895   895 E android.hardware.atrace@1.0-service: Failed to disable tracing on: /sys/kernel/tracing/events/mali_systrace/enable
+09-05 13:35:38.217   895   895 E android.hardware.atrace@1.0-service: Failed to disable tracing on: /sys/kernel/tracing/events/kmem/ion_alloc_buffer_start/enable
+09-05 13:35:38.220  1372  1372 I perfetto:  probes_producer.cc:140 Ftrace setup (target_buf=1)
+09-05 13:35:38.275  1372  1372 I traced_probes: type=1400 audit(0.0:7470): avc: denied { read } for name="format" dev="tracefs" ino=24890 scontext=u:r:traced_probes:s0 tcontext=u:object_r:debugfs_tracing_debug:s0 tclass=file permissive=1
+09-05 13:35:38.275  1372  1372 I traced_probes: type=1400 audit(0.0:7471): avc: denied { open } for path="/sys/kernel/tracing/events/sde/sde_cmd_release_bw/format" dev="tracefs" ino=24890 scontext=u:r:traced_probes:s0 tcontext=u:object_r:debugfs_tracing_debug:s0 tclass=file permissive=1
+09-05 13:35:38.275  1372  1372 I traced_probes: type=1400 audit(0.0:7472): avc: denied { getattr } for path="/sys/kernel/tracing/events/sde/sde_cmd_release_bw/format" dev="tracefs" ino=24890 scontext=u:r:traced_probes:s0 tcontext=u:object_r:debugfs_tracing_debug:s0 tclass=file permissive=1
+09-05 13:35:38.292  1372  1372 I perfetto:    ftrace_procfs.cc:335 enabled ftrace in /sys/kernel/tracing/
+09-05 13:35:38.291  1372  1372 I traced_probes: type=1400 audit(0.0:7473): avc: denied { write } for name="property_service" dev="tmpfs" ino=481 scontext=u:r:traced_probes:s0 tcontext=u:object_r:property_socket:s0 tclass=sock_file permissive=1
+09-05 13:35:38.555  4284  4311 D DATA_STREAM: send_to_clients_tcp thread running
+09-05 13:35:38.565  1372  1372 E perfetto: ernel_symbolizer.cc:106 kallsyms addresses are still masked after setting security.lower_kptr_restrict
+09-05 13:35:39.509  1372  1372 E perfetto: ernel_symbol_map.cc:371 Failed to parse kallsyms. Kernel functions will not be symbolized. On Linux this requires either running traced_probes as root or manually lowering /proc/sys/kernel/kptr_restrict
+09-05 13:35:39.566  2166  3470 I BatteryService: mLastBatteryTemperature:  366 batteryTemperature:  366
+09-05 13:35:39.570  2643  2643 D QtiCarrierConfigHelper: WARNING, no carrier configs on phone Id: 0
+09-05 13:35:39.571  2166  3470 I BatteryService: mLastBatteryTemperature:  366 batteryTemperature:  366
+09-05 13:35:39.571  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=53 totalBatteryCapacity=-2147483648
+09-05 13:35:39.573  2409  4858 D PowerUI : can't show warning due to - plugged: true status unknown: false
+09-05 13:35:40.029  4284  4315 D DATA_STREAM: recv_clients thread running
+09-05 13:35:40.223  2166 15710 D CoreBackPreview: Window{2095ede u0 com.example.metacam.debug/com.example.metacam.MainActivity}: Setting back callback null
+09-05 13:35:40.230  8260  8283 D OpenGLRenderer: endAllActiveAnimators on 0xb400007823dfce50 (UnprojectedRipple) with handle 0xb400007733d59090
+09-05 13:35:40.231  2166 15710 W InputManager-JNI: Input channel object '2095ede com.example.metacam.debug/com.example.metacam.MainActivity (client)' was disposed without first being removed with the input manager!
+09-05 13:35:40.238  2166  2186 V WindowManager: Unknown focus tokens, dropping reportFocusChanged
+09-05 13:35:41.582  2166  3470 I BatteryService: mLastBatteryTemperature:  366 batteryTemperature:  366
+09-05 13:35:41.584  2643  2643 D QtiCarrierConfigHelper: WARNING, no carrier configs on phone Id: 0
+09-05 13:35:41.585  2166 15710 I BatteryService: mLastBatteryTemperature:  366 batteryTemperature:  366
+09-05 13:35:41.585  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=53 totalBatteryCapacity=-2147483648
+09-05 13:35:41.585  2409  4962 D PowerUI : can't show warning due to - plugged: true status unknown: false
+09-05 13:35:42.426  4284  4316 D DATA_STREAM: recv_clients_tcp thread running
+09-05 13:35:43.498  4284  4284 D DATA_STREAM: recv comm(8030/udp) data thread running
+09-05 13:35:43.530  2166  2185 I EntropyMixer: Updated seed file
+09-05 13:35:43.597  4284  4311 D DATA_STREAM: send_to_clients_tcp thread running
+09-05 13:35:43.597  2166 15710 I BatteryService: mLastBatteryTemperature:  366 batteryTemperature:  366
+09-05 13:35:43.600  2643  2643 D QtiCarrierConfigHelper: WARNING, no carrier configs on phone Id: 0
+09-05 13:35:43.601  2166  3470 I BatteryService: mLastBatteryTemperature:  366 batteryTemperature:  366
+09-05 13:35:43.601  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=53 totalBatteryCapacity=-2147483648
+09-05 13:35:43.602  2409  2985 D PowerUI : can't show warning due to - plugged: true status unknown: false
+09-05 13:35:44.219 18155 18155 I ip      : type=1400 audit(0.0:7477): avc: denied { search } for name="net" dev="dm-14" ino=53 scontext=u:r:system_app:s0 tcontext=u:object_r:net_data_file:s0 tclass=dir permissive=1
+09-05 13:35:45.075  4284  4315 D DATA_STREAM: recv_clients thread running
+09-05 13:35:45.613  2166 15710 I BatteryService: mLastBatteryTemperature:  366 batteryTemperature:  366
+09-05 13:35:45.616  2166 15710 I BatteryService: mLastBatteryTemperature:  366 batteryTemperature:  366
+09-05 13:35:46.313  2166  2192 I UsageStatsService: User[0] Flushing usage stats to disk
+09-05 13:35:47.483  4284  4316 D DATA_STREAM: recv_clients_tcp thread running
+09-05 13:35:47.630  2166 15710 I BatteryService: mLastBatteryTemperature:  366 batteryTemperature:  366
+09-05 13:35:47.632  2643  2643 D QtiCarrierConfigHelper: WARNING, no carrier configs on phone Id: 0
+09-05 13:35:47.634  2409  3944 D PowerUI : can't show warning due to - plugged: true status unknown: false
+09-05 13:35:47.634  2166  3470 I BatteryService: mLastBatteryTemperature:  366 batteryTemperature:  366
+09-05 13:35:47.634  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=53 totalBatteryCapacity=-2147483648
+09-05 13:35:48.638  4284  4311 D DATA_STREAM: send_to_clients_tcp thread running
+09-05 13:35:49.645  2166  7855 I BatteryService: mLastBatteryTemperature:  366 batteryTemperature:  366
+09-05 13:35:49.648  2166  7855 I BatteryService: mLastBatteryTemperature:  366 batteryTemperature:  366
+09-05 13:35:50.120  4284  4315 D DATA_STREAM: recv_clients thread running
+09-05 13:35:51.084  4284  4284 D DATA_STREAM: recv comm(8030/udp) data thread running
+09-05 13:35:51.661  2166  7855 I BatteryService: mLastBatteryTemperature:  366 batteryTemperature:  366
+09-05 13:35:51.664  2643  2643 D QtiCarrierConfigHelper: WARNING, no carrier configs on phone Id: 0
+09-05 13:35:51.664  2166  7855 I BatteryService: mLastBatteryTemperature:  366 batteryTemperature:  366
+09-05 13:35:51.665  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=53 totalBatteryCapacity=-2147483648
+09-05 13:35:51.665  2409  4255 D PowerUI : can't show warning due to - plugged: true status unknown: false
+09-05 13:35:52.540  4284  4316 D DATA_STREAM: recv_clients_tcp thread running
+09-05 13:35:53.678  2166 15710 I BatteryService: mLastBatteryTemperature:  366 batteryTemperature:  366
+09-05 13:35:53.680  2643  2643 D QtiCarrierConfigHelper: WARNING, no carrier configs on phone Id: 0
+09-05 13:35:53.681  2166  7855 I BatteryService: mLastBatteryTemperature:  366 batteryTemperature:  366
+09-05 13:35:53.681  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=53 totalBatteryCapacity=-2147483648
+09-05 13:35:53.681  4284  4311 D DATA_STREAM: send_to_clients_tcp thread running
+09-05 13:35:53.682  2409  4760 D PowerUI : can't show warning due to - plugged: true status unknown: false
+09-05 13:35:55.165  4284  4315 D DATA_STREAM: recv_clients thread running
+09-05 13:35:55.693  2166 15710 I BatteryService: mLastBatteryTemperature:  366 batteryTemperature:  366
+09-05 13:35:55.695  2643  2643 D QtiCarrierConfigHelper: WARNING, no carrier configs on phone Id: 0
+09-05 13:35:55.696  2166  7855 I BatteryService: mLastBatteryTemperature:  366 batteryTemperature:  366
+09-05 13:35:55.697  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=53 totalBatteryCapacity=-2147483648
+09-05 13:35:55.698  2409  4827 D PowerUI : can't show warning due to - plugged: true status unknown: false
+09-05 13:35:57.596  4284  4316 D DATA_STREAM: recv_clients_tcp thread running
+09-05 13:35:57.709  2166  7855 I BatteryService: mLastBatteryTemperature:  366 batteryTemperature:  366
+09-05 13:35:57.712  2166  7855 I BatteryService: mLastBatteryTemperature:  366 batteryTemperature:  366
+09-05 13:35:58.348  2166  7855 I BatteryService: mLastBatteryTemperature:  366 batteryTemperature:  366
+09-05 13:35:58.350  2166  7855 I BatteryService: mLastBatteryTemperature:  366 batteryTemperature:  366
+09-05 13:35:58.671  4284  4284 D DATA_STREAM: recv comm(8030/udp) data thread running
+09-05 13:35:58.729  4284  4311 D DATA_STREAM: send_to_clients_tcp thread running
+09-05 13:35:59.507  2166  2166 D CompatibilityInfo: mCompatibilityFlags - 0
+09-05 13:35:59.507  2166  2166 D CompatibilityInfo: applicationDensity - 408
+09-05 13:35:59.507  2166  2166 D CompatibilityInfo: applicationScale - 1.0
+09-05 13:35:59.512  2166  2166 D CompatibilityInfo: mCompatibilityFlags - 0
+09-05 13:35:59.512  2166  2166 D CompatibilityInfo: applicationDensity - 408
+09-05 13:35:59.512  2166  2166 D CompatibilityInfo: applicationScale - 1.0
+09-05 13:35:59.670  2166  2166 W Looper  : Slow dispatch took 155ms main h=android.app.job.JobServiceEngine$JobHandler c=null m=2
+09-05 13:35:59.674  2166 15710 W JobScheduler: Job didn't exist in JobStore: 6a90a56 #u0a57/10 com.ms.msdisplay/.service.KeepAliveJobService
+09-05 13:35:59.726  2166 15710 I BatteryService: mLastBatteryTemperature:  366 batteryTemperature:  366
+09-05 13:35:59.728  2643  2643 D QtiCarrierConfigHelper: WARNING, no carrier configs on phone Id: 0
+09-05 13:35:59.729  2166  3470 I BatteryService: mLastBatteryTemperature:  366 batteryTemperature:  366
+09-05 13:35:59.729  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=53 totalBatteryCapacity=-2147483648
+09-05 13:35:59.730  2409  4844 D PowerUI : can't show warning due to - plugged: true status unknown: false
+09-05 13:36:00.213  4284  4315 D DATA_STREAM: recv_clients thread running
+09-05 13:36:01.741  2166  3470 I BatteryService: mLastBatteryTemperature:  366 batteryTemperature:  366
+09-05 13:36:01.743  2643  2643 D QtiCarrierConfigHelper: WARNING, no carrier configs on phone Id: 0
+09-05 13:36:01.745  2409  4858 D PowerUI : can't show warning due to - plugged: true status unknown: false
+09-05 13:36:01.745  2166 15710 I BatteryService: mLastBatteryTemperature:  366 batteryTemperature:  366
+09-05 13:36:01.745  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=53 totalBatteryCapacity=-2147483648
+09-05 13:36:02.652  4284  4316 D DATA_STREAM: recv_clients_tcp thread running
+09-05 13:36:02.817  4284  4284 D DATA_STREAM: recv(1) comm(8030/udp) data size 1
+09-05 13:36:03.758  2166  7855 I BatteryService: mLastBatteryTemperature:  366 batteryTemperature:  366
+09-05 13:36:03.760  2166  7855 I BatteryService: mLastBatteryTemperature:  366 batteryTemperature:  366
+09-05 13:36:03.770  4284  4311 D DATA_STREAM: send_to_clients_tcp thread running
+09-05 13:36:05.258  4284  4315 D DATA_STREAM: recv_clients thread running
+09-05 13:36:05.774  2166  7855 I BatteryService: mLastBatteryTemperature:  366 batteryTemperature:  366
+09-05 13:36:05.775  2643  2643 D QtiCarrierConfigHelper: WARNING, no carrier configs on phone Id: 0
+09-05 13:36:05.777  2409  4962 D PowerUI : can't show warning due to - plugged: true status unknown: false
+09-05 13:36:05.777  2166  3470 I BatteryService: mLastBatteryTemperature:  366 batteryTemperature:  366
+09-05 13:36:05.777  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=53 totalBatteryCapacity=-2147483648
+09-05 13:36:06.256  4284  4284 D DATA_STREAM: recv comm(8030/udp) data thread running
+09-05 13:36:07.709  4284  4316 D DATA_STREAM: recv_clients_tcp thread running
+09-05 13:36:07.789  2166  3470 I BatteryService: mLastBatteryTemperature:  366 batteryTemperature:  366
+09-05 13:36:07.791  2643  2643 D QtiCarrierConfigHelper: WARNING, no carrier configs on phone Id: 0
+09-05 13:36:07.792  2166  7855 I BatteryService: mLastBatteryTemperature:  366 batteryTemperature:  366
+09-05 13:36:07.793  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=53 totalBatteryCapacity=-2147483648
+09-05 13:36:07.793  2409  2985 D PowerUI : can't show warning due to - plugged: true status unknown: false
+09-05 13:36:08.811  4284  4311 D DATA_STREAM: send_to_clients_tcp thread running
+09-05 13:36:09.805  2166  3470 I BatteryService: mLastBatteryTemperature:  366 batteryTemperature:  366
+09-05 13:36:09.808  2643  2643 D QtiCarrierConfigHelper: WARNING, no carrier configs on phone Id: 0
+09-05 13:36:09.809  2166  7855 I BatteryService: mLastBatteryTemperature:  366 batteryTemperature:  366
+09-05 13:36:09.809  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=53 totalBatteryCapacity=-2147483648
+09-05 13:36:09.809  2409  3944 D PowerUI : can't show warning due to - plugged: true status unknown: false
+09-05 13:36:10.302  4284  4315 D DATA_STREAM: recv_clients thread running
+09-05 13:36:11.821  2166  3470 I BatteryService: mLastBatteryTemperature:  366 batteryTemperature:  366
+09-05 13:36:11.824  2643  2643 D QtiCarrierConfigHelper: WARNING, no carrier configs on phone Id: 0
+09-05 13:36:11.825  2166  7855 I BatteryService: mLastBatteryTemperature:  366 batteryTemperature:  366
+09-05 13:36:11.825  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=53 totalBatteryCapacity=-2147483648
+09-05 13:36:11.825  2409  4255 D PowerUI : can't show warning due to - plugged: true status unknown: false
+09-05 13:36:12.766  4284  4316 D DATA_STREAM: recv_clients_tcp thread running
+09-05 13:36:13.837  2166  7855 I BatteryService: mLastBatteryTemperature:  366 batteryTemperature:  366
+09-05 13:36:13.840  2166  7855 I BatteryService: mLastBatteryTemperature:  366 batteryTemperature:  366
+09-05 13:36:13.845  4284  4284 D DATA_STREAM: recv comm(8030/udp) data thread running
+09-05 13:36:13.852  4284  4311 D DATA_STREAM: send_to_clients_tcp thread running
+09-05 13:36:13.878  4284  4313 D DATA_STREAM: send_to_remote_tcp thread running
+09-05 13:36:14.433  4284  4310 D DATA_STREAM: send_to_clients thread running
+09-05 13:36:14.564  4284  4312 D DATA_STREAM: send_to_remote thread running
+09-05 13:36:15.347  4284  4315 D DATA_STREAM: recv_clients thread running
+09-05 13:36:15.853  2166  7855 I BatteryService: mLastBatteryTemperature:  366 batteryTemperature:  366
+09-05 13:36:15.856  2166  7855 I BatteryService: mLastBatteryTemperature:  366 batteryTemperature:  366
+09-05 13:36:17.822  4284  4316 D DATA_STREAM: recv_clients_tcp thread running
+09-05 13:36:17.869  2166  7855 I BatteryService: mLastBatteryTemperature:  366 batteryTemperature:  366
+09-05 13:36:17.872  2166  7855 I BatteryService: mLastBatteryTemperature:  366 batteryTemperature:  366
+09-05 13:36:18.125  1376  1376 I perfetto: ng_service_impl.cc:1890 FlushAndDisableTracing(1) done, success=1
+09-05 13:36:18.125  1372  1372 I perfetto:  probes_producer.cc:409 Producer stop (id=2)
+09-05 13:36:18.126  1372  1372 I perfetto:    ftrace_procfs.cc:342 disabled ftrace in /sys/kernel/tracing/
+09-05 13:36:18.170  1372  1372 I perfetto:  probes_producer.cc:409 Producer stop (id=3)
+09-05 13:36:18.490 18139 18139 I perfetto:    perfetto_cmd.cc:1127 Wrote 33487089 bytes into /data/misc/perfetto-traces/app-pose-latency.pftrace
+09-05 13:36:18.504  1376  1376 I perfetto: ng_service_impl.cc:2426 Tracing session 1 ended, total sessions:0
+09-05 13:36:18.894  4284  4311 D DATA_STREAM: send_to_clients_tcp thread running
+09-05 13:36:19.430  2166  7855 D ActivityManager: freezer override set to true
+09-05 13:36:19.438  2166  7855 D ActivityManager: freezer override set to false
+09-05 13:36:19.503  2166  7855 D ActivityManager: freezer override set to true
+09-05 13:36:19.581  8260  8411 I e.metacam.debug: Explicit concurrent copying GC freed 30030(1663KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 8946KB/17MB, paused 63us,46us total 34.554ms
+09-05 13:36:19.636  2166  7855 D ActivityManager: freezer override set to false

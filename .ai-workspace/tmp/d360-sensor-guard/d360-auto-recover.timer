@@ -1,0 +1,11 @@
+[Unit]
+Description=Check D360 sensors every 30 seconds
+
+[Timer]
+OnBootSec=30s
+OnUnitActiveSec=30s
+Persistent=false
+Unit=d360-auto-recover.service
+
+[Install]
+WantedBy=timers.target

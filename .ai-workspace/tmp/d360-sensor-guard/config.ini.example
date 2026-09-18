@@ -1,0 +1,14 @@
+[guard]
+dry_run=true
+allow_startup_start=false
+allow_manual_recovery=false
+state_path=/var/lib/slamibot/d360-sensor-guard/state.json
+log_path=/var/log/slamibot/d360-sensor-guard.jsonl
+lock_path=/run/slamibot/d360-sensor-guard.lock
+probe_command=["/usr/bin/python3","/usr/local/lib/slamibot/d360-sensor-guard/d360_health_probe.py"]
+probe_timeout=90
+action_timeout=30
+startup_ntp_wait_seconds=120
+startup_ntp_poll_seconds=5
+livox_postcheck_seconds=15
+oak_postcheck_seconds=120

@@ -26,8 +26,22 @@ robot_profile:
       lidar: Livox MID-360（livox_ros_driver2；3D 点云经 pointcloud_to_laserscan 转 2D 激光）
       imu: Livox 内置 IMU（topic /livox/imu）
       camera: OAK-4P-New × 3（oak-camera_driver；实测 topic /SLB_CAM_A|B|C/compressed 三路；与雷达 lidar_add_rgb 做彩色三维重建）  # 现场 3 路 A/B/C 已确认
-      rtk: 差分 GNSS 定位模块（NMEA $GNGGA 记录 rtk_record/；前端 /rtk/gga + /rtcm/data）
+      rtk: 差分 GNSS 定位模块（D360有外部天线；D360S仅拆RTK天线，内部链可能保留）
       odometry: 底盘里程计，经 CAN（can0 500k）
+
+    ros2_candidate_hardware_2026_09_03:
+      product: D360S
+      host: 192.168.31.35
+      lidar: { model: "Livox MID360S", sdk: "Livox-SDK2 v1.3.1", device_type: 35, host_ip: 192.168.1.55, sensor_ip: 192.168.1.63, sensor_mac: "8c:58:23:eb:a6:39", usb_nic: "0fe6:9900/cdc_ether", observed: "lidar 10Hz + imu 200Hz PASS" }
+      camera: { expected: "OAK-FFC-4P 三路", usb_states: ["03e7:f63c@480M bootloader", "03e7:f63b@5000M runtime"], depthai_mxid: 1944301031A26A2E00, observed: "3xAR0234；CAM_A/B/C约10Hz且真实消息PASS" }
+      stm32: { usb: "1a86:7523", expected_count: 2, alias: "/dev/ttySTM32 -> ttyUSB1", physically_installed: USER_CONFIRMED, firmware_flashed: USER_CONFIRMED, firmware_version: "2.0.6 inferred from GPRMC COG=206", observed: "Bootloader runapp后APP 1Hz GPRMC与PA1 10Hz FSIN PASS" }
+      faster_lio: { stack: "ROS2 Humble", baseline: "Gitee main 29242022982652045f142e550fccfc989add15a7", observed: "/Odometry与/cloud_registered约4.93Hz；camera_init->body TF PASS", default_enabled: false }
+      rtk: { internal_chain: PRESENT, alias: "/dev/ttyRTK -> ttyUSB0", antenna_installed: false, antenna_status: REMOVED_USER_CONFIRMED, required_for_ros2_install: false }
+      sensor_hub: { usb: "1a40:0101 Terminus", observed: PRESENT }
+      runtime_services: { ota: disabled_inactive, rosbridge: disabled_inactive, systemcontrol: disabled_inactive }
+      frame_definition: UNKNOWN
+      extrinsic_calibration: UNKNOWN
+      status: D360S_SENSORS_FSIN_FASTER_LIO_RUNTIME_PASS
 
     # Frame / TF（全部待确认）
     frames:

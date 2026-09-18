@@ -1,0 +1,147 @@
+Directory:
+  /data/misc/apexdata/com.android.tethering/netstats
+Configs:
+  netstats_combine_subtype_enabled=false 
+  netstats_store_files_in_apexdata=true 
+  netstats_import_legacy_target_attempts=1 
+  platform legacy stats import attempts count=1 
+  platform legacy stats import successes count=1 
+  platform legacy stats import fallbacks count=0 
+Active interfaces:
+  iface=wlan0 ident=[{type=1, ratType=COMBINED, wifiNetworkKey="slamibot"wpa2-psk, metered=false, defaultNetwork=true, oemManaged=OEM_NONE, subId=-1}] 
+Active UID interfaces:
+  iface=wlan0 ident=[{type=1, ratType=COMBINED, wifiNetworkKey="slamibot"wpa2-psk, metered=false, defaultNetwork=true, oemManaged=OEM_NONE, subId=-1}] 
+All wifi interfaces:
+  wlan0 
+All mobile interfaces:
+  
+Top openSession callers:
+  {uid=1000,package=android}=1384
+  {uid=1000,package=com.android.settings}=2
+
+Stats Providers:
+  OffloadController Xt:
+    NetworkStats: elapsedRealtime=0
+  OffloadController Uid:
+    NetworkStats: elapsedRealtime=0
+  BpfCoordinator Xt:
+    NetworkStats: elapsedRealtime=0
+  BpfCoordinator Uid:
+    NetworkStats: elapsedRealtime=0
+  ImsPhoneCallTracker Xt:
+    NetworkStats: elapsedRealtime=0
+  ImsPhoneCallTracker Uid:
+    NetworkStats: elapsedRealtime=0
+
+Stats Observers:
+  RequestInfo from pid/uid:2166/1000(android) for DataUsageRequest [ requestId=1, networkTemplate=NetworkTemplate: matchRule=MOBILE_WILDCARD, matchSubscriberIds=[], matchWifiNetworkKeys=[], subscriberIdMatchRule=ALL, thresholdInBytes=0 ] accessLevel:3
+  RequestInfo from pid/uid:2166/1000(android) for DataUsageRequest [ requestId=2, networkTemplate=NetworkTemplate: matchRule=WIFI_WILDCARD, matchSubscriberIds=[], matchWifiNetworkKeys=[], subscriberIdMatchRule=ALL, thresholdInBytes=0 ] accessLevel:3
+
+Dev stats:
+  Pending bytes: 0
+  History since boot:
+  ident=[{type=1, ratType=COMBINED, wifiNetworkKey="slamibot"wpa2-psk, metered=false, defaultNetwork=false, oemManaged=OEM_NONE, subId=-1}] uid=-1 set=ALL tag=0x0
+    NetworkStatsHistory: bucketDuration=3600
+      st=1788573600 rb=40 rp=1 tb=0 tp=0 op=0
+  ident=[{type=1, ratType=COMBINED, wifiNetworkKey="slamibot"wpa2-psk, metered=false, defaultNetwork=true, oemManaged=OEM_NONE, subId=-1}] uid=-1 set=ALL tag=0x0
+    NetworkStatsHistory: bucketDuration=3600
+      st=1788573600 rb=901577026 rp=608734 tb=15716357 tp=294209 op=0
+      st=1788577200 rb=2332673365 rp=1588906 tb=41232608 tp=732091 op=0
+      st=1788580800 rb=517936360 rp=393890 tb=16735586 tp=197204 op=0
+      st=1788584400 rb=684972480 rp=487657 tb=16111060 tp=241926 op=0
+      st=1788588000 rb=2969744 rp=11903 tb=1290507 tp=13615 op=0
+      st=1788591600 rb=378948493 rp=296448 tb=14341467 tp=172840 op=0
+      st=1788595200 rb=2602076608 rp=1778861 tb=46885345 tp=777509 op=0
+      st=1788598800 rb=671262381 rp=496127 tb=19795392 tp=255681 op=0
+      st=1788602400 rb=931735570 rp=666597 tb=23549514 tp=335348 op=0
+      st=1788606000 rb=276666841 rp=234584 tb=14409433 tp=151667 op=0
+      st=1788609600 rb=388504923 rp=300332 tb=13926476 tp=173255 op=0
+Xt stats:
+  Pending bytes: 0
+  History since boot:
+  ident=[{type=1, ratType=COMBINED, wifiNetworkKey="slamibot"wpa2-psk, metered=false, defaultNetwork=false, oemManaged=OEM_NONE, subId=-1}] uid=-1 set=ALL tag=0x0
+    NetworkStatsHistory: bucketDuration=3600
+      st=1788573600 rb=40 rp=1 tb=0 tp=0 op=0
+  ident=[{type=1, ratType=COMBINED, wifiNetworkKey="slamibot"wpa2-psk, metered=false, defaultNetwork=true, oemManaged=OEM_NONE, subId=-1}] uid=-1 set=ALL tag=0x0
+    NetworkStatsHistory: bucketDuration=3600
+      st=1788573600 rb=901577026 rp=608734 tb=15716357 tp=294209 op=0
+      st=1788577200 rb=2332673491 rp=1588906 tb=41232613 tp=732091 op=0
+      st=1788580800 rb=517936234 rp=393890 tb=16735581 tp=197204 op=0
+      st=1788584400 rb=684972480 rp=487657 tb=16111060 tp=241926 op=0
+      st=1788588000 rb=2969744 rp=11903 tb=1290507 tp=13615 op=0
+      st=1788591600 rb=378948493 rp=296448 tb=14341467 tp=172840 op=0
+      st=1788595200 rb=2602076508 rp=1778861 tb=46885342 tp=777509 op=0
+      st=1788598800 rb=671262481 rp=496127 tb=19795395 tp=255681 op=0
+      st=1788602400 rb=931735570 rp=666597 tb=23549514 tp=335348 op=0
+      st=1788606000 rb=276666797 rp=234584 tb=14409430 tp=151667 op=0
+      st=1788609600 rb=388504967 rp=300332 tb=13926479 tp=173255 op=0
+UID stats:
+  Pending bytes: 3560074
+  History since boot:
+  ident=[{type=1, ratType=COMBINED, wifiNetworkKey="slamibot"wpa2-psk, metered=false, defaultNetwork=false, oemManaged=OEM_NONE, subId=-1}] uid=1051 set=DEFAULT tag=0x0
+    NetworkStatsHistory: bucketDuration=7200
+      st=1788573600 rb=40 rp=1 tb=0 tp=0 op=0
+  ident=[{type=1, ratType=COMBINED, wifiNetworkKey="slamibot"wpa2-psk, metered=false, defaultNetwork=true, oemManaged=OEM_NONE, subId=-1}] uid=0 set=DEFAULT tag=0x0
+    NetworkStatsHistory: bucketDuration=7200
+      st=1788573600 rb=0 rp=0 tb=11611 tp=274 op=0
+      st=1788580800 rb=0 rp=0 tb=164 tp=3 op=0
+      st=1788588000 rb=0 rp=0 tb=444 tp=7 op=0
+      st=1788595200 rb=0 rp=0 tb=5592 tp=139 op=0
+      st=1788602400 rb=0 rp=0 tb=112 tp=2 op=0
+  ident=[{type=1, ratType=COMBINED, wifiNetworkKey="slamibot"wpa2-psk, metered=false, defaultNetwork=true, oemManaged=OEM_NONE, subId=-1}] uid=1000 set=FOREGROUND tag=0x0
+    NetworkStatsHistory: bucketDuration=7200
+      st=1788573600 rb=3911 rp=16 tb=2433 tp=28 op=0
+  ident=[{type=1, ratType=COMBINED, wifiNetworkKey="slamibot"wpa2-psk, metered=false, defaultNetwork=true, oemManaged=OEM_NONE, subId=-1}] uid=1021 set=DEFAULT tag=0x0
+    NetworkStatsHistory: bucketDuration=7200
+      st=1788573600 rb=207 rp=2 tb=140 tp=2 op=0
+  ident=[{type=1, ratType=COMBINED, wifiNetworkKey="slamibot"wpa2-psk, metered=false, defaultNetwork=true, oemManaged=OEM_NONE, subId=-1}] uid=1051 set=DEFAULT tag=0x0
+    NetworkStatsHistory: bucketDuration=7200
+      st=1788573600 rb=40 rp=1 tb=64 tp=1 op=0
+  ident=[{type=1, ratType=COMBINED, wifiNetworkKey="slamibot"wpa2-psk, metered=false, defaultNetwork=true, oemManaged=OEM_NONE, subId=-1}] uid=1073 set=FOREGROUND tag=0x0
+    NetworkStatsHistory: bucketDuration=7200
+      st=1788595200 rb=361 rp=1 tb=316 tp=1 op=0
+  ident=[{type=1, ratType=COMBINED, wifiNetworkKey="slamibot"wpa2-psk, metered=false, defaultNetwork=true, oemManaged=OEM_NONE, subId=-1}] uid=2000 set=DEFAULT tag=0x0
+    NetworkStatsHistory: bucketDuration=7200
+      st=1788580800 rb=64388 rp=53 tb=3260 tp=57 op=0
+  ident=[{type=1, ratType=COMBINED, wifiNetworkKey="slamibot"wpa2-psk, metered=false, defaultNetwork=true, oemManaged=OEM_NONE, subId=-1}] uid=10087 set=DEFAULT tag=0x0
+    NetworkStatsHistory: bucketDuration=7200
+      st=1788573600 rb=207 rp=1 tb=2479 tp=41 op=0
+  ident=[{type=1, ratType=COMBINED, wifiNetworkKey="slamibot"wpa2-psk, metered=false, defaultNetwork=true, oemManaged=OEM_NONE, subId=-1}] uid=10137 set=DEFAULT tag=0x0
+    NetworkStatsHistory: bucketDuration=7200
+      st=1788573600 rb=15764564 rp=10989 tb=344817 tp=5884 op=0
+      st=1788580800 rb=9451639 rp=6611 tb=197867 tp=3400 op=0
+      st=1788588000 rb=3675 rp=17 tb=1737 tp=23 op=0
+      st=1788595200 rb=4531 rp=35 tb=4515 tp=42 op=0
+      st=1788602400 rb=5800 rp=32 tb=3934 tp=40 op=0
+  ident=[{type=1, ratType=COMBINED, wifiNetworkKey="slamibot"wpa2-psk, metered=false, defaultNetwork=true, oemManaged=OEM_NONE, subId=-1}] uid=10137 set=FOREGROUND tag=0x0
+    NetworkStatsHistory: bucketDuration=7200
+      st=1788573600 rb=3218088545 rp=2186214 tb=56587401 tp=1020070 op=0
+      st=1788580800 rb=1193361988 rp=874608 tb=32645375 tp=435670 op=0
+      st=1788588000 rb=381882790 rp=307926 tb=15629797 tp=186425 op=0
+      st=1788595200 rb=3272868827 rp=2274420 tb=66670310 tp=1033008 op=0
+      st=1788602400 rb=1208363681 rp=900804 tb=37954898 tp=486973 op=0
+      st=1788609600 rb=388493624 rp=300177 tb=13926479 tp=173255 op=0
+UID tag stats:
+  Pending bytes: 1946
+  History since boot:
+  ident=[{type=1, ratType=COMBINED, wifiNetworkKey="slamibot"wpa2-psk, metered=false, defaultNetwork=false, oemManaged=OEM_NONE, subId=-1}] uid=1051 set=DEFAULT tag=0xffffff82
+    NetworkStatsHistory: bucketDuration=7200
+      st=1788573600 rb=40 rp=1 tb=0 tp=0 op=0
+  ident=[{type=1, ratType=COMBINED, wifiNetworkKey="slamibot"wpa2-psk, metered=false, defaultNetwork=true, oemManaged=OEM_NONE, subId=-1}] uid=1000 set=FOREGROUND tag=0xffffff41
+    NetworkStatsHistory: bucketDuration=7200
+      st=1788573600 rb=152 rp=2 tb=152 tp=2 op=0
+  ident=[{type=1, ratType=COMBINED, wifiNetworkKey="slamibot"wpa2-psk, metered=false, defaultNetwork=true, oemManaged=OEM_NONE, subId=-1}] uid=1000 set=FOREGROUND tag=0xffffff82
+    NetworkStatsHistory: bucketDuration=7200
+      st=1788573600 rb=210 rp=2 tb=130 tp=2 op=0
+  ident=[{type=1, ratType=COMBINED, wifiNetworkKey="slamibot"wpa2-psk, metered=false, defaultNetwork=true, oemManaged=OEM_NONE, subId=-1}] uid=1021 set=DEFAULT tag=0xffffff82
+    NetworkStatsHistory: bucketDuration=7200
+      st=1788573600 rb=131 rp=1 tb=64 tp=1 op=0
+  ident=[{type=1, ratType=COMBINED, wifiNetworkKey="slamibot"wpa2-psk, metered=false, defaultNetwork=true, oemManaged=OEM_NONE, subId=-1}] uid=1051 set=DEFAULT tag=0xffffff82
+    NetworkStatsHistory: bucketDuration=7200
+      st=1788573600 rb=40 rp=1 tb=64 tp=1 op=0
+  ident=[{type=1, ratType=COMBINED, wifiNetworkKey="slamibot"wpa2-psk, metered=false, defaultNetwork=true, oemManaged=OEM_NONE, subId=-1}] uid=1073 set=FOREGROUND tag=0xfffffe01
+    NetworkStatsHistory: bucketDuration=7200
+      st=1788595200 rb=361 rp=1 tb=316 tp=1 op=0
+  ident=[{type=1, ratType=COMBINED, wifiNetworkKey="slamibot"wpa2-psk, metered=false, defaultNetwork=true, oemManaged=OEM_NONE, subId=-1}] uid=10087 set=DEFAULT tag=0xffffff82
+    NetworkStatsHistory: bucketDuration=7200
+      st=1788573600 rb=207 rp=1 tb=79 tp=1 op=0

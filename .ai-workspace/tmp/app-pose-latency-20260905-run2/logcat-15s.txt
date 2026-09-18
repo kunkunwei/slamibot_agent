@@ -1,0 +1,167 @@
+--------- beginning of system
+09-05 20:50:50.069 D/ActivityManager( 2166): freezer override set to true
+09-05 20:50:50.070 D/ActivityManager( 2166): sync unfroze 3252 com.android.deskclock
+09-05 20:50:50.070 D/ActivityManager( 2166): sync unfroze 4526 com.android.statementservice
+09-05 20:50:50.071 D/ActivityManager( 2166): sync unfroze 4716 com.qualcomm.timeservice
+09-05 20:50:50.071 D/ActivityManager( 2166): sync unfroze 4767 com.qualcomm.qti.qms.service.trustzoneaccess
+09-05 20:50:50.072 D/ActivityManager( 2166): sync unfroze 4457 com.android.providers.calendar
+09-05 20:50:50.073 D/ActivityManager( 2166): sync unfroze 3178 android.process.acore
+09-05 20:50:50.073 D/ActivityManager( 2166): sync unfroze 3086 com.qualcomm.qtil.btdsda
+09-05 20:50:50.074 D/ActivityManager( 2166): sync unfroze 4481 com.android.remoteprovisioner
+09-05 20:50:50.074 D/ActivityManager( 2166): sync unfroze 4085 org.codeaurora.dialer
+09-05 20:50:50.075 D/ActivityManager( 2166): sync unfroze 4437 com.android.permissioncontroller
+09-05 20:50:50.086 D/ActivityManager( 2166): freezer override set to false
+--------- beginning of main
+09-05 20:50:50.422 W/OnBackInvokedCallback( 8014): OnBackInvokedCallback is not enabled for the application.
+09-05 20:50:50.422 W/OnBackInvokedCallback( 8014): Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+09-05 20:50:50.428 D/CoreBackPreview( 2166): Window{12a426c u0 com.example.metacam.debug/com.example.metacam.MainActivity}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@1686e3b, mPriority=0}
+09-05 20:50:50.442 I/DisplayLayout( 2409): m_nBorad = true
+09-05 20:50:50.443 I/DisplayLayout( 2409): m_nBorad = true
+09-05 20:50:50.459 I/DisplayLayout( 2409): m_nBorad = true
+09-05 20:50:50.459 I/DisplayLayout( 2409): m_nBorad = true
+09-05 20:50:50.475 E/OpenGLRenderer( 8014): Unable to match the desired swap behavior.
+09-05 20:50:50.495 W/Parcel  ( 8014): Expecting binder but got null!
+09-05 20:50:50.523 D/G20InputController( 8014): G20 channel read failed: Timeout
+09-05 20:50:50.582 D/RtkService( 8014): GGA格式: String
+09-05 20:50:50.583 D/RtkService( 8014): 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 20:50:50.583 D/RtkService( 8014): ...
+09-05 20:50:50.666 D/DATA_STREAM( 4284): recv_clients_tcp thread running
+09-05 20:50:50.835 I/ip      (17097): type=1400 audit(0.0:10435): avc: denied { search } for name="net" dev="dm-14" ino=53 scontext=u:r:system_app:s0 tcontext=u:object_r:net_data_file:s0 tclass=dir permissive=1
+09-05 20:50:51.405 I/BatteryService( 2166): mLastBatteryTemperature:  379 batteryTemperature:  379
+09-05 20:50:51.408 I/BatteryService( 2166): mLastBatteryTemperature:  379 batteryTemperature:  379
+09-05 20:50:51.420 I/NtripClient( 8014): 已断开NTRIP连接
+09-05 20:50:51.420 I/NtripClient( 8014): 连接NTRIP服务器: 203.107.45.154:8002/AUTO (移动网络: false)
+09-05 20:50:51.421 D/TrafficStats( 8014): tagSocket(86) with statsTag=0xffffffff, statsUid=-1
+09-05 20:50:51.464 I/NtripClient( 8014): 认证请求已发送
+09-05 20:50:51.571 E/NtripClient( 8014): NTRIP认证失败: HTTP 401 Unauthorized
+09-05 20:50:51.571 W/RtkService( 8014): NTRIP状态异常，准备重连: 认证失败
+09-05 20:50:51.571 I/RtkService( 8014): 5000ms后重连NTRIP...
+09-05 20:50:51.572 I/NtripClient( 8014): 已断开NTRIP连接
+09-05 20:50:51.572 I/RtkService( 8014): 5000ms后重连NTRIP...
+09-05 20:50:51.593 D/RtkService( 8014): GGA格式: String
+09-05 20:50:51.594 D/RtkService( 8014): 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 20:50:51.594 D/RtkService( 8014): ...
+09-05 20:50:52.359 D/DATA_STREAM( 4284): send_to_clients_tcp thread running
+09-05 20:50:52.616 D/RtkService( 8014): GGA格式: String
+09-05 20:50:52.616 D/RtkService( 8014): 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 20:50:52.616 D/RtkService( 8014): ...
+09-05 20:50:53.421 I/BatteryService( 2166): mLastBatteryTemperature:  379 batteryTemperature:  379
+09-05 20:50:53.423 D/QtiCarrierConfigHelper( 2643): WARNING, no carrier configs on phone Id: 0
+09-05 20:50:53.425 I/BatteryService( 2166): mLastBatteryTemperature:  379 batteryTemperature:  379
+09-05 20:50:53.425 V/DeviceStatisticsService( 2692): chargerType=2 batteryLevel=42 totalBatteryCapacity=-2147483648
+09-05 20:50:53.425 D/PowerUI ( 2409): can't show warning due to - plugged: true status unknown: false
+09-05 20:50:53.567 D/RtkService( 8014): GGA格式: String
+09-05 20:50:53.567 D/RtkService( 8014): 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 20:50:53.567 D/RtkService( 8014): ...
+09-05 20:50:54.605 D/RtkService( 8014): GGA格式: String
+09-05 20:50:54.605 D/RtkService( 8014): 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 20:50:54.605 D/RtkService( 8014): ...
+09-05 20:50:54.668 D/DATA_STREAM( 4284): recv_clients thread running
+09-05 20:50:55.438 I/BatteryService( 2166): mLastBatteryTemperature:  379 batteryTemperature:  379
+09-05 20:50:55.440 D/QtiCarrierConfigHelper( 2643): WARNING, no carrier configs on phone Id: 0
+09-05 20:50:55.441 D/PowerUI ( 2409): can't show warning due to - plugged: true status unknown: false
+09-05 20:50:55.442 I/BatteryService( 2166): mLastBatteryTemperature:  379 batteryTemperature:  379
+09-05 20:50:55.442 V/DeviceStatisticsService( 2692): chargerType=2 batteryLevel=42 totalBatteryCapacity=-2147483648
+09-05 20:50:55.696 D/RtkService( 8014): GGA格式: String
+09-05 20:50:55.696 D/RtkService( 8014): 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 20:50:55.696 D/RtkService( 8014): ...
+09-05 20:50:55.702 D/DATA_STREAM( 4284): recv comm(8030/udp) data thread running
+09-05 20:50:55.729 D/DATA_STREAM( 4284): recv_clients_tcp thread running
+09-05 20:50:56.572 I/NtripClient( 8014): 已断开NTRIP连接
+09-05 20:50:56.572 I/NtripClient( 8014): 连接NTRIP服务器: 203.107.45.154:8002/AUTO (移动网络: false)
+09-05 20:50:56.573 D/TrafficStats( 8014): tagSocket(121) with statsTag=0xffffffff, statsUid=-1
+09-05 20:50:56.598 I/NtripClient( 8014): 认证请求已发送
+09-05 20:50:56.676 D/RtkService( 8014): GGA格式: String
+09-05 20:50:56.677 E/NtripClient( 8014): NTRIP认证失败: HTTP 401 Unauthorized
+09-05 20:50:56.677 D/RtkService( 8014): 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 20:50:56.677 D/RtkService( 8014): ...
+09-05 20:50:56.677 W/RtkService( 8014): NTRIP状态异常，准备重连: 认证失败
+09-05 20:50:56.677 I/RtkService( 8014): 5000ms后重连NTRIP...
+09-05 20:50:56.677 I/NtripClient( 8014): 已断开NTRIP连接
+09-05 20:50:56.677 I/RtkService( 8014): 5000ms后重连NTRIP...
+09-05 20:50:57.403 D/DATA_STREAM( 4284): send_to_clients_tcp thread running
+09-05 20:50:57.453 I/BatteryService( 2166): mLastBatteryTemperature:  379 batteryTemperature:  379
+09-05 20:50:57.455 D/QtiCarrierConfigHelper( 2643): WARNING, no carrier configs on phone Id: 0
+09-05 20:50:57.456 I/BatteryService( 2166): mLastBatteryTemperature:  379 batteryTemperature:  379
+09-05 20:50:57.457 V/DeviceStatisticsService( 2692): chargerType=2 batteryLevel=42 totalBatteryCapacity=-2147483648
+09-05 20:50:57.456 D/PowerUI ( 2409): can't show warning due to - plugged: true status unknown: false
+09-05 20:50:57.726 D/RtkService( 8014): GGA格式: String
+09-05 20:50:57.726 D/RtkService( 8014): 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 20:50:57.726 D/RtkService( 8014): ...
+09-05 20:50:58.710 D/RtkService( 8014): GGA格式: String
+09-05 20:50:58.711 D/RtkService( 8014): 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 20:50:58.711 D/RtkService( 8014): ...
+09-05 20:50:59.469 I/BatteryService( 2166): mLastBatteryTemperature:  379 batteryTemperature:  379
+09-05 20:50:59.472 I/BatteryService( 2166): mLastBatteryTemperature:  379 batteryTemperature:  379
+09-05 20:50:59.570 D/RtkService( 8014): GGA格式: String
+09-05 20:50:59.570 D/RtkService( 8014): 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 20:50:59.570 D/RtkService( 8014): ...
+09-05 20:50:59.714 D/DATA_STREAM( 4284): recv_clients thread running
+09-05 20:51:00.676 D/RtkService( 8014): GGA格式: String
+09-05 20:51:00.676 D/RtkService( 8014): 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 20:51:00.676 D/RtkService( 8014): ...
+09-05 20:51:00.793 D/DATA_STREAM( 4284): recv_clients_tcp thread running
+09-05 20:51:01.486 I/BatteryService( 2166): mLastBatteryTemperature:  379 batteryTemperature:  379
+09-05 20:51:01.487 D/QtiCarrierConfigHelper( 2643): WARNING, no carrier configs on phone Id: 0
+09-05 20:51:01.489 D/PowerUI ( 2409): can't show warning due to - plugged: true status unknown: false
+09-05 20:51:01.489 I/BatteryService( 2166): mLastBatteryTemperature:  379 batteryTemperature:  379
+09-05 20:51:01.489 V/DeviceStatisticsService( 2692): chargerType=2 batteryLevel=42 totalBatteryCapacity=-2147483648
+09-05 20:51:01.677 I/NtripClient( 8014): 已断开NTRIP连接
+09-05 20:51:01.678 I/NtripClient( 8014): 连接NTRIP服务器: 203.107.45.154:8002/AUTO (移动网络: false)
+09-05 20:51:01.679 D/TrafficStats( 8014): tagSocket(186) with statsTag=0xffffffff, statsUid=-1
+09-05 20:51:01.754 I/NtripClient( 8014): 认证请求已发送
+09-05 20:51:01.771 D/RtkService( 8014): GGA格式: String
+09-05 20:51:01.771 D/RtkService( 8014): 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 20:51:01.771 D/RtkService( 8014): ...
+09-05 20:51:01.902 E/NtripClient( 8014): NTRIP认证失败: HTTP 401 Unauthorized
+09-05 20:51:01.902 W/RtkService( 8014): NTRIP状态异常，准备重连: 认证失败
+09-05 20:51:01.902 I/RtkService( 8014): 5000ms后重连NTRIP...
+09-05 20:51:01.903 I/NtripClient( 8014): 已断开NTRIP连接
+09-05 20:51:01.903 I/RtkService( 8014): 5000ms后重连NTRIP...
+09-05 20:51:02.449 D/DATA_STREAM( 4284): send_to_clients_tcp thread running
+09-05 20:51:02.796 D/RtkService( 8014): GGA格式: String
+09-05 20:51:02.796 D/RtkService( 8014): 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 20:51:02.796 D/RtkService( 8014): ...
+09-05 20:51:03.295 D/DATA_STREAM( 4284): recv comm(8030/udp) data thread running
+09-05 20:51:03.501 I/BatteryService( 2166): mLastBatteryTemperature:  379 batteryTemperature:  379
+09-05 20:51:03.502 D/QtiCarrierConfigHelper( 2643): WARNING, no carrier configs on phone Id: 0
+09-05 20:51:03.503 D/PowerUI ( 2409): can't show warning due to - plugged: true status unknown: false
+09-05 20:51:03.504 I/BatteryService( 2166): mLastBatteryTemperature:  379 batteryTemperature:  379
+09-05 20:51:03.504 V/DeviceStatisticsService( 2692): chargerType=2 batteryLevel=42 totalBatteryCapacity=-2147483648
+09-05 20:51:03.794 D/RtkService( 8014): GGA格式: String
+09-05 20:51:03.794 D/RtkService( 8014): 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 20:51:03.794 D/RtkService( 8014): ...
+09-05 20:51:04.759 D/DATA_STREAM( 4284): recv_clients thread running
+09-05 20:51:04.859 D/RtkService( 8014): GGA格式: String
+09-05 20:51:04.859 D/RtkService( 8014): 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 20:51:04.859 D/RtkService( 8014): ...
+09-05 20:51:05.520 I/BatteryService( 2166): mLastBatteryTemperature:  379 batteryTemperature:  379
+09-05 20:51:05.522 D/QtiCarrierConfigHelper( 2643): WARNING, no carrier configs on phone Id: 0
+09-05 20:51:05.523 D/PowerUI ( 2409): can't show warning due to - plugged: true status unknown: false
+09-05 20:51:05.523 I/BatteryService( 2166): mLastBatteryTemperature:  379 batteryTemperature:  379
+09-05 20:51:05.524 V/DeviceStatisticsService( 2692): chargerType=2 batteryLevel=42 totalBatteryCapacity=-2147483648
+09-05 20:51:05.627 D/ActivityManager( 2166): freezer override set to true
+09-05 20:51:05.634 D/ActivityManager( 2166): freezer override set to false
+09-05 20:51:05.705 D/ActivityManager( 2166): freezer override set to true
+09-05 20:51:05.784 D/RtkService( 8014): GGA格式: String
+09-05 20:51:05.784 D/RtkService( 8014): 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 20:51:05.784 D/RtkService( 8014): ...
+09-05 20:51:05.792 I/e.metacam.debug( 8014): Explicit concurrent copying GC freed 9749(695KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 16MB/33MB, paused 61us,100us total 44.605ms
+09-05 20:51:05.853 D/ActivityManager( 2166): freezer override set to false
+09-05 20:51:05.856 D/DATA_STREAM( 4284): recv_clients_tcp thread running

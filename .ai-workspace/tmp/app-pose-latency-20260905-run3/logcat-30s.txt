@@ -1,0 +1,617 @@
+--------- beginning of main
+09-05 21:24:18.418  8014 16490 D RtkService: GGA格式: String
+09-05 21:24:18.418  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 21:24:18.418  8014 16490 D RtkService: ...
+--------- beginning of system
+09-05 21:24:18.476  2166 15710 D ActivityManager: freezer override set to true
+09-05 21:24:18.477  2166 15710 D ActivityManager: sync unfroze 3252 com.android.deskclock
+09-05 21:24:18.477  2166 15710 D ActivityManager: sync unfroze 4526 com.android.statementservice
+09-05 21:24:18.478  2166 15710 D ActivityManager: sync unfroze 4716 com.qualcomm.timeservice
+09-05 21:24:18.478  2166 15710 D ActivityManager: sync unfroze 4767 com.qualcomm.qti.qms.service.trustzoneaccess
+09-05 21:24:18.479  2166 15710 D ActivityManager: sync unfroze 3178 android.process.acore
+09-05 21:24:18.479  2166 15710 D ActivityManager: sync unfroze 3086 com.qualcomm.qtil.btdsda
+09-05 21:24:18.479  2166 15710 D ActivityManager: sync unfroze 4481 com.android.remoteprovisioner
+09-05 21:24:18.480  2166 15710 D ActivityManager: sync unfroze 4085 org.codeaurora.dialer
+09-05 21:24:18.480  2166 15710 D ActivityManager: sync unfroze 4437 com.android.permissioncontroller
+09-05 21:24:18.481  2166 15710 D ActivityManager: sync unfroze 4457 com.android.providers.calendar
+09-05 21:24:18.486  2166 15710 D ActivityManager: freezer override set to false
+09-05 21:24:18.534  4284  4311 D DATA_STREAM: send_to_clients_tcp thread running
+09-05 21:24:18.785  3610  3823 W MediaProvider: isAppCloneUserPair for user 0: false
+09-05 21:24:18.786  3610  3823 V MediaProvider: Inserted id:1000000113 less than next row id backup:1000001000.
+09-05 21:24:18.789 19886 19886 W ProcessState: Extra binder thread started, but 0 threads requested. Do not use *startThreadPool when zero threads are requested.
+09-05 21:24:18.809   702   702 I servicemanager: Could not find android.hardware.graphics.allocator.IAllocator/default in the VINTF manifest.
+09-05 21:24:19.280  2166  2193 D CompatibilityInfo: mCompatibilityFlags - 0
+09-05 21:24:19.280  2166  2193 D CompatibilityInfo: applicationDensity - 408
+09-05 21:24:19.280  2166  2193 D CompatibilityInfo: applicationScale - 1.0
+09-05 21:24:19.283  2166 15710 D CompatibilityInfo: mCompatibilityFlags - 0
+09-05 21:24:19.283  2166 15710 D CompatibilityInfo: applicationDensity - 408
+09-05 21:24:19.283  2166 15710 D CompatibilityInfo: applicationScale - 1.0
+09-05 21:24:19.286  3610  4026 I MediaProvider: Begin Intent { act=android.intent.action.MEDIA_SCANNER_SCAN_FILE dat=file:///... flg=0x1400010 cmp=com.android.providers.media.module/com.android.providers.media.MediaService }
+09-05 21:24:19.292  3610  4026 V MediaProvider: Inserted id:1000000113 less than next row id backup:1000001000.
+09-05 21:24:19.298  3610  4026 I MediaProvider: End Intent { act=android.intent.action.MEDIA_SCANNER_SCAN_FILE dat=file:///... flg=0x1400010 cmp=com.android.providers.media.module/com.android.providers.media.MediaService }
+09-05 21:24:19.374  2166 15710 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:24:19.376  2643  2643 D QtiCarrierConfigHelper: WARNING, no carrier configs on phone Id: 0
+09-05 21:24:19.378  2166 11629 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:24:19.378  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=39 totalBatteryCapacity=-2147483648
+09-05 21:24:19.378  2409  4844 D PowerUI : can't show warning due to - plugged: true status unknown: false
+09-05 21:24:19.631 19897 19897 I ip      : type=1400 audit(0.0:10468): avc: denied { search } for name="net" dev="dm-14" ino=53 scontext=u:r:system_app:s0 tcontext=u:object_r:net_data_file:s0 tclass=dir permissive=1
+09-05 21:24:19.651  3610  3813 W MediaProvider: isAppCloneUserPair for user 0: false
+09-05 21:24:19.652  3610  3813 V MediaProvider: Inserted id:1000000114 less than next row id backup:1000001000.
+09-05 21:24:19.655  1129  1300 I SDM     : HWCDisplay::GetColorModeCount: Supported color mode count = 1
+09-05 21:24:19.655  1129  1300 I SDM     : HWCDisplay::GetColorModes: Color mode = 0 is supported
+09-05 21:24:19.656 19895 19895 D MediaCodecList: codecHandlesFormat: no format, so no extra checks
+09-05 21:24:19.657 19895 19895 D MediaCodecList: codecHandlesFormat: no format, so no extra checks
+09-05 21:24:19.658 19895 19901 D CCodec  : allocate(c2.qti.avc.encoder)
+09-05 21:24:19.660 19895 19901 I Codec2Client: Available Codec2 services: "default" "default2" "software"
+09-05 21:24:19.661 19895 19901 I CCodec  : setting up 'default' as default (vendor) store
+09-05 21:24:19.665  1170  2457 I QC2Registry: search [c2.qti.avc.encoder] in mEntries
+09-05 21:24:19.665  1170  2457 I QC2Comp : PreProcessingPipelining 0
+09-05 21:24:19.672  1170  2457 I vendor.qti.media.c2@1.0-service: missing struct descriptor #Param::CoreIndex(-Vc019) for field ubwcStats of struct #Param::CoreIndex(-Vc01a)
+09-05 21:24:19.672  1170  2457 I vendor.qti.media.c2@1.0-service: missing struct descriptor #Param::CoreIndex(--002) for field mastering of struct #Param::CoreIndex(--180a)
+09-05 21:24:19.672  1170  2457 I vendor.qti.media.c2@1.0-service: missing struct descriptor #Param::CoreIndex(--1812) for field values of struct #Param::CoreIndex(F-11812)
+09-05 21:24:19.672  1170  2457 I StandardCaps: prioritySetter: setting priority to real time
+09-05 21:24:19.672  1170  2457 E VendorCaps: Failed to read platform default max picture width
+09-05 21:24:19.672  1170  2457 E VendorCaps: Failed to read platform default max picture width
+09-05 21:24:19.673  1170  2457 I vendor.qti.media.c2@1.0-service: missing struct descriptor #Param::CoreIndex(--004) for field values of struct #Param::CoreIndex(F-12004)
+09-05 21:24:19.673  1170  2457 I QC2Registry: search [c2.qti.avc.encoder] in mEntries
+09-05 21:24:19.673  1170  2457 I QC2Comp : Create: Allocated component[14] for name c2.qti.avc.encoder : [64 bit]
+09-05 21:24:19.673  1170  2457 I QC2Comp : Create Latency:10.43 ms
+09-05 21:24:19.673  1170  2457 I QC2CompStore: Created component(c2.qti.avc.encoder) id(14)
+09-05 21:24:19.675 19895 19901 I CCodec  : Created component [c2.qti.avc.encoder]
+09-05 21:24:19.675 19895 19901 D CCodecConfig: read media type: video/avc
+09-05 21:24:19.675  8014 16490 D RtkService: GGA格式: String
+09-05 21:24:19.676 19895 19901 D ReflectedParamUpdater: extent() != 1 for single value type: vendor.qti-ext-enc-temporal-layer-bitrate.layerBitrates
+09-05 21:24:19.676  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 21:24:19.676  8014 16490 D RtkService: ...
+09-05 21:24:19.678 19895 19901 D ReflectedParamUpdater: ignored struct field coding.qp.values
+09-05 21:24:19.678 19895 19901 D ReflectedParamUpdater: extent() != 1 for single value type: output.buffers.pool-ids.values
+09-05 21:24:19.682 19895 19901 D ReflectedParamUpdater: ignored struct field coding.gop.values
+09-05 21:24:19.684 19895 19901 D ReflectedParamUpdater: extent() != 1 for single value type: vendor.qti-ext-enc-info-metadata-cvp.reserved
+09-05 21:24:19.684 19895 19901 D CCodecConfig: ignoring local param raw.color (0xc2001809) as it is already supported
+09-05 21:24:19.685  8014  8014 I NtripClient: 已断开NTRIP连接
+09-05 21:24:19.685  1170  2455 E QC2Interface: Few parameters failed to configure
+09-05 21:24:19.686 19895 19901 I CCodecConfig: query failed after returning 23 values (BAD_INDEX)
+09-05 21:24:19.686  8014 19908 I NtripClient: 连接NTRIP服务器: 203.107.45.154:8002/AUTO (移动网络: false)
+09-05 21:24:19.686 19895 19901 D CCodecConfig: c2 config diff is Dict {
+09-05 21:24:19.686 19895 19901 D CCodecConfig:   c2::u32 algo.bitrate-mode.value = 3
+09-05 21:24:19.686 19895 19901 D CCodecConfig:   c2::u32 algo.complexity.value = 100
+09-05 21:24:19.686 19895 19901 D CCodecConfig:   c2::i32 algo.priority.value = 0
+09-05 21:24:19.686 19895 19901 D CCodecConfig:   c2::float algo.rate.value = 30
+09-05 21:24:19.686 19895 19901 D CCodecConfig:   c2::u32 algo.secure-mode.value = 0
+09-05 21:24:19.686 19895 19901 D CCodecConfig:   c2::i32 coded.average-qp.value = 0
+09-05 21:24:19.686 19895 19901 D CCodecConfig:   c2::u32 coded.bitrate.value = 20000000
+09-05 21:24:19.686 19895 19901 D CCodecConfig:   c2::float coded.frame-rate.value = 30
+09-05 21:24:19.686 19895 19901 D CCodecConfig:   c2::u32 coded.picture-type.value = 0
+09-05 21:24:19.686 19895 19901 D CCodecConfig:   c2::u32 coded.pl.level = 0
+09-05 21:24:19.686 19895 19901 D CCodecConfig:   c2::u32 coded.pl.profile = 20484
+09-05 21:24:19.686 19895 19901 D CCodecConfig:   c2::u32 coded.vui.color.matrix = 255
+09-05 21:24:19.686 19895 19901 D CCodecConfig:   c2::u32 coded.vui.color.primaries = 0
+09-05 21:24:19.686 19895 19901 D CCodecConfig:   c2::u32 coded.vui.color.range = 0
+09-05 21:24:19.686 19895 19901 D CCodecConfig:   c2::u32 coded.vui.color.transfer = 255
+09-05 21:24:19.686 19895 19901 D CCodecConfig:   c2::u32 coding.intra-refresh.mode = 0
+09-05 21:24:19.686 19895 19901 D CCodecConfig:   c2::float coding.intra-refresh.period = 0
+09-05 21:24:19.686 19895 19901 D CCodecConfig:   c2::u32 coding.request-sync-frame.value = 0
+09-05 21:24:19.686 19895 19901 D CCodecConfig:   c2::i64 coding.sync-frame-interval.value = 1000000
+09-05 21:24:19.686 19895 19901 D CCodecConfig:   Buffer coding.temporal-layering = {
+09-05 21:24:19.686 19895 19901 D CCodecConfig:     00000000:  10 00 00 00 07 20 01 52  00 00 00 00 00 00 00 00  ..... .R........
+09-05 21:24:19.686 19895 19901 D CCodecConfig:   }
+09-05 21:24:19.686 19895 19901 D CCodecConfig:   c2::u32 default.color.matrix = 0
+09-05 21:24:19.686 19895 19901 D CCodecConfig:   c2::u32 default.color.primaries = 0
+09-05 21:24:19.686 19895 19901 D CCodecConfig:   c2::u32 default.color.range = 0
+09-05 21:24:19.686 19895 19901 D CCodecConfig:   c2::u32 default.color.tra
+09-05 21:24:19.686  8014 19908 D TrafficStats: tagSocket(99) with statsTag=0xffffffff, statsUid=-1
+09-05 21:24:19.686 19895 19901 W ColorUtils: expected specified color aspects (0:0:255:255)
+09-05 21:24:19.692 19895 19895 D CodecSeeding: Seed: codec c2.qti.avc.encoder, mediatype video/avc, overrideable 1
+09-05 21:24:19.693 19895 19895 D CodecProperties: setTuningValue(vq-target-bpp,0)
+09-05 21:24:19.693 19895 19895 D CodecProperties: setTuningValue(vq-target-bpp-1080p,1.90)
+09-05 21:24:19.693 19895 19895 D CodecProperties: setTuningValue(vq-target-bpp-720p,2.25)
+09-05 21:24:19.693 19895 19895 D CodecProperties: setTuningValue(vq-target-bpp-540p,2.65)
+09-05 21:24:19.693 19895 19895 D CodecProperties: setTuningValue(vq-target-bpp-480p,3.00)
+09-05 21:24:19.693 19895 19895 D CodecProperties: setTuningValue(vq-target-bpp-320x240,0)
+09-05 21:24:19.693 19895 19895 D CodecProperties: setTuningValue(vq-target-qpmax,-1)
+09-05 21:24:19.693 19895 19895 D CodecProperties: setTuningValue(vq-target-qpmax-1080p,45)
+09-05 21:24:19.693 19895 19895 D CodecProperties: setTuningValue(vq-target-qpmax-720p,43)
+09-05 21:24:19.693 19895 19895 D CodecProperties: setTuningValue(vq-target-qpmax-540p,42)
+09-05 21:24:19.693 19895 19895 D CodecProperties: setTuningValue(vq-target-qpmax-480p,38)
+09-05 21:24:19.693 19895 19895 D CodecProperties: setTuningValue(vq-bitrate-phaseout,1.75)
+09-05 21:24:19.693 19895 19895 D CodecProperties: setTuningValue(vq-boost-missing-qp,0.20)
+09-05 21:24:19.693 19895 19895 D CodecProperties: setFeatureValue(can-swap-width-height,1)
+09-05 21:24:19.693 19895 19895 D CodecProperties: setFeatureValue(intra-refresh,0)
+09-05 21:24:19.693 19895 19895 D CodecProperties: setFeatureValue(_vq_eligible.device,1)
+09-05 21:24:19.693 19895 19895 D CodecProperties: setFeatureValue(_quality.target,1)
+09-05 21:24:19.693 19895 19895 D CodecSeeding: Seed: codec c2.qti.avc.encoder, mediatype video/avc, overrideable 0
+09-05 21:24:19.693 19895 19895 D VQApply : minquality: 1920x1200 outside of shaping range
+09-05 21:24:19.693 19895 19895 D MediaCodec: shapeMediaFormat: deltas(1): AMessage(what = 0x00000000) = {
+09-05 21:24:19.693 19895 19895 D MediaCodec:     int32_t android._encoding-quality-level = 0
+09-05 21:24:19.693 19895 19895 D MediaCodec:   }
+09-05 21:24:19.693 19895 19900 D MediaCodec: flushMediametrics
+09-05 21:24:19.694 19895 19901 D CCodec  : [c2.qti.avc.encoder] buffers are bound to CCodec for this session
+09-05 21:24:19.694 19895 19901 D CCodecConfig: no c2 equivalents for color-format
+09-05 21:24:19.694 19895 19901 D CCodecConfig: no c2 equivalents for max-bframes
+09-05 21:24:19.694 19895 19901 D CCodecConfig: no c2 equivalents for flags
+09-05 21:24:19.694 19895 19901 D CCodecConfig: no c2 equivalents for encoder
+09-05 21:24:19.694  1170  2455 E QC2Interface: Few parameters failed to configure
+09-05 21:24:19.695  1170  2455 E VendorCaps: Failed to read platform default max picture width
+09-05 21:24:19.695  1170  2455 E VendorCaps: Failed to read platform default max picture width
+09-05 21:24:19.695 19895 19901 D CCodecConfig: c2 config diff is   c2::u32 coded.bitrate.value = 4000000
+09-05 21:24:19.695 19895 19901 D CCodecConfig:   c2::float coded.frame-rate.value = 60
+09-05 21:24:19.695 19895 19901 D CCodecConfig:   c2::i64 coding.sync-frame-interval.value = 10000000
+09-05 21:24:19.695 19895 19901 D CCodecConfig:   c2::u32 raw.pixel-format.value = 34
+09-05 21:24:19.695 19895 19901 D CCodecConfig:   c2::u32 raw.size.height = 1200
+09-05 21:24:19.695 19895 19901 D CCodecConfig:   c2::u32 raw.size.width = 1920
+09-05 21:24:19.696 19895 19901 W ColorUtils: expected specified color aspects (0:0:255:255)
+09-05 21:24:19.696 19895 19901 W Codec2Client: query -- param skipped: index = 3254781982.
+09-05 21:24:19.696 19895 19901 D CCodec  : encoding statistics level = 0
+09-05 21:24:19.696 19895 19901 D CCodec  : setup formats input: AMessage(what = 0x00000000) = {
+09-05 21:24:19.696 19895 19901 D CCodec  :   int32_t android._color-format = 2130708361
+09-05 21:24:19.696 19895 19901 D CCodec  :   Rect crop(0, 0, 1919, 1199)
+09-05 21:24:19.696 19895 19901 D CCodec  :   int32_t color-standard = 130816
+09-05 21:24:19.696 19895 19901 D CCodec  :   int32_t color-range = 0
+09-05 21:24:19.696 19895 19901 D CCodec  :   int32_t color-transfer = 65791
+09-05 21:24:19.696 19895 19901 D CCodec  :   int32_t video-qp-average = 0
+09-05 21:24:19.696 19895 19901 D CCodec  :   int32_t width = 1920
+09-05 21:24:19.696 19895 19901 D CCodec  :   int32_t feature-secure-playback = 0
+09-05 21:24:19.696 19895 19901 D CCodec  :   int32_t frame-rate = 60
+09-05 21:24:19.696 19895 19901 D CCodec  :   int32_t height = 1200
+09-05 21:24:19.696 19895 19901 D CCodec  :   int32_t intra-refresh-period = 0
+09-05 21:24:19.696 19895 19901 D CCodec  :   string mime = "video/raw"
+09-05 21:24:19.696 19895 19901 D CCodec  :   int32_t prepend-sps-pps-to-idr-frames = 0
+09-05 21:24:19.696 19895 19901 D CCodec  :   int32_t priority = 0
+09-05 21:24:19.696 19895 19901 D CCodec  :   Buffer hdr-static-info = {
+09-05 21:24:19.696 19895 19901 D CCodec  :     00000000:  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+09-05 21:24:19.696 19895 19901 D CCodec  :     00000010:  00 00 00 00 00 00 00 00  00                       .........
+09-05 21:24:19.696 19895 19901 D CCodec  :   }
+09-05 21:24:19.696 19895 19901 D CCodec  :   int32_t android._dataspace = 12648448
+09-05 21:24:19.696 19895 19901 D CCodec  :   int64_t android._C2MemoryUsage = 4503599631631104
+09-05 21:24:19.696 19895 19901 D CCodec  :   int32_t color-format = 2130708361
+09-05 21:24:19.696 19895 19901 D CCodec  : }
+09-05 21:24:19.696 19895 19901 D CCodec  : setup formats output: AMessage(what = 0x00000000) = {
+09-05 21:24:19.696 19895 19901 D CCodec  :   int32_t bitrate = 4000000
+09-05 21:24:19.696 19895 19901 D CCodec  :   int32_t bitrate-mode = 1
+09-05 21:24:19.696 19895 19901 D CCodec  :   Rect crop(0, 0, 1919, 1199)
+09-05 21:24:19.696 19895 19901 D CCodec  :   int32_t width = 1920
+09-05 21:24:19.696 19895 19901 D CCodec  :   int32_t color-standard = 130816
+09-05 21:24:19.696 19895 19901 D CCodec  :   int32_t color-range = 0
+09-05 21:24:19.696 19895 19901 D CCodec  :   int32_t color-transfer = 65791
+09-05 21:24:19.696 19895 19901 D CCodec  :   int32_t feature-secure-playback = 0
+09-05 21:24:19.696 19895 19901 D CCodec  :   int32_t frame-rate = 60
+09-05 21:24:19.696 19895 19901 D CCodec  :   int32_t height = 1200
+09-05 21:24:19.696 19895 19901 D CCodec  :   int32_t intra-refresh-period = 0
+09-05 21:24:19.696 19895 19901 D CCodec  :   int32_t max-bitrate = 4000000
+09-05 21:24:19.696 19895 19901 D CCodec  :   string mime = "video/avc"
+09-05 21:24:19.696 19895 19901 D CCodec  :   int32_t prepend-sps-pps-to-idr-frames = 0
+09-05 21:24:19.696 19895 19901 D CCodec  :   int32_t priority = 0
+09-05 21:24:19.696 19895 19901 D CCodec  :   int32_t profile = 8
+09-05 21:24:19.696 19895 19901 D CCodec  :   int32_t video-qp-average = 0
+09-05 21:24:19.696 19895 19901 D CCodec  : }
+09-05 21:24:19.696 19895 19901 I CCodecConfig: query failed after returning 24 values (BAD_INDEX)
+09-05 21:24:19.700 19895 19901 D CCodec  : input format changed to AMessage(what = 0x00000000) = {
+09-05 21:24:19.700 19895 19901 D CCodec  :   int32_t android._color-format = 2130708361
+09-05 21:24:19.700 19895 19901 D CCodec  :   Rect crop(0, 0, 1919, 1199)
+09-05 21:24:19.700 19895 19901 D CCodec  :   int32_t color-standard = 1
+09-05 21:24:19.700 19895 19901 D CCodec  :   int32_t color-range = 2
+09-05 21:24:19.700 19895 19901 D CCodec  :   int32_t color-transfer = 3
+09-05 21:24:19.700 19895 19901 D CCodec  :   int32_t video-qp-average = 0
+09-05 21:24:19.700 19895 19901 D CCodec  :   int32_t width = 1920
+09-05 21:24:19.700 19895 19901 D CCodec  :   int32_t feature-secure-playback = 0
+09-05 21:24:19.700 19895 19901 D CCodec  :   int32_t frame-rate = 60
+09-05 21:24:19.700 19895 19901 D CCodec  :   int32_t height = 1200
+09-05 21:24:19.700 19895 19901 D CCodec  :   int32_t intra-refresh-period = 0
+09-05 21:24:19.700 19895 19901 D CCodec  :   string mime = "video/raw"
+09-05 21:24:19.700 19895 19901 D CCodec  :   int32_t prepend-sps-pps-to-idr-frames = 0
+09-05 21:24:19.700 19895 19901 D CCodec  :   int32_t priority = 0
+09-05 21:24:19.700 19895 19901 D CCodec  :   Buffer hdr-static-info = {
+09-05 21:24:19.700 19895 19901 D CCodec  :     00000000:  00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00  ................
+09-05 21:24:19.700 19895 19901 D CCodec  :     00000010:  00 00 00 00 00 00 00 00  00                       .........
+09-05 21:24:19.700 19895 19901 D CCodec  :   }
+09-05 21:24:19.700 19895 19901 D CCodec  :   int32_t android._dataspace = 260
+09-05 21:24:19.700 19895 19901 D CCodec  :   int64_t android._C2MemoryUsage = 4503599631631104
+09-05 21:24:19.700 19895 19901 D CCodec  :   int32_t color-format = 2130708361
+09-05 21:24:19.700 19895 19901 D CCodec  : }
+09-05 21:24:19.701 19895 19901 D GraphicBufferSource: setting dataspace: 0x104, acquired=0
+09-05 21:24:19.701 19895 19901 D CCodec  : ISConfig not changed
+09-05 21:24:19.701  1170 19907 I QC2Registry: search [c2.qti.avc.encoder] in mEntries
+09-05 21:24:19.701  1170 19907 I QC2Registry: Build pipelined codec for session
+09-05 21:24:19.701  1170 19907 I QC2Registry: Getting stages for pipelined codec
+09-05 21:24:19.701  1170 19907 I QC2Registry: search [c2.qti.avc.encoder] in mEntries
+09-05 21:24:19.701  1170 19907 I QC2Registry: search [c2.qti.avc.encoder] in mFactories
+09-05 21:24:19.702  1170 19907 I QC2V4l2Codec: [avcE_14] Configuring linear pixel format : 1
+09-05 21:24:19.702  1170 19907 I QC2Registry: PreProcessingPipelining not enabled
+09-05 21:24:19.702  1170 19907 I QC2Registry: Encoder doesn't support pipelining. Create standalone codec
+09-05 21:24:19.707  1170 19907 I QC2V4l2Driver: [avcE_14] Device /dev/video33 opened with fd: 7
+09-05 21:24:19.707  1170 19907 I QC2Comp : [avcE_14] set c2d rotation angle 0
+09-05 21:24:19.707  1170 19907 I QC2Comp : [avcE_14] set FastCV mirror type 0
+09-05 21:24:19.708  1170 19907 E QC2V4l2Codec: [avcE_14]  OPAQUE is not a supported pixel format!
+09-05 21:24:19.708  1170 19907 W QC2V4l2Codec: [avcE_14] unknown/unsupported param coding.sync-frame-interval index = 0x52002005
+09-05 21:24:19.708  1170 19907 W QC2V4l2Codec: [avcE_14] unknown/unsupported param coded.p-frame-count index = 0x5200C000
+09-05 21:24:19.708  1170 19907 E QC2V4l2Driver: [avcE_14] Failed to set Priority retVal 22
+09-05 21:24:19.709 19895 19901 W Codec2Client: query -- param skipped: index = 1342179345.
+09-05 21:24:19.709 19895 19901 W Codec2Client: query -- param skipped: index = 2415921170.
+09-05 21:24:19.709 19895 19901 W Codec2Client: query -- param skipped: index = 1610614798.
+09-05 21:24:19.709 19895 19901 D CCodecBufferChannel: [c2.qti.avc.encoder#961] Query input allocators returned 0 params => BAD_INDEX (6)
+09-05 21:24:19.709 19895 19901 D CCodecBufferChannel: [c2.qti.avc.encoder#961] Using basic input block pool with poolID 1 => got 1 - OK (0)
+09-05 21:24:19.709 19895 19901 D CCodecBufferChannel: [c2.qti.avc.encoder#961] Query output allocators returned 0 params => BAD_INDEX (6)
+09-05 21:24:19.709  1170  2455 D C2Store : debug.c2.use_dmabufheaps set, forcing DMABUF Heaps
+09-05 21:24:19.709  1170  2455 D C2Store : Using DMABUF Heaps
+09-05 21:24:19.711  8014 19908 I NtripClient: 认证请求已发送
+09-05 21:24:19.711 19895 19901 I CCodecBufferChannel: [c2.qti.avc.encoder#961] Created output block pool with allocatorID 16 => poolID 17 - OK
+09-05 21:24:19.711 19895 19901 D CCodecBufferChannel: [c2.qti.avc.encoder#961] Configured output block pool ids 17 => OK
+09-05 21:24:19.711  1170  2455 E QC2Interface: Few parameters failed to configure
+09-05 21:24:19.712 19895 19901 D CCodecBufferChannel: [c2.qti.avc.encoder#961] start: updating output delay 4
+09-05 21:24:19.712  1476  1821 W ResourceManagerService: Ignoring request to add new resource entry with value <= 0
+09-05 21:24:19.713  1226  1339 D PermissionCache: checking android.permission.ACCESS_SURFACE_FLINGER for uid=2000 => granted (425 us)
+09-05 21:24:19.713  1226  1339 D PermissionCache: checking android.permission.INTERNAL_SYSTEM_WINDOW for uid=2000 => granted (122 us)
+09-05 21:24:19.718  1129  1300 I libdisplayconfigqti: Register client:ScreenRecorder1226
+09-05 21:24:19.718  1226  1226 I CompositionEngine: Display::setConfiguration: mDisplayExtnIntf: 0xb400006e01e3b7f0
+09-05 21:24:19.724  3610  3823 I MediaProvider: Deleted 0 0 0 1 0 0 0 items on external_primary due to com.android.shell
+09-05 21:24:19.727  3610  3814 W MediaProvider: isAppCloneUserPair for user 0: false
+09-05 21:24:19.729  3610  3814 V MediaProvider: Inserted id:1000000114 less than next row id backup:1000001000.
+09-05 21:24:19.732 19895 19895 D MPEG4Writer: PreAllocation enabled
+09-05 21:24:19.738   702   702 I servicemanager: Could not find android.hardware.graphics.allocator.IAllocator/default in the VINTF manifest.
+09-05 21:24:19.747 19895 19912 D GraphicBufferSource: got buffer with new dataSpace #104
+09-05 21:24:19.747 19895 19912 D C2OMXNode: dataspace changed to 0x104 pixel format: 0x1
+09-05 21:24:19.761  1170 19907 I QC2Comp : Input Format at frame 0: RGBA8888 1920x1200
+09-05 21:24:19.761  1170 19907 I QC2ImageConverter: Constructing QC2VidTxrEngine engine for image conversion
+09-05 21:24:19.783  1170  1170 I EvtQ_c2.qti.avc: type=1400 audit(0.0:10469): avc: denied { open } for path="/dev/__properties__/u:object_r:ab_update_gki_prop:s0" dev="tmpfs" ino=95 scontext=u:r:mediacodec:s0 tcontext=u:object_r:ab_update_gki_prop:s0 tclass=file permissive=1
+09-05 21:24:19.783  1170  1170 I EvtQ_c2.qti.avc: type=1400 audit(0.0:10470): avc: denied { getattr } for path="/dev/__properties__/u:object_r:ab_update_gki_prop:s0" dev="tmpfs" ino=95 scontext=u:r:mediacodec:s0 tcontext=u:object_r:ab_update_gki_prop:s0 tclass=file permissive=1
+09-05 21:24:19.783  1170  1170 I EvtQ_c2.qti.avc: type=1400 audit(0.0:10471): avc: denied { map } for path="/dev/__properties__/u:object_r:ab_update_gki_prop:s0" dev="tmpfs" ino=95 scontext=u:r:mediacodec:s0 tcontext=u:object_r:ab_update_gki_prop:s0 tclass=file permissive=1
+09-05 21:24:19.783  1170  1170 I EvtQ_c2.qti.avc: type=1400 audit(0.0:10472): avc: denied { open } for path="/dev/__properties__/u:object_r:adbd_config_prop:s0" dev="tmpfs" ino=96 scontext=u:r:mediacodec:s0 tcontext=u:object_r:adbd_config_prop:s0 tclass=file permissive=1
+09-05 21:24:19.783  1170  1170 I EvtQ_c2.qti.avc: type=1400 audit(0.0:10473): avc: denied { getattr } for path="/dev/__properties__/u:object_r:adbd_config_prop:s0" dev="tmpfs" ino=96 scontext=u:r:mediacodec:s0 tcontext=u:object_r:adbd_config_prop:s0 tclass=file permissive=1
+09-05 21:24:19.818   709   709 E SELinux : avc:  denied  { find } for interface=vendor.qti.qspmhal::IQspmhal sid=u:r:mediacodec:s0 pid=1170 scontext=u:r:mediacodec:s0 tcontext=u:object_r:vendor_hal_qspmhal_hwservice:s0 tclass=hwservice_manager permissive=1
+09-05 21:24:19.821  1170 19907 I AdrenoVK-0: ===== BEGIN DUMP OF OVERRIDDEN SETTINGS =====
+09-05 21:24:19.821  1170 19907 I AdrenoVK-0: ===== END DUMP OF OVERRIDDEN SETTINGS =====
+09-05 21:24:19.821  8014 19908 E NtripClient: NTRIP认证失败: HTTP 401 Unauthorized
+09-05 21:24:19.821  8014 19908 W RtkService: NTRIP状态异常，准备重连: 认证失败
+09-05 21:24:19.821  8014 19908 I RtkService: 5000ms后重连NTRIP...
+09-05 21:24:19.821  8014 19908 I NtripClient: 已断开NTRIP连接
+09-05 21:24:19.821  8014 19908 I RtkService: 5000ms后重连NTRIP...
+09-05 21:24:19.825  1170 19907 I AdrenoVK-0: QUALCOMM build          : 6ace8db9d1, I82682063e0
+09-05 21:24:19.825  1170 19907 I AdrenoVK-0: Build Date              : 12/30/22
+09-05 21:24:19.825  1170 19907 I AdrenoVK-0: Shader Compiler Version : EV031.36.08.19
+09-05 21:24:19.825  1170 19907 I AdrenoVK-0: Local Branch            : 
+09-05 21:24:19.825  1170 19907 I AdrenoVK-0: Remote Branch           : 
+09-05 21:24:19.825  1170 19907 I AdrenoVK-0: Remote Branch           : 
+09-05 21:24:19.825  1170 19907 I AdrenoVK-0: Reconstruct Branch      : 
+09-05 21:24:19.825  1170 19907 I AdrenoVK-0: Build Config            : S P 12.1.1 AArch64
+09-05 21:24:19.825  1170 19907 I AdrenoVK-0: Driver Path             : /vendor/lib64/hw/vulkan.adreno.so
+09-05 21:24:19.825  1170 19907 I AdrenoVK-0: Driver Version          : 0615.58
+09-05 21:24:19.825  1170 19907 I AdrenoVK-0: PFP                     : 0x016ee202
+09-05 21:24:19.825  1170 19907 I AdrenoVK-0: ME                      : 0x00000000
+09-05 21:24:19.825  1170 19907 I AdrenoVK-0: Application Name    : Video TransFormer Library
+09-05 21:24:19.825  1170 19907 I AdrenoVK-0: Application Version : 0x00000002
+09-05 21:24:19.825  1170 19907 I AdrenoVK-0: Engine Name         : Video TransFormer Library
+09-05 21:24:19.825  1170 19907 I AdrenoVK-0: Engine Version      : 0x00000002
+09-05 21:24:19.825  1170 19907 I AdrenoVK-0: Api Version         : 0x00401000
+09-05 21:24:19.827  1170 19907 I QC2ImageConverter: created QC2ImageConverter: [1920x1200, RGBA8888] -- {do flip 0, then rotate 0} --> [1920x1200, VENUS_NV12]
+09-05 21:24:19.828  1170 19907 I QC2Buf  : use default ref tracker
+09-05 21:24:19.828  1170 19907 I QC2Buf  : Reconfig: clearing from 0 bufs. Peak mem=0 MB
+09-05 21:24:19.828  1170 19907 I QC2Buf  : Reconfig: clearing from 0 bufs. Peak mem=0 MB
+09-05 21:24:19.832   702   702 I servicemanager: Could not find android.hardware.graphics.allocator.IAllocator/default in the VINTF manifest.
+09-05 21:24:19.833  1170 19907 I QC2VidTxrEngine: setupEngine: (vtxr input): w:1920 h:1200 fmr:1
+09-05 21:24:19.833  1170 19907 I QC2VidTxrEngine: setupEngine: (vtxr output): w:1920 h:1200 fmr:3
+09-05 21:24:19.833  1170 19907 I QC2VidTxrEngine: setupEngine: (transform): downscale:0, rot:0, flip:0
+09-05 21:24:19.837   702   702 I servicemanager: Could not find android.hardware.graphics.allocator.IAllocator/default in the VINTF manifest.
+09-05 21:24:19.838  1170 19907 E QC2Gralloc4Buffer: Failed to get YUVPlaneInfo 7
+09-05 21:24:19.892  1170 19907 E QC2Interface: Few parameters failed to configure
+09-05 21:24:19.892  1170 19907 E QC2Comp : [avcE_14] Delayed start: Failed to configure w/h/f on Interface
+09-05 21:24:19.893  1170 19907 E QC2V4l2Driver: [avcE_14] Failed to enable extradata SubFrameOutput
+09-05 21:24:19.895  1170 19907 E QC2V4l2Driver: [avcE_14] failed to streamon for port:IN
+09-05 21:24:19.895  1170 19907 E QC2V4l2Encoder: [avcE_14] Failed to streamon the input port
+09-05 21:24:19.895  1170 19907 E QC2Comp : [avcE_14] startCodec: Codec failed to start !!
+09-05 21:24:19.895  1170 19907 E QC2Comp : [avcE_14] Delayed codec start: failed
+09-05 21:24:19.895  1170 19907 E QC2Comp : [avcE_14] handleQueue: Codec has not started !
+09-05 21:24:19.896  1170 19907 E QC2Comp : [avcE_14][ERROR] entered
+09-05 21:24:19.896 19895 19905 D CCodec  : Component "c2.qti.avc.encoder" returned error: 0xffffffff
+09-05 21:24:19.896 19895 19900 E MediaCodec: Codec reported err 0x80000000/UNKNOWN_ERROR, actionCode 0, while in state 6/STARTED
+09-05 21:24:19.896 19895 19900 D MediaCodec: flushMediametrics
+09-05 21:24:19.896 19895 19895 W ScreenRecord: dequeueOutputBuffer returned INVALID_OPERATION
+09-05 21:24:19.897 19895 19895 E MediaMuxer: stop() is called in invalid state 1
+09-05 21:24:19.898  1170  2455 I QC2Comp : NOTE: Release returning: 0 (OK=0)
+09-05 21:24:19.900 19895 19895 D MediaCodec: flushMediametrics
+09-05 21:24:19.901 19895 19895 D ScreenRecord: failed
+09-05 21:24:19.903  1170  2455 E QC2Comp : queue_nb disallowed in ERROR state
+09-05 21:24:19.903 19895 19909 I hw-BpHwBinder: onLastStrongRef automatically unlinking death recipients
+09-05 21:24:19.904  1170  2455 I hw-BpHwBinder: onLastStrongRef automatically unlinking death recipients
+09-05 21:24:19.904  1170  2455 I QC2CompStore: Deleting component(c2.qti.avc.encoder) id(14)
+09-05 21:24:19.904 19895 19895 I BpBinder: onLastStrongRef automatically unlinking death recipients: <uncached descriptor>
+09-05 21:24:19.904  1170 19911 E QC2V4L2PollThread: [avcE_14] Poll thread received Error on driver fd
+09-05 21:24:19.904  1170  2455 E QC2V4l2Driver: [avcE_14] failed to set maximum number of buffers of 0 for port:OUT
+09-05 21:24:19.904  1170  2455 E QC2V4l2Codec: [avcE_14] Set of reqbufs failed
+09-05 21:24:19.904  1170  2455 E QC2V4l2Driver: [avcE_14] failed to set maximum number of buffers of 0 for port:OUT_META
+09-05 21:24:19.905  1170  2455 E QC2V4l2Codec: [avcE_14] Set of reqbufs for output meta port failed
+09-05 21:24:19.905  1170  2455 E QC2V4l2Driver: [avcE_14] failed to set maximum number of buffers of 0 for port:IN
+09-05 21:24:19.905  1170  2455 E QC2V4l2Codec: [avcE_14] Set of reqbufs failed
+09-05 21:24:19.905  1170  2455 E QC2V4l2Driver: [avcE_14] failed to set maximum number of buffers of 0 for port:IN_META
+09-05 21:24:19.905  1170  2455 E QC2V4l2Codec: [avcE_14] Set of reqbufs for input meta port failed
+09-05 21:24:19.905  1170  2455 E QC2Comp : [avcE_14] Handling stop: Codec failed to stop !!
+09-05 21:24:19.905 19895 19898 I BpBinder: onLastStrongRef automatically unlinking death recipients: <uncached descriptor>
+09-05 21:24:19.906  1170  2455 I QC2V4l2Driver: [avcE_14] Closed device driver with fd: 7
+09-05 21:24:19.906  1170  2455 D BufferPoolAccessor2.0: Destruction - bufferpool2 0xb400007239f4b8c8 cached: 0/0M, 0/0% in use; allocs: 0, 0% recycled; transfers: 0, 0% unfetched
+09-05 21:24:19.907  1170  2455 D BufferPoolAccessor2.0: Destruction - bufferpool2 0xb400007239f41498 cached: 0/0M, 0/0% in use; allocs: 0, 0% recycled; transfers: 0, 0% unfetched
+09-05 21:24:19.907  1170  2455 I QC2Comp : [avcE_14] Deallocated component c2.qti.avc.encoder [id=14]
+09-05 21:24:19.907  1170  2455 D BufferPoolAccessor2.0: Destruction - bufferpool2 0xb400007239f46588 cached: 0/0M, 0/0% in use; allocs: 1, 0% recycled; transfers: 0, 0% unfetched
+09-05 21:24:19.907  1170  2455 I QC2VidTxrEngine: stopEngine: Stopped videoTransformer engine 0
+09-05 21:24:19.908 19895 19895 I BpBinder: onLastStrongRef automatically unlinking death recipients: <uncached descriptor>
+09-05 21:24:20.469  8014 16490 D RtkService: GGA格式: String
+09-05 21:24:20.469  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 21:24:20.469  8014 16490 D RtkService: ...
+09-05 21:24:21.391  2166  7908 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:24:21.394  2166  7908 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:24:21.497  8014 16490 D RtkService: GGA格式: String
+09-05 21:24:21.498  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 21:24:21.498  8014 16490 D RtkService: ...
+09-05 21:24:22.014  4284  4315 D DATA_STREAM: recv_clients thread running
+09-05 21:24:22.249  4284  4316 D DATA_STREAM: recv_clients_tcp thread running
+09-05 21:24:22.564  8014 16490 D RtkService: GGA格式: String
+09-05 21:24:22.564  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 21:24:22.564  8014 16490 D RtkService: ...
+09-05 21:24:23.405  2166  7908 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:24:23.407  2166  7908 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:24:23.450  8014 16490 D RtkService: GGA格式: String
+09-05 21:24:23.451  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 21:24:23.451  8014 16490 D RtkService: ...
+09-05 21:24:23.578  4284  4311 D DATA_STREAM: send_to_clients_tcp thread running
+09-05 21:24:24.571  8014 16490 D RtkService: GGA格式: String
+09-05 21:24:24.572  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 21:24:24.572  8014 16490 D RtkService: ...
+09-05 21:24:24.711  1170  2433 D BufferPoolAccessor2.0: evictor expired: 1, evicted: 0
+09-05 21:24:24.758  3610  3790 D PickerSyncController: Fetching SyncRequestParams. Authority: com.android.providers.media.photopicker. LatestMediaCollectionInfo: Bundle[{last_media_sync_generation=595, media_collection_id=1307:5981421b-8958-411f-b031-4eaa4990ae72:external_primary}]. CachedMediaCollectionInfo: Bundle[{last_media_sync_generation=580, media_collection_id=1307:5981421b-8958-411f-b031-4eaa4990ae72:external_primary}]
+09-05 21:24:24.758  3610  3790 D PickerSyncController: SyncRequestParams. Authority: com.android.providers.media.photopicker. Result: SYNC_TYPE_INCREMENTAL
+09-05 21:24:24.758  3610  3790 I PickerSyncController: Executing SyncAdd. authority: com.android.providers.media.photopicker
+09-05 21:24:24.761  3610  3790 I PickerSyncController: Paged sync successful. QueryArgs: Bundle[{android.provider.extra.SYNC_GENERATION=580}]. Result count: 1. Cursor count: 1
+09-05 21:24:24.762  3610  3790 I PickerSyncController: Executing SyncRemove. authority: com.android.providers.media.photopicker
+09-05 21:24:24.764  3610  3790 W PickerDbFacade: Unable to promote cloud media with localId: 1000000114
+09-05 21:24:24.764  3610  3790 I PickerSyncController: Paged sync successful. QueryArgs: Bundle[{android.provider.extra.SYNC_GENERATION=580}]. Result count: 0. Cursor count: 1
+09-05 21:24:24.765  3610  3790 D PickerSyncController: Fetching SyncRequestParams. Null cloud authority. Result: SYNC_TYPE_RESET
+09-05 21:24:24.765  3610  3790 I PickerSyncController: Executing SyncReset. authority: null
+09-05 21:24:24.765  3610  3790 I PickerSyncController: SyncReset. Authority: null. Result count: 0
+09-05 21:24:24.765  3610  3790 D PickerSyncController: Ignoring cache media info for null authority with bundle: null
+09-05 21:24:24.765  3610  3790 I PickerSyncController: Executing SyncAlbumReset. authority: com.android.providers.media.photopicker. albumId: null
+09-05 21:24:24.765  3610  3790 I PickerSyncController: Successfully executed SyncResetAlbum. authority: com.android.providers.media.photopicker. albumId: null. Result count: 0
+09-05 21:24:24.765  3610  3790 I PickerSyncController: Executing SyncAlbumReset. authority: null. albumId: null
+09-05 21:24:24.765  3610  3790 I PickerSyncController: Successfully executed SyncResetAlbum. authority: null. albumId: null. Result count: 0
+09-05 21:24:24.821  8014  8014 I NtripClient: 已断开NTRIP连接
+09-05 21:24:24.822  8014 19920 I NtripClient: 连接NTRIP服务器: 203.107.45.154:8002/AUTO (移动网络: false)
+09-05 21:24:24.823  8014 19920 D TrafficStats: tagSocket(131) with statsTag=0xffffffff, statsUid=-1
+09-05 21:24:24.847  8014 19920 I NtripClient: 认证请求已发送
+09-05 21:24:24.933  8014 19920 E NtripClient: NTRIP认证失败: HTTP 401 Unauthorized
+09-05 21:24:24.933  8014 19920 W RtkService: NTRIP状态异常，准备重连: 认证失败
+09-05 21:24:24.933  8014 19920 I RtkService: 5000ms后重连NTRIP...
+09-05 21:24:24.934  8014 19920 I NtripClient: 已断开NTRIP连接
+09-05 21:24:24.934  8014 19920 I RtkService: 5000ms后重连NTRIP...
+09-05 21:24:25.424  2166  7908 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:24:25.427  2166  7908 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:24:25.616  4284  4284 D DATA_STREAM: recv comm(8030/udp) data thread running
+09-05 21:24:25.711  1170  2433 D BufferPoolAccessor2.0: evictor expired: 2, evicted: 0
+09-05 21:24:25.787  8014 16490 D RtkService: GGA格式: String
+09-05 21:24:25.787  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 21:24:25.787  8014 16490 D RtkService: ...
+09-05 21:24:26.644  8014 16490 D RtkService: GGA格式: String
+09-05 21:24:26.644  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 21:24:26.644  8014 16490 D RtkService: ...
+09-05 21:24:27.061  4284  4315 D DATA_STREAM: recv_clients thread running
+09-05 21:24:27.311  4284  4316 D DATA_STREAM: recv_clients_tcp thread running
+09-05 21:24:27.440  2166  2181 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:24:27.443  2166  2181 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:24:27.449  8014 16490 D RtkService: GGA格式: String
+09-05 21:24:27.449  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 21:24:27.449  8014 16490 D RtkService: ...
+09-05 21:24:28.359  8014 16490 D RtkService: GGA格式: String
+09-05 21:24:28.359  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 21:24:28.359  8014 16490 D RtkService: ...
+09-05 21:24:28.620  4284  4311 D DATA_STREAM: send_to_clients_tcp thread running
+09-05 21:24:29.410  8014 16490 D RtkService: GGA格式: String
+09-05 21:24:29.410  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 21:24:29.410  8014 16490 D RtkService: ...
+09-05 21:24:29.453  2166  7908 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:24:29.455  2643  2643 D QtiCarrierConfigHelper: WARNING, no carrier configs on phone Id: 0
+09-05 21:24:29.456  2166  2181 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:24:29.457  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=39 totalBatteryCapacity=-2147483648
+09-05 21:24:29.457  2409  4858 D PowerUI : can't show warning due to - plugged: true status unknown: false
+09-05 21:24:29.934  8014  8014 I NtripClient: 已断开NTRIP连接
+09-05 21:24:29.935  8014 19926 I NtripClient: 连接NTRIP服务器: 203.107.45.154:8002/AUTO (移动网络: false)
+09-05 21:24:29.936  8014 19926 D TrafficStats: tagSocket(111) with statsTag=0xffffffff, statsUid=-1
+09-05 21:24:29.990  8014 19926 I NtripClient: 认证请求已发送
+09-05 21:24:30.075  8014 19926 E NtripClient: NTRIP认证失败: HTTP 401 Unauthorized
+09-05 21:24:30.076  8014 19926 W RtkService: NTRIP状态异常，准备重连: 认证失败
+09-05 21:24:30.076  8014 19926 I RtkService: 5000ms后重连NTRIP...
+09-05 21:24:30.076  8014 19926 I NtripClient: 已断开NTRIP连接
+09-05 21:24:30.076  8014 19926 I RtkService: 5000ms后重连NTRIP...
+09-05 21:24:30.354  8014 16490 D RtkService: GGA格式: String
+09-05 21:24:30.354  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 21:24:30.354  8014 16490 D RtkService: ...
+09-05 21:24:31.390  8014 16490 D RtkService: GGA格式: String
+09-05 21:24:31.390  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 21:24:31.390  8014 16490 D RtkService: ...
+09-05 21:24:31.471  2166  2181 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:24:31.474  2643  2643 D QtiCarrierConfigHelper: WARNING, no carrier configs on phone Id: 0
+09-05 21:24:31.475  2409  4962 D PowerUI : can't show warning due to - plugged: true status unknown: false
+09-05 21:24:31.476  2166  2202 E system_server: Cannot read thread CPU times for PID 2166
+09-05 21:24:31.478  2166  7908 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:24:31.480  1116 16658 I libusbconfigfs: event=1 on fd=5
+09-05 21:24:31.481  2166  7908 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:24:31.484  2166  7908 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:24:31.484  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=38 totalBatteryCapacity=-2147483648
+09-05 21:24:32.107  4284  4315 D DATA_STREAM: recv_clients thread running
+09-05 21:24:32.372  4284  4316 D DATA_STREAM: recv_clients_tcp thread running
+09-05 21:24:32.429  8014 16490 D RtkService: GGA格式: String
+09-05 21:24:32.430  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 21:24:32.430  8014 16490 D RtkService: ...
+09-05 21:24:33.207  4284  4284 D DATA_STREAM: recv comm(8030/udp) data thread running
+09-05 21:24:33.410  8014 16490 D RtkService: GGA格式: String
+09-05 21:24:33.411  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 21:24:33.411  8014 16490 D RtkService: ...
+09-05 21:24:33.486  2166  7908 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:24:33.488  2166  7908 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:24:33.663  4284  4311 D DATA_STREAM: send_to_clients_tcp thread running
+09-05 21:24:34.388  8014 16490 D RtkService: GGA格式: String
+09-05 21:24:34.388  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 21:24:34.388  8014 16490 D RtkService: ...
+09-05 21:24:35.076  8014  8014 I NtripClient: 已断开NTRIP连接
+09-05 21:24:35.077  8014 19933 I NtripClient: 连接NTRIP服务器: 203.107.45.154:8002/AUTO (移动网络: false)
+09-05 21:24:35.077  8014 19933 D TrafficStats: tagSocket(126) with statsTag=0xffffffff, statsUid=-1
+09-05 21:24:35.099  8014 19933 I NtripClient: 认证请求已发送
+09-05 21:24:35.192  8014 19933 E NtripClient: NTRIP认证失败: HTTP 401 Unauthorized
+09-05 21:24:35.192  8014 19933 W RtkService: NTRIP状态异常，准备重连: 认证失败
+09-05 21:24:35.192  8014 19933 I RtkService: 5000ms后重连NTRIP...
+09-05 21:24:35.192  8014 19933 I NtripClient: 已断开NTRIP连接
+09-05 21:24:35.192  8014 19933 I RtkService: 5000ms后重连NTRIP...
+09-05 21:24:35.456  8014 16490 D RtkService: GGA格式: String
+09-05 21:24:35.457  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 21:24:35.457  8014 16490 D RtkService: ...
+09-05 21:24:35.502  2166  2888 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:24:35.504  2643  2643 D QtiCarrierConfigHelper: WARNING, no carrier configs on phone Id: 0
+09-05 21:24:35.505  2166 11629 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:24:35.505  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=38 totalBatteryCapacity=-2147483648
+09-05 21:24:35.505  2409  2985 D PowerUI : can't show warning due to - plugged: true status unknown: false
+09-05 21:24:36.312  8014 16490 D RtkService: GGA格式: String
+09-05 21:24:36.312  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 21:24:36.312  8014 16490 D RtkService: ...
+09-05 21:24:37.153  4284  4315 D DATA_STREAM: recv_clients thread running
+09-05 21:24:37.344  8014 16490 D RtkService: GGA格式: String
+09-05 21:24:37.344  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 21:24:37.344  8014 16490 D RtkService: ...
+09-05 21:24:37.435  4284  4316 D DATA_STREAM: recv_clients_tcp thread running
+09-05 21:24:37.517  2166  4691 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:24:37.518  2643  2643 D QtiCarrierConfigHelper: WARNING, no carrier configs on phone Id: 0
+09-05 21:24:37.519  2409  4255 D PowerUI : can't show warning due to - plugged: true status unknown: false
+09-05 21:24:37.520  2166  2888 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:24:37.520  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=38 totalBatteryCapacity=-2147483648
+09-05 21:24:38.274  8014 16490 D RtkService: GGA格式: String
+09-05 21:24:38.274  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 21:24:38.274  8014 16490 D RtkService: ...
+09-05 21:24:38.706  4284  4311 D DATA_STREAM: send_to_clients_tcp thread running
+09-05 21:24:39.256  8014 16490 D RtkService: GGA格式: String
+09-05 21:24:39.256  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 21:24:39.256  8014 16490 D RtkService: ...
+09-05 21:24:39.533  2166 11629 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:24:39.536  2643  2643 D QtiCarrierConfigHelper: WARNING, no carrier configs on phone Id: 0
+09-05 21:24:39.537  2166  2888 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:24:39.538  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=38 totalBatteryCapacity=-2147483648
+09-05 21:24:39.538  2409  3944 D PowerUI : can't show warning due to - plugged: true status unknown: false
+09-05 21:24:40.193  8014  8014 I NtripClient: 已断开NTRIP连接
+09-05 21:24:40.194  8014 19939 I NtripClient: 连接NTRIP服务器: 203.107.45.154:8002/AUTO (移动网络: false)
+09-05 21:24:40.194  8014 19939 D TrafficStats: tagSocket(133) with statsTag=0xffffffff, statsUid=-1
+09-05 21:24:40.260  8014 19939 I NtripClient: 认证请求已发送
+09-05 21:24:40.343  8014 16490 D RtkService: GGA格式: String
+09-05 21:24:40.343  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 21:24:40.343  8014 16490 D RtkService: ...
+09-05 21:24:40.398  8014 19939 E NtripClient: NTRIP认证失败: HTTP 401 Unauthorized
+09-05 21:24:40.399  8014 19939 W RtkService: NTRIP状态异常，准备重连: 认证失败
+09-05 21:24:40.399  8014 19939 I RtkService: 5000ms后重连NTRIP...
+09-05 21:24:40.399  8014 19939 I NtripClient: 已断开NTRIP连接
+09-05 21:24:40.399  8014 19939 I RtkService: 5000ms后重连NTRIP...
+09-05 21:24:40.799  4284  4284 D DATA_STREAM: recv comm(8030/udp) data thread running
+09-05 21:24:41.345  8014 16490 D RtkService: GGA格式: String
+09-05 21:24:41.345  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 21:24:41.345  8014 16490 D RtkService: ...
+09-05 21:24:41.550  2166 11629 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:24:41.551  2643  2643 D QtiCarrierConfigHelper: WARNING, no carrier configs on phone Id: 0
+09-05 21:24:41.553  2409  4760 D PowerUI : can't show warning due to - plugged: true status unknown: false
+09-05 21:24:41.553  2166  4691 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:24:41.553  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=38 totalBatteryCapacity=-2147483648
+09-05 21:24:42.202  4284  4315 D DATA_STREAM: recv_clients thread running
+09-05 21:24:42.424  8014 16490 D RtkService: GGA格式: String
+09-05 21:24:42.424  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 21:24:42.424  8014 16490 D RtkService: ...
+09-05 21:24:42.501  4284  4316 D DATA_STREAM: recv_clients_tcp thread running
+09-05 21:24:43.344  8014 16490 D RtkService: GGA格式: String
+09-05 21:24:43.345  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 21:24:43.345  8014 16490 D RtkService: ...
+09-05 21:24:43.565  2166 11629 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:24:43.568  2166 11629 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:24:43.753  4284  4311 D DATA_STREAM: send_to_clients_tcp thread running
+09-05 21:24:44.314  8014 16490 D RtkService: GGA格式: String
+09-05 21:24:44.314  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 21:24:44.314  8014 16490 D RtkService: ...
+09-05 21:24:45.400  8014  8014 I NtripClient: 已断开NTRIP连接
+09-05 21:24:45.400  8014 19945 I NtripClient: 连接NTRIP服务器: 203.107.45.154:8002/AUTO (移动网络: false)
+09-05 21:24:45.401  8014 19945 D TrafficStats: tagSocket(5) with statsTag=0xffffffff, statsUid=-1
+09-05 21:24:45.428  8014 16490 D RtkService: GGA格式: String
+09-05 21:24:45.428  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 21:24:45.428  8014 16490 D RtkService: ...
+09-05 21:24:45.515  8014 19945 I NtripClient: 认证请求已发送
+09-05 21:24:45.581  2166  2888 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:24:45.583  2643  2643 D QtiCarrierConfigHelper: WARNING, no carrier configs on phone Id: 0
+09-05 21:24:45.584  2166 11629 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:24:45.585  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=38 totalBatteryCapacity=-2147483648
+09-05 21:24:45.585  2409  4827 D PowerUI : can't show warning due to - plugged: true status unknown: false
+09-05 21:24:45.612  8014 19945 E NtripClient: NTRIP认证失败: HTTP 401 Unauthorized
+09-05 21:24:45.612  8014 19945 W RtkService: NTRIP状态异常，准备重连: 认证失败
+09-05 21:24:45.612  8014 19945 I RtkService: 5000ms后重连NTRIP...
+09-05 21:24:45.613  8014 19945 I NtripClient: 已断开NTRIP连接
+09-05 21:24:45.613  8014 19945 I RtkService: 5000ms后重连NTRIP...
+09-05 21:24:46.269  8014 16490 D RtkService: GGA格式: String
+09-05 21:24:46.269  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 21:24:46.269  8014 16490 D RtkService: ...
+09-05 21:24:47.249  4284  4315 D DATA_STREAM: recv_clients thread running
+09-05 21:24:47.383  8014 16490 D RtkService: GGA格式: String
+09-05 21:24:47.383  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 21:24:47.383  8014 16490 D RtkService: ...
+09-05 21:24:47.568  4284  4316 D DATA_STREAM: recv_clients_tcp thread running
+09-05 21:24:47.597  2166 11629 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:24:47.599  2643  2643 D QtiCarrierConfigHelper: WARNING, no carrier configs on phone Id: 0
+09-05 21:24:47.600  2166  4691 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:24:47.601  2409  4844 D PowerUI : can't show warning due to - plugged: true status unknown: false
+09-05 21:24:47.601  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=38 totalBatteryCapacity=-2147483648
+09-05 21:24:48.391  4284  4284 D DATA_STREAM: recv comm(8030/udp) data thread running
+09-05 21:24:48.679  8014 16490 D RtkService: GGA格式: String
+09-05 21:24:48.680  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 21:24:48.680  8014 16490 D RtkService: ...
+09-05 21:24:48.796  4284  4311 D DATA_STREAM: send_to_clients_tcp thread running
+09-05 21:24:49.614  2166  2888 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:24:49.616  2166  2888 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:24:49.836  8014 16490 D RtkService: GGA格式: String
+09-05 21:24:49.836  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 21:24:49.836  8014 16490 D RtkService: ...
+09-05 21:24:50.357  8014 16490 D RtkService: GGA格式: String
+09-05 21:24:50.357  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 21:24:50.357  8014 16490 D RtkService: ...
+09-05 21:24:50.612  8014  8014 I NtripClient: 已断开NTRIP连接
+09-05 21:24:50.613  8014 19951 I NtripClient: 连接NTRIP服务器: 203.107.45.154:8002/AUTO (移动网络: false)
+09-05 21:24:50.614  8014 19951 D TrafficStats: tagSocket(152) with statsTag=0xffffffff, statsUid=-1
+09-05 21:24:50.667  8014 19951 I NtripClient: 认证请求已发送
+09-05 21:24:50.777  8014 19951 E NtripClient: NTRIP认证失败: HTTP 401 Unauthorized
+09-05 21:24:50.777  8014 19951 W RtkService: NTRIP状态异常，准备重连: 认证失败
+09-05 21:24:50.777  8014 19951 I RtkService: 5000ms后重连NTRIP...
+09-05 21:24:50.778  8014 19951 I NtripClient: 已断开NTRIP连接
+09-05 21:24:50.778  8014 19951 I RtkService: 5000ms后重连NTRIP...
+09-05 21:24:51.300  8014 16490 D RtkService: GGA格式: String
+09-05 21:24:51.300  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+
+09-05 21:24:51.300  8014 16490 D RtkService: ...
+09-05 21:24:51.631  2166  2888 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:24:51.634  2166  2888 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375

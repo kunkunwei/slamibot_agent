@@ -92,3 +92,30 @@ navigation_ros2:
   interface_docs: [src/service.md, src/web_api/API.md]
   status: CONFIRMED
   note: 自研 3D 导航。与 ROS1（Scout mini 2D）严格隔离；与外协 3D 导航是两条不同来源。
+
+d360s_faster_lio_ros2:
+  product: D360S
+  host: 192.168.31.35
+  stack: [ubuntu-22.04, ros2-humble-native, ament, colcon]
+  repository: /home/jetson/SLAMIBOT_D360_Framework
+  branch: codex/d360s-ros2-product-runtime
+  commit: 8a81fe89b6e59170f2a4081e4f85dc8356a70c28
+  branch_policy: "唯一Codex开发分支；旧codex/ros2-humble-installer与codex/d360s-faster-lio-ros2已删除；后续不得随意新建分支"
+  faster_lio_milestone: 09b10a12511d89b71c98f681bcb06980fe3b31e8
+  algorithm_baseline: 29242022982652045f142e550fccfc989add15a7
+  algorithm: [Faster-LIO, IVox, ESEKF, IMU-undistortion]
+  inputs:
+    lidar: { topic: /livox/lidar, type: livox_ros_driver2/msg/CustomMsg, observed_hz: 10.0 }
+    imu: { topic: /livox/imu, type: sensor_msgs/msg/Imu, observed_hz: 200.0 }
+  outputs:
+    odometry: { topic: /Odometry, type: nav_msgs/msg/Odometry, observed_hz: 4.93, frame: camera_init }
+    cloud: { topic: /cloud_registered, type: sensor_msgs/msg/PointCloud2, observed_hz: 4.93, frame: camera_init }
+    path: { topic: /path, type: nav_msgs/msg/Path, default_enabled: false, reason: "main Avia基线path_publish_en=false" }
+  tf: { parent: camera_init, child: body, status: RUNTIME_PASS }
+  resources: { cpu_snapshot: "243-267%（约2.4-2.7核）", rss_mib: "约89-93" }
+  launch_opt_in: { argument: enable_faster_lio, default: false, env: SLAMIBOT_ENABLE_FAST_LIO }
+  runtime_validation: "默认关闭30秒probe PASS；opt-in 90秒probe两次PASS；退出清场PASS"
+  services_final: { ota: disabled_inactive, rosbridge: disabled_inactive, systemcontrol: disabled_inactive }
+  extrinsic: UNKNOWN_D360S_CALIBRATION_REQUIRED
+  evidence: F:/slamibot_agent/evidence/d360s-faster-lio-ros2-20260905
+  status: MIGRATION_BUILD_INSTALL_RUNTIME_PASS

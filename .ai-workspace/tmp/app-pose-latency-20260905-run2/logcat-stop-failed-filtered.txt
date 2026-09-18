@@ -1,0 +1,302 @@
+
+09-05 21:17:54.585  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:17:54.585  8014 16490 D RtkService: ...
+09-05 21:17:55.729  8014 16490 D RtkService: GGA格式: String
+09-05 21:17:55.729  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:17:55.729  8014 16490 D RtkService: ...
+09-05 21:17:56.011  8014 19349 W RtkService: NTRIP状态异常，准备重连: 认证失败
+09-05 21:17:56.011  8014 19349 I RtkService: 5000ms后重连NTRIP...
+09-05 21:17:56.011  8014 19349 I RtkService: 5000ms后重连NTRIP...
+09-05 21:17:56.333  2166 15710 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:17:56.337  2166  4691 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:17:56.337  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=39 totalBatteryCapacity=-2147483648
+09-05 21:17:56.753  8014 16490 D RtkService: GGA格式: String
+09-05 21:17:56.753  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:17:56.753  8014 16490 D RtkService: ...
+09-05 21:17:57.934  8014 16490 D RtkService: GGA格式: String
+09-05 21:17:57.934  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:17:57.934  8014 16490 D RtkService: ...
+09-05 21:17:58.350  2166  2181 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:17:58.352  2166  2181 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:17:58.872  8014 16490 D RtkService: GGA格式: String
+09-05 21:17:58.872  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:17:58.872  8014 16490 D RtkService: ...
+09-05 21:17:59.776  8014 16490 D RtkService: GGA格式: String
+09-05 21:17:59.776  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:17:59.776  8014 16490 D RtkService: ...
+09-05 21:18:00.365  2166  2181 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:00.368  2166  2181 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:00.839  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:00.839  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:00.839  8014 16490 D RtkService: ...
+09-05 21:18:01.157  8014 19356 W RtkService: NTRIP状态异常，准备重连: 认证失败
+09-05 21:18:01.158  8014 19356 I RtkService: 5000ms后重连NTRIP...
+09-05 21:18:01.158  8014 19356 I RtkService: 5000ms后重连NTRIP...
+09-05 21:18:01.951  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:01.951  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:01.951  8014 16490 D RtkService: ...
+09-05 21:18:02.381  2166  2181 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:02.384  2166  2181 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:02.776  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:02.776  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:02.776  8014 16490 D RtkService: ...
+09-05 21:18:03.701  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:03.701  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:03.701  8014 16490 D RtkService: ...
+09-05 21:18:04.397  2166 15710 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:04.400  2166 15710 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:04.964  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:04.964  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:04.964  8014 16490 D RtkService: ...
+09-05 21:18:05.952  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:05.952  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:05.952  8014 16490 D RtkService: ...
+09-05 21:18:06.413  2166  2181 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:06.417  2166 15710 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:06.417  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=39 totalBatteryCapacity=-2147483648
+09-05 21:18:06.417  8014 19362 W RtkService: NTRIP状态异常，准备重连: 认证失败
+09-05 21:18:06.417  8014 19362 I RtkService: 5000ms后重连NTRIP...
+09-05 21:18:06.418  8014 19362 I RtkService: 5000ms后重连NTRIP...
+09-05 21:18:07.117  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:07.118  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:07.118  8014 16490 D RtkService: ...
+09-05 21:18:07.912  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:07.912  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:07.912  8014 16490 D RtkService: ...
+09-05 21:18:08.430  2166  4691 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:08.433  2166  2181 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:08.433  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=39 totalBatteryCapacity=-2147483648
+09-05 21:18:08.951  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:08.952  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:08.952  8014 16490 D RtkService: ...
+09-05 21:18:10.352  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:10.352  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:10.352  8014 16490 D RtkService: ...
+09-05 21:18:10.445  2166 15710 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:10.448  2166 15710 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:10.911  2166 15710 W JobScheduler: Job didn't exist in JobStore: c13cccf #u0a57/10 com.ms.msdisplay/.service.KeepAliveJobService
+09-05 21:18:11.576  8014 19368 W RtkService: NTRIP状态异常，准备重连: 认证失败
+09-05 21:18:11.576  8014 19368 I RtkService: 5000ms后重连NTRIP...
+09-05 21:18:11.576  8014 19368 I RtkService: 5000ms后重连NTRIP...
+09-05 21:18:11.888  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:11.888  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:11.888  8014 16490 D RtkService: ...
+09-05 21:18:12.233  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:12.233  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:12.233  8014 16490 D RtkService: ...
+09-05 21:18:12.461  2166 15710 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:12.465  2166  2181 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:12.465  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=39 totalBatteryCapacity=-2147483648
+09-05 21:18:13.309  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:13.309  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:13.309  8014 16490 D RtkService: ...
+09-05 21:18:14.213  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:14.213  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:14.213  8014 16490 D RtkService: ...
+09-05 21:18:14.477  2166  2181 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:14.480  2166  4691 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:14.480  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=39 totalBatteryCapacity=-2147483648
+09-05 21:18:14.695  2166  2181 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:14.697  2166  2181 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:15.679  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:15.679  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:15.679  8014 16490 D RtkService: ...
+09-05 21:18:15.897  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:15.897  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:15.897  8014 16490 D RtkService: ...
+09-05 21:18:16.494  2166  4691 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:16.496  2166  4691 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:16.677  8014 19374 W RtkService: NTRIP状态异常，准备重连: 认证失败
+09-05 21:18:16.677  8014 19374 I RtkService: 5000ms后重连NTRIP...
+09-05 21:18:16.677  8014 19374 I RtkService: 5000ms后重连NTRIP...
+09-05 21:18:17.092  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:17.092  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:17.092  8014 16490 D RtkService: ...
+09-05 21:18:17.912  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:17.912  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:17.912  8014 16490 D RtkService: ...
+09-05 21:18:18.510  2166  2181 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:18.513  2166  4691 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:18.513  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=39 totalBatteryCapacity=-2147483648
+09-05 21:18:18.695  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:18.695  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:18.695  8014 16490 D RtkService: ...
+09-05 21:18:19.903  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:19.903  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:19.903  8014 16490 D RtkService: ...
+09-05 21:18:20.526  2166 15710 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:20.528  2166 15710 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:21.156  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:21.157  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:21.157  8014 16490 D RtkService: ...
+09-05 21:18:21.827  8014 19381 W RtkService: NTRIP状态异常，准备重连: 认证失败
+09-05 21:18:21.828  8014 19381 I RtkService: 5000ms后重连NTRIP...
+09-05 21:18:21.828  8014 19381 I RtkService: 5000ms后重连NTRIP...
+09-05 21:18:22.541  2166 15710 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:22.544  2166 15710 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:24.275  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:24.275  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:24.275  8014 16490 D RtkService: ...
+09-05 21:18:24.557  2166 15710 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:24.561  2166  4691 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:24.561  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=39 totalBatteryCapacity=-2147483648
+09-05 21:18:26.573  2166 15710 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:26.576  2166 15710 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:26.976  8014 19387 W RtkService: NTRIP状态异常，准备重连: 认证失败
+09-05 21:18:26.976  8014 19387 I RtkService: 5000ms后重连NTRIP...
+09-05 21:18:26.976  8014 19387 I RtkService: 5000ms后重连NTRIP...
+09-05 21:18:28.525  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:28.525  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:28.525  8014 16490 D RtkService: ...
+09-05 21:18:28.589  2166  2181 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:28.593  2166  4691 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:28.593  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=39 totalBatteryCapacity=-2147483648
+09-05 21:18:30.605  2166 15710 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:30.609  2166  2181 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:30.609  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=39 totalBatteryCapacity=-2147483648
+09-05 21:18:31.279  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:31.279  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:31.279  8014 16490 D RtkService: ...
+09-05 21:18:31.351  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:31.351  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:31.351  8014 16490 D RtkService: ...
+09-05 21:18:32.119  8014 19393 W RtkService: NTRIP状态异常，准备重连: 认证失败
+09-05 21:18:32.119  8014 19393 I RtkService: 5000ms后重连NTRIP...
+09-05 21:18:32.119  8014 19393 I RtkService: 5000ms后重连NTRIP...
+09-05 21:18:32.355  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:32.355  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:32.355  8014 16490 D RtkService: ...
+09-05 21:18:32.621  2166 15710 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:32.624  2166 15710 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:33.450  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:33.451  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:33.451  8014 16490 D RtkService: ...
+09-05 21:18:33.451  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:33.451  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:33.451  8014 16490 D RtkService: ...
+09-05 21:18:33.583  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:33.583  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:33.583  8014 16490 D RtkService: ...
+09-05 21:18:34.330  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:34.330  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:34.330  8014 16490 D RtkService: ...
+09-05 21:18:34.637  2166  2181 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:34.640  2166  2181 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:35.489  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:35.489  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:35.489  8014 16490 D RtkService: ...
+09-05 21:18:36.500  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:36.500  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:36.500  8014 16490 D RtkService: ...
+09-05 21:18:36.653  2166 15710 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:36.656  2166 15710 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:37.272  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:37.272  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:37.272  8014 16490 D RtkService: ...
+09-05 21:18:37.272  8014 19399 W RtkService: NTRIP状态异常，准备重连: 认证失败
+09-05 21:18:37.272  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:37.272  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:37.272  8014 16490 D RtkService: ...
+09-05 21:18:37.272  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:37.273  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:37.273  8014 16490 D RtkService: ...
+09-05 21:18:37.273  8014 19399 I RtkService: 5000ms后重连NTRIP...
+09-05 21:18:37.273  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:37.273  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:37.273  8014 16490 D RtkService: ...
+09-05 21:18:37.273  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:37.273  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:37.273  8014 16490 D RtkService: ...
+09-05 21:18:37.273  8014 19399 I RtkService: 5000ms后重连NTRIP...
+09-05 21:18:37.995  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:37.995  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:37.995  8014 16490 D RtkService: ...
+09-05 21:18:38.669  2166 15710 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:38.672  2166 15710 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:39.267  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:39.267  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:39.267  8014 16490 D RtkService: ...
+09-05 21:18:39.855  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:39.855  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:39.855  8014 16490 D RtkService: ...
+09-05 21:18:40.686  2166  2888 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:40.689  2166  2888 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:41.037  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:41.037  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:41.037  8014 16490 D RtkService: ...
+09-05 21:18:41.853  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:41.853  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:41.853  8014 16490 D RtkService: ...
+09-05 21:18:42.376  8014 19405 W RtkService: NTRIP状态异常，准备重连: 认证失败
+09-05 21:18:42.376  8014 19405 I RtkService: 5000ms后重连NTRIP...
+09-05 21:18:42.377  8014 19405 I RtkService: 5000ms后重连NTRIP...
+09-05 21:18:42.701  2166  4691 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:42.704  2166 15710 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:42.704  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=39 totalBatteryCapacity=-2147483648
+09-05 21:18:42.930  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:42.930  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:42.930  8014 16490 D RtkService: ...
+09-05 21:18:43.776  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:43.776  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:43.776  8014 16490 D RtkService: ...
+09-05 21:18:44.684  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:44.685  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:44.685  8014 16490 D RtkService: ...
+09-05 21:18:44.717  2166  2181 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:44.720  2166 15710 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:44.720  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=39 totalBatteryCapacity=-2147483648
+09-05 21:18:45.897  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:45.897  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:45.897  8014 16490 D RtkService: ...
+09-05 21:18:46.733  2166  2181 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:46.736  2166  2181 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:46.908  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:46.908  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:46.908  8014 16490 D RtkService: ...
+09-05 21:18:47.526  8014 19411 W RtkService: NTRIP状态异常，准备重连: 认证失败
+09-05 21:18:47.526  8014 19411 I RtkService: 5000ms后重连NTRIP...
+09-05 21:18:47.526  8014 19411 I RtkService: 5000ms后重连NTRIP...
+09-05 21:18:47.843  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:47.843  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:47.843  8014 16490 D RtkService: ...
+09-05 21:18:48.749  2166 15710 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:48.752  2166 15710 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:48.920  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:48.920  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:48.920  8014 16490 D RtkService: ...
+09-05 21:18:50.055  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:50.055  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:50.055  8014 16490 D RtkService: ...
+09-05 21:18:50.765  2166  4691 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:50.768  2166  4691 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:52.025  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:52.025  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:52.025  8014 16490 D RtkService: ...
+09-05 21:18:52.720  8014 19417 W RtkService: NTRIP状态异常，准备重连: 认证失败
+09-05 21:18:52.720  8014 19417 I RtkService: 5000ms后重连NTRIP...
+09-05 21:18:52.720  8014 19417 I RtkService: 5000ms后重连NTRIP...
+09-05 21:18:52.767  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:52.767  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:52.767  8014 16490 D RtkService: ...
+09-05 21:18:52.781  2166 15710 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:52.785  2166  4691 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:52.785  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=39 totalBatteryCapacity=-2147483648
+09-05 21:18:53.471  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:53.471  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:53.471  8014 16490 D RtkService: ...
+09-05 21:18:53.890  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:53.890  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:53.890  8014 16490 D RtkService: ...
+09-05 21:18:54.797  2166  4691 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:54.800  2166 15710 I BatteryService: mLastBatteryTemperature:  375 batteryTemperature:  375
+09-05 21:18:54.800  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=39 totalBatteryCapacity=-2147483648
+09-05 21:18:55.004  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:55.004  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:55.004  8014 16490 D RtkService: ...
+09-05 21:18:55.945   702   702 I servicemanager: Could not find android.hardware.graphics.allocator.IAllocator/default in the VINTF manifest.
+09-05 21:18:55.973  8014 16490 D RtkService: GGA格式: String
+09-05 21:18:55.974  8014 16490 D RtkService: 收到GGA: $GNGGA,,,,,,0,00,,,M,,M,,*78
+09-05 21:18:55.974  8014 16490 D RtkService: ...
+09-05 21:18:56.396  3610  4026 I MediaProvider: Begin Intent { act=android.intent.action.MEDIA_SCANNER_SCAN_FILE dat=file:///... flg=0x1400010 cmp=com.android.providers.media.module/com.android.providers.media.MediaService }
+09-05 21:18:56.408  3610  4026 I MediaProvider: End Intent { act=android.intent.action.MEDIA_SCANNER_SCAN_FILE dat=file:///... flg=0x1400010 cmp=com.android.providers.media.module/com.android.providers.media.MediaService }
+

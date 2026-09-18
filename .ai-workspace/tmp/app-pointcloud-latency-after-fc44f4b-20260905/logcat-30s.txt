@@ -1,0 +1,101 @@
+--------- beginning of main
+09-05 21:55:09.260  4284  4284 D DATA_STREAM: recv comm(8030/udp) data thread running
+09-05 21:55:09.433 22601 22601 W ProcessState: Extra binder thread started, but 0 threads requested. Do not use *startThreadPool when zero threads are requested.
+09-05 21:55:09.451   702   702 I servicemanager: Could not find android.hardware.graphics.allocator.IAllocator/default in the VINTF manifest.
+09-05 21:55:09.835 22604 22604 I ip      : type=1400 audit(0.0:14812): avc: denied { search } for name="net" dev="dm-14" ino=53 scontext=u:r:system_app:s0 tcontext=u:object_r:net_data_file:s0 tclass=dir permissive=1
+09-05 21:55:10.093  2166 26011 I BatteryService: mLastBatteryTemperature:  377 batteryTemperature:  377
+09-05 21:55:10.095  2643  2643 D QtiCarrierConfigHelper: WARNING, no carrier configs on phone Id: 0
+09-05 21:55:10.096  2166 11629 I BatteryService: mLastBatteryTemperature:  377 batteryTemperature:  377
+09-05 21:55:10.097  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=36 totalBatteryCapacity=-2147483648
+--------- beginning of system
+09-05 21:55:10.097  2409  4844 D PowerUI : can't show warning due to - plugged: true status unknown: false
+09-05 21:55:12.109  2166 26011 I BatteryService: mLastBatteryTemperature:  377 batteryTemperature:  377
+09-05 21:55:12.111  2643  2643 D QtiCarrierConfigHelper: WARNING, no carrier configs on phone Id: 0
+09-05 21:55:12.112  2166 11629 I BatteryService: mLastBatteryTemperature:  377 batteryTemperature:  377
+09-05 21:55:12.112  2409  4858 D PowerUI : can't show warning due to - plugged: true status unknown: false
+09-05 21:55:12.113  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=36 totalBatteryCapacity=-2147483648
+09-05 21:55:13.105  4284  4316 D DATA_STREAM: recv_clients_tcp thread running
+09-05 21:55:13.503  4284  4315 D DATA_STREAM: recv_clients thread running
+09-05 21:55:13.749  4284  4311 D DATA_STREAM: send_to_clients_tcp thread running
+09-05 21:55:14.125  2166 26011 I BatteryService: mLastBatteryTemperature:  377 batteryTemperature:  377
+09-05 21:55:14.128  2166 26011 I BatteryService: mLastBatteryTemperature:  377 batteryTemperature:  377
+09-05 21:55:14.695  2166 26011 I BatteryService: mLastBatteryTemperature:  377 batteryTemperature:  377
+09-05 21:55:14.698  2166 26011 I BatteryService: mLastBatteryTemperature:  377 batteryTemperature:  377
+09-05 21:55:16.141  2166 26011 I BatteryService: mLastBatteryTemperature:  377 batteryTemperature:  377
+09-05 21:55:16.144  2166 26011 I BatteryService: mLastBatteryTemperature:  377 batteryTemperature:  377
+09-05 21:55:16.844  4284  4284 D DATA_STREAM: recv comm(8030/udp) data thread running
+09-05 21:55:18.158  4284  4316 D DATA_STREAM: recv_clients_tcp thread running
+09-05 21:55:18.160  2166 26011 I BatteryService: mLastBatteryTemperature:  377 batteryTemperature:  377
+09-05 21:55:18.162  2166 26011 I BatteryService: mLastBatteryTemperature:  377 batteryTemperature:  377
+09-05 21:55:18.547  4284  4315 D DATA_STREAM: recv_clients thread running
+09-05 21:55:18.789  4284  4311 D DATA_STREAM: send_to_clients_tcp thread running
+09-05 21:55:19.623  4284  4313 D DATA_STREAM: send_to_remote_tcp thread running
+09-05 21:55:20.174  2166 26011 I BatteryService: mLastBatteryTemperature:  377 batteryTemperature:  377
+09-05 21:55:20.175  2643  2643 D QtiCarrierConfigHelper: WARNING, no carrier configs on phone Id: 0
+09-05 21:55:20.177  2409  4962 D PowerUI : can't show warning due to - plugged: true status unknown: false
+09-05 21:55:20.177  2166 11629 I BatteryService: mLastBatteryTemperature:  377 batteryTemperature:  377
+09-05 21:55:20.177  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=36 totalBatteryCapacity=-2147483648
+09-05 21:55:21.365  4284  4312 D DATA_STREAM: send_to_remote thread running
+09-05 21:55:22.189  2166 29500 I BatteryService: mLastBatteryTemperature:  377 batteryTemperature:  377
+09-05 21:55:22.191  2643  2643 D QtiCarrierConfigHelper: WARNING, no carrier configs on phone Id: 0
+09-05 21:55:22.192  2409  2985 D PowerUI : can't show warning due to - plugged: true status unknown: false
+09-05 21:55:22.192  2166 26011 I BatteryService: mLastBatteryTemperature:  377 batteryTemperature:  377
+09-05 21:55:22.193  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=36 totalBatteryCapacity=-2147483648
+09-05 21:55:22.307  4284  4310 D DATA_STREAM: send_to_clients thread running
+09-05 21:55:23.213  4284  4316 D DATA_STREAM: recv_clients_tcp thread running
+09-05 21:55:23.589  4284  4315 D DATA_STREAM: recv_clients thread running
+09-05 21:55:23.829  4284  4311 D DATA_STREAM: send_to_clients_tcp thread running
+09-05 21:55:24.205  2166 11629 I BatteryService: mLastBatteryTemperature:  377 batteryTemperature:  377
+09-05 21:55:24.208  2166 11629 I BatteryService: mLastBatteryTemperature:  377 batteryTemperature:  377
+09-05 21:55:24.427  4284  4284 D DATA_STREAM: recv comm(8030/udp) data thread running
+09-05 21:55:25.702  2166  2166 D CompatibilityInfo: mCompatibilityFlags - 0
+09-05 21:55:25.702  2166  2166 D CompatibilityInfo: applicationDensity - 408
+09-05 21:55:25.702  2166  2166 D CompatibilityInfo: applicationScale - 1.0
+09-05 21:55:25.707  2166 29500 W JobScheduler: Job didn't exist in JobStore: ce4dc89 #u0a57/10 com.ms.msdisplay/.service.KeepAliveJobService
+09-05 21:55:26.221  2166 29500 I BatteryService: mLastBatteryTemperature:  377 batteryTemperature:  377
+09-05 21:55:26.223  2643  2643 D QtiCarrierConfigHelper: WARNING, no carrier configs on phone Id: 0
+09-05 21:55:26.224  2409  4255 D PowerUI : can't show warning due to - plugged: true status unknown: false
+09-05 21:55:26.225  2166 11629 I BatteryService: mLastBatteryTemperature:  377 batteryTemperature:  377
+09-05 21:55:26.225  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=36 totalBatteryCapacity=-2147483648
+09-05 21:55:28.238  2166 29500 I BatteryService: mLastBatteryTemperature:  377 batteryTemperature:  377
+09-05 21:55:28.239  2643  2643 D QtiCarrierConfigHelper: WARNING, no carrier configs on phone Id: 0
+09-05 21:55:28.241  2409  3944 D PowerUI : can't show warning due to - plugged: true status unknown: false
+09-05 21:55:28.241  2166 26011 I BatteryService: mLastBatteryTemperature:  377 batteryTemperature:  377
+09-05 21:55:28.241  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=36 totalBatteryCapacity=-2147483648
+09-05 21:55:28.267  4284  4316 D DATA_STREAM: recv_clients_tcp thread running
+09-05 21:55:28.635  4284  4315 D DATA_STREAM: recv_clients thread running
+09-05 21:55:28.870  4284  4311 D DATA_STREAM: send_to_clients_tcp thread running
+09-05 21:55:30.253  2166 11629 I BatteryService: mLastBatteryTemperature:  377 batteryTemperature:  377
+09-05 21:55:30.256  2166 11629 I BatteryService: mLastBatteryTemperature:  377 batteryTemperature:  377
+09-05 21:55:32.013  4284  4284 D DATA_STREAM: recv comm(8030/udp) data thread running
+09-05 21:55:32.269  2166 29500 I BatteryService: mLastBatteryTemperature:  377 batteryTemperature:  377
+09-05 21:55:32.271  2643  2643 D QtiCarrierConfigHelper: WARNING, no carrier configs on phone Id: 0
+09-05 21:55:32.273  2166 11629 I BatteryService: mLastBatteryTemperature:  377 batteryTemperature:  377
+09-05 21:55:32.273  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=36 totalBatteryCapacity=-2147483648
+09-05 21:55:32.274  2409  4760 D PowerUI : can't show warning due to - plugged: true status unknown: false
+09-05 21:55:33.325  4284  4316 D DATA_STREAM: recv_clients_tcp thread running
+09-05 21:55:33.685  4284  4315 D DATA_STREAM: recv_clients thread running
+09-05 21:55:33.910  4284  4311 D DATA_STREAM: send_to_clients_tcp thread running
+09-05 21:55:34.285  2166 26011 I BatteryService: mLastBatteryTemperature:  377 batteryTemperature:  377
+09-05 21:55:34.288  2166 26011 I BatteryService: mLastBatteryTemperature:  377 batteryTemperature:  377
+09-05 21:55:36.301  2166 26011 I BatteryService: mLastBatteryTemperature:  377 batteryTemperature:  377
+09-05 21:55:36.303  2643  2643 D QtiCarrierConfigHelper: WARNING, no carrier configs on phone Id: 0
+09-05 21:55:36.304  2166 29500 I BatteryService: mLastBatteryTemperature:  377 batteryTemperature:  377
+09-05 21:55:36.304  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=36 totalBatteryCapacity=-2147483648
+09-05 21:55:36.305  2409  4827 D PowerUI : can't show warning due to - plugged: true status unknown: false
+09-05 21:55:38.317  2166 26011 I BatteryService: mLastBatteryTemperature:  377 batteryTemperature:  377
+09-05 21:55:38.319  2643  2643 D QtiCarrierConfigHelper: WARNING, no carrier configs on phone Id: 0
+09-05 21:55:38.320  2166 29500 I BatteryService: mLastBatteryTemperature:  377 batteryTemperature:  377
+09-05 21:55:38.320  2692  2692 V DeviceStatisticsService: chargerType=2 batteryLevel=36 totalBatteryCapacity=-2147483648
+09-05 21:55:38.321  2409  4844 D PowerUI : can't show warning due to - plugged: true status unknown: false
+09-05 21:55:38.377  4284  4316 D DATA_STREAM: recv_clients_tcp thread running
+09-05 21:55:38.731  4284  4315 D DATA_STREAM: recv_clients thread running
+09-05 21:55:38.950  4284  4311 D DATA_STREAM: send_to_clients_tcp thread running
+09-05 21:55:39.601  4284  4284 D DATA_STREAM: recv comm(8030/udp) data thread running
+09-05 21:55:40.008  2166 26011 D ActivityManager: freezer override set to true
+09-05 21:55:40.015  2166 26011 D ActivityManager: freezer override set to false
+09-05 21:55:40.086  2166 26011 D ActivityManager: freezer override set to true
+09-05 21:55:40.155 21983 21999 I e.metacam.debug: Explicit concurrent copying GC freed 66402(3582KB) AllocSpace objects, 1(20KB) LOS objects, 49% free, 11MB/22MB, paused 57us,47us total 28.360ms
+09-05 21:55:40.208  2166 26011 D ActivityManager: freezer override set to false
+09-05 21:55:40.333  2166 26011 I BatteryService: mLastBatteryTemperature:  377 batteryTemperature:  377
+09-05 21:55:40.335  2166 26011 I BatteryService: mLastBatteryTemperature:  377 batteryTemperature:  377

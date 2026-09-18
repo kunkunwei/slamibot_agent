@@ -1,0 +1,1 @@
+    topResumedActivity=ActivityRecord{febd7a3 u0 com.example.metacam.debug/com.example.metacam.MainActivity} t16}

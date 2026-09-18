@@ -1,0 +1,11 @@
+[Unit]
+Description=Run D360 704 read-only sensor monitor (UNINSTALLED LOCAL CANDIDATE)
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=2min
+Persistent=false
+Unit=d360-sensor-guard.service
+
+[Install]
+WantedBy=timers.target

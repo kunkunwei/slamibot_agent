@@ -1,0 +1,51 @@
+# =============================================================================
+# local_costmap  —  tuned2
+# Unitree Go2 quadruped (0.65 m × 0.30 m), 0.46 m outdoor narrow passage
+# =============================================================================
+#
+# 设计要点（综合 tuned1 / tuned3 经验）：
+#
+#   1. 滚动窗口 4×4 m
+#      - tuned1 用 3×3 m，前向只有 1.5 m 视野，进入窄口前才"看见"出口
+#      - tuned3 用 4×4 m，前向 2.0 m，与 TEB max_global_plan_lookahead_dist=2.5 协调
+#      - tuned2 沿用 4×4 m
+#
+#   2. update_frequency=12 Hz
+#      - 与 launch 文件的 controller_frequency=12 Hz 严格对齐
+#      - 消除"地图-控制器"滞后（地图未更新就给控制信号 → 在窄口里碰墙）
+#      - 比 tuned3 的 15 Hz 略低，给 TEB 优化（含 costmap_converter）留出 CPU
+#
+#   3. 显式重写 inflation_radius / cost_scaling_factor
+#      - 防止 costmap_2d 加载顺序导致 0.55 m 的 ROS 默认值生效（经典坑）
+#      - 与 costmap_common_params_tuned.yaml 严格保持一致
+#
+#   4. footprint_clearing_enabled: true
+#      - 强制清除机器狗自身轮廓内的障碍标记
+#      - 四足腿步动作可能被 2D 激光误标为障碍 → 在窄口里"自我困住"
+#      - 这是窄口场景必开的 flag
+# =============================================================================
+
+local_costmap:
+  global_frame: camera_init
+  robot_base_frame: base_link
+
+  update_frequency: 12.0          # 与 controller_frequency 对齐
+  publish_frequency: 5.0          # rviz 可视化（独立于规划频率）
+  static_map: false
+  rolling_window: true
+
+  width: 4.0
+  height: 4.0
+  resolution: 0.05
+
+  transform_tolerance: 0.5
+
+  map_type: costmap
+
+  # ---- 膨胀（必须与 costmap_common_params_tuned.yaml 完全一致）----
+  inflation_radius: 0.10
+  cost_scaling_factor: 12.0
+  # robot_radius: 0.15
+
+  # ---- 自身清除（窄口场景必开）----
+  footprint_clearing_enabled: true

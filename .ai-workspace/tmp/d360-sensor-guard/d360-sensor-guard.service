@@ -1,0 +1,15 @@
+[Unit]
+Description=D360 704 sensor monitor (UNINSTALLED LOCAL CANDIDATE)
+After=network-online.target time-sync.target
+
+[Service]
+Type=oneshot
+User=root
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+RuntimeDirectory=slamibot
+RuntimeDirectoryMode=0755
+ReadWritePaths=/var/lib/slamibot /var/log/slamibot /run/slamibot
+ExecStart=/usr/bin/python3 /usr/local/lib/slamibot/d360-sensor-guard/d360_sensor_guard.py monitor /etc/slamibot/d360-sensor-guard.ini

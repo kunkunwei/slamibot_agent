@@ -16,6 +16,15 @@ repositories:
       - name: master                   # 默认分支（HEAD）
       - name: feat/point-arrival-capture   # 到达点采集（功能分支）
       - name: voice                    # 语音（功能分支）
+    version_audit_2026_08_31:
+      gitee_refs_verified_live:
+        codex/2026_8_25: a467ff87c48c8bc11a4718c6c621e2ac7d1b34aa
+        codex/scout-nav-recovery-20260826: 73b84bb9315caba428a176739904251fafc60b55
+      local_refs:
+        codex/2026_8_25: a467ff87c48c8bc11a4718c6c621e2ac7d1b34aa
+        codex/scout-nav-recovery-20260826: a467ff87c48c8bc11a4718c6c621e2ac7d1b34aa
+      warning: "本地 recovery 分支已被移动，不能代表 Gitee recovery 当前指针；Gitee 2026_8_25 已包含 recovery 后续的 3D launch 修复及 assistant/capture 同步。"
+      dockerfile_evidence: "0cf1d78、73b84bb、a467ff8 的仓库主 Dockerfile 均 COPY src+install；Jetson 的 0cf1d78-installonly 镜像属于实际构建产物/现场层，不能反推为这些提交中的主 Dockerfile 布局。"
     tech_stack: [ros1, noetic, ubuntu-20.04]
     status: CONFIRMED
     clone_cmd: "git clone https://gitee.com/electech6/d360_nav2D.git"
@@ -84,12 +93,50 @@ repositories:
       unrelated_untracked_files: "AGENTS.md、docs/build-and-install.md、scripts/*.ps1；本次未修改"
     note: "main 为旧 WebView+React 实现；codex/native-compose-filament 为 Kotlin+Compose+Filament 原生 App。"
 
+  - id: voice-asr-sherpa
+    name: run_mic_sherpa（ListenGo + sherpa-onnx）
+    role: Scout/D360 离线 ASR、硬件唤醒与语音助手客户端
+    remote_url: git@github.com:kunkunwei/run_mic_sherpa.git
+    remote_host: github
+    local_path: "F:\\run_mic_sherpa"
+    default_branch: main
+    head_2026_09_04: a16fb7942b2884346a45244b0a254a865d04f4aa
+    tech_stack: [python, sherpa-onnx, alsa, listen-go]
+    status: CONFIRMED
+    clone_cmd: "git clone git@github.com:kunkunwei/run_mic_sherpa.git"
+    note: "2026-09-04 全部语音修改已fast-forward合并并推送main；远端和本地仅保留main。模型约341MB、.venv、backups、运行日志/录音和凭据均由.gitignore排除。"
+
   - id: slambot-d360-framework
     name: SLAMIBOT_D360_Framework（D360 驱动/固件框架）
     role: D360 整机驱动框架（含 livox 驱动 / OAK 相机 RTSP），时间戳修复所在地
     remote_url: https://github.com/kunkunwei/SLAMIBOT_D360_Framework.git   # 旧仓库：历史浅克隆缺父提交 5f363da7，push 失败，弃用（有 diag-tiny 残留分支）
     sync_target: https://github.com/kunkunwei/SLAMIBOT_D360.git            # 新目标仓库（空，2026-08-17 用户创建）
     local_path: /home/jetson/SLAMIBOT_D360_Framework
+    deployment_targets:
+      legacy_ros1_board:
+        host: 192.168.31.135
+        path: /home/jetson/SLAMIBOT_D360_Framework
+        stack: [ubuntu-20.04, ros1, noetic]
+        status: CONFIRMED
+      ros2_candidate_board:
+        product: D360S
+        host: 192.168.31.35
+        path: /home/jetson/SLAMIBOT_D360_Framework
+        stack: [ubuntu-22.04, ros2-humble-native, ament, colcon]
+        branch: codex/d360s-ros2-product-runtime
+        base_head: fa6d22567f33102115a7b423dce3c73f1adbcfd7
+        head: 8a81fe89b6e59170f2a4081e4f85dc8356a70c28
+        remote: git@gitee.com:electech6/SLAMIBOT_D360_Framework.git
+        tracking: origin/codex/d360s-ros2-product-runtime
+        dirty: false
+        branch_policy: "唯一Codex开发分支；后续持续复用，不随意创建新分支"
+        removed_branches: [codex/ros2-humble-installer, codex/d360s-faster-lio-ros2]
+        changed_scope: "D360S provision/install/runtime、SDK2 v1.3.1、MID360S/OAK/Faster-LIO、STM32/LED/监控、5001/9090产品适配"
+        build: "稳定基线四包联合PASS；HEAD 8a81fe8为Web监控WIP保存点，尚待最终build/E2E"
+        separation: "provision.bash固化主机；install.bash仅软件安装；runtime.bash独立管理硬件、锁、probe和unit"
+        runtime: "暂停时5001/9090关闭、相关进程none、两锁free、三unit disabled/inactive、STM32 READY"
+        status: D360S_PRODUCT_RUNTIME_WIP_SAVED
+        note: "当前唯一远端Codex分支已线性包含4e9e237安装器、09b10a1 Faster-LIO、2a2dc1b产品监控/OAK、fa6d225 D360控制台及8a81fe8 Web监控WIP；未合并主分支。"
     default_branch: main
     board_unsynced_changes:              # 2026-08-17 板内 git status 确认
       - src/livox_ros_driver2/src/lddc.cpp: "(M) 发布 /clock 时间戳修复"

@@ -1,0 +1,168 @@
+#!/bin/bash
+# Scout Mini 导航 Docker 入口
+# 前置条件: 宿主机已启动 roscore + livox 雷达驱动 + /clock + CAN 底盘
+
+set -e
+
+# -------- ROS 环境 --------
+source /opt/ros/noetic/setup.bash
+source /Scout_mini_navigation/install/setup.bash
+
+
+# 指向宿主机 roscore (host 网络模式下即本机)
+export ROS_MASTER_URI="${ROS_MASTER_URI:-http://127.0.0.1:11311}"
+
+echo "=========================================="
+echo " ROS Master : $ROS_MASTER_URI"
+echo " 工作空间   : /app"
+echo "=========================================="
+
+# -------- 0. ROS 时间初始化 --------
+# rospy.init_node() 启动时读取 /use_sim_time 并据此订阅 /clock。
+# 这里只保证参数先于 nav_multi 固定为 true；/clock 首帧由 nav_multi 自身等待，
+# 不阻塞 rosbridge、Nginx 和 FastAPI 的启动。
+ROS_MASTER_WAIT_TIMEOUT_SEC="${ROS_MASTER_WAIT_TIMEOUT_SEC:-60}"
+ROS_TIME_POLL_INTERVAL_SEC="${ROS_TIME_POLL_INTERVAL_SEC:-1}"
+
+validate_nonnegative_integer() {
+    local name="$1"
+    local value="$2"
+    if ! [[ "$value" =~ ^[0-9]+$ ]]; then
+        echo "[ERROR] $name 必须是非负整数, 当前值: $value"
+        return 1
+    fi
+}
+
+wait_for_ros_master() {
+    local start=$SECONDS
+    echo "[INFO] 等待 ROS Master 可用..."
+    while ! rosnode list >/dev/null 2>&1; do
+        if [ "$ROS_MASTER_WAIT_TIMEOUT_SEC" -gt 0 ] && \
+           [ $((SECONDS - start)) -ge "$ROS_MASTER_WAIT_TIMEOUT_SEC" ]; then
+            echo "[ERROR] 等待 ROS Master 超时(${ROS_MASTER_WAIT_TIMEOUT_SEC}s): $ROS_MASTER_URI"
+            return 1
+        fi
+        sleep "$ROS_TIME_POLL_INTERVAL_SEC"
+    done
+    echo "[OK]   ROS Master 已就绪"
+}
+
+validate_nonnegative_integer "ROS_MASTER_WAIT_TIMEOUT_SEC" "$ROS_MASTER_WAIT_TIMEOUT_SEC"
+validate_nonnegative_integer "ROS_TIME_POLL_INTERVAL_SEC" "$ROS_TIME_POLL_INTERVAL_SEC"
+if [ "$ROS_TIME_POLL_INTERVAL_SEC" -eq 0 ]; then
+    echo "[ERROR] ROS_TIME_POLL_INTERVAL_SEC 必须大于 0"
+    exit 1
+fi
+
+wait_for_ros_master
+rosparam set /use_sim_time true
+if [ "$(rosparam get /use_sim_time 2>/dev/null)" != "true" ]; then
+    echo "[ERROR] 无法确认 /use_sim_time=true, nav_multi 不会启动"
+    exit 1
+fi
+echo "[OK]   /use_sim_time=true; nav_multi 将自行等待 /clock"
+
+# -------- 1. rosbridge (WebSocket 19090, 非阻塞) --------
+echo "[INFO] 启动 rosbridge_server (端口 19090)..."
+rosrun rosbridge_server rosbridge_websocket __name:=scout_nav_rosbridge _port:=19090 _use_compression:=true > /tmp/rosbridge.log 2>&1 &
+ROSBRIDGE_PID=$!
+ROSBRIDGE_READY=0
+for _ in $(seq 1 10); do
+    if ! kill -0 "$ROSBRIDGE_PID" 2>/dev/null; then
+        break
+    fi
+    if rosnode info /scout_nav_rosbridge >/dev/null 2>&1 && \
+       timeout 1 bash -c 'exec 3<>/dev/tcp/127.0.0.1/19090' >/dev/null 2>&1; then
+        ROSBRIDGE_READY=1
+        break
+    fi
+    sleep 1
+done
+if [ "$ROSBRIDGE_READY" -eq 1 ]; then
+    echo "[OK]   rosbridge 已启动 (PID=$ROSBRIDGE_PID)"
+else
+    echo "[ERROR] rosbridge 启动失败, 日志: /tmp/rosbridge.log"
+    tail -n 50 /tmp/rosbridge.log || true
+    exit 1
+fi
+
+# -------- 2. nav_multi_node (后台, 自行等待 /clock) --------
+echo "[INFO] 启动 nav_multi_node ..."
+rosrun nav_api nav_multi_node.py > /tmp/nav_multi.log 2>&1 &
+NAV_PID=$!
+sleep 1
+if kill -0 "$NAV_PID" 2>/dev/null; then
+    echo "[OK]   nav_multi_node 已启动 (PID=$NAV_PID)"
+else
+    echo "[ERROR] nav_multi_node 启动失败, 日志: /tmp/nav_multi.log"
+    exit 1
+fi
+
+# -------- 3. Nginx Web 网关 --------
+echo "[INFO] 启动 React Web + Nginx (端口 80)..."
+nginx -t
+nginx -g "daemon off;" > /tmp/nginx.log 2>&1 &
+NGINX_PID=$!
+sleep 1
+if kill -0 "$NGINX_PID" 2>/dev/null; then
+    echo "[OK]   Web 网关已启动 (PID=$NGINX_PID)"
+else
+    echo "[ERROR] Web 网关启动失败, 日志: /tmp/nginx.log"
+    exit 1
+fi
+
+# -------- 4. FastAPI + MCP --------
+cleanup() {
+    trap - SIGINT SIGTERM
+    echo ""
+    echo "[INFO] 收到退出信号, 正在停止子进程..."
+    for pid in "${API_PID:-}" "$NGINX_PID" "$ROSBRIDGE_PID" "$NAV_PID"; do
+        if [ -n "$pid" ]; then
+            kill "$pid" 2>/dev/null || true
+            wait "$pid" 2>/dev/null || true
+        fi
+    done
+    echo "[OK]   已退出"
+}
+trap 'cleanup; exit 0' SIGINT SIGTERM
+
+echo "[INFO] 启动 FastAPI + MCP (端口 5000)..."
+echo "=========================================="
+echo " Web : http://<jetson-ip>/app/"
+echo " API : http://<jetson-ip>:5000"
+echo " 文档: http://<jetson-ip>:5000/docs"
+echo " MCP : http://<jetson-ip>:5000/mcp"
+echo "=========================================="
+
+NAV_API_PACKAGE_ROOT="$(rospack find nav_api)"
+cd /tmp
+# Runtime image intentionally has no source tree. Import only the installed catkin package.
+export PYTHONPATH="${NAV_API_PACKAGE_ROOT}/../../lib/python3/dist-packages${PYTHONPATH:+:${PYTHONPATH}}"
+export SCOUT_NAV_WS=/Scout_mini_navigation
+export NAV_API_REQUIREMENTS="${NAV_API_PACKAGE_ROOT}/requirements-fastapi.txt"
+export NAV_API_PACKAGE_SHARE="${NAV_API_PACKAGE_ROOT}"
+export MY_NAV_PACKAGE_SHARE="$(rospack find my_nav)"
+export NAV_API_BIN_DIR="${NAV_API_PACKAGE_ROOT}/../../lib/nav_api"
+export SCOUT_NAV_DATA_DIR="${SCOUT_NAV_DATA_DIR:-/var/lib/slamibot}"
+export CAPTURE_DIR="${CAPTURE_DIR:-${SCOUT_NAV_DATA_DIR}/db/captures}"
+export NAV_API_MAP_ROOT="${NAV_API_MAP_ROOT:-${SCOUT_NAV_DATA_DIR}/maps/api_map}"
+export FASTLIO_PCD_DIR="${FASTLIO_PCD_DIR:-${SCOUT_NAV_DATA_DIR}/fastlio/PCD}"
+export FASTLIO_PCD_FILE="${FASTLIO_PCD_FILE:-${FASTLIO_PCD_DIR}/scans.pcd}"
+export NAV_API_DB_PATH="${NAV_API_DB_PATH:-${SCOUT_NAV_DATA_DIR}/nav_api/nav_api.db}"
+export NAV_API_SCHEMA_PATH="${NAV_API_SCHEMA_PATH:-${NAV_API_PACKAGE_ROOT}/db/schema.sql}"
+mkdir -p "${NAV_API_MAP_ROOT}" "${FASTLIO_PCD_DIR}" "$(dirname "${NAV_API_DB_PATH}")" "${CAPTURE_DIR}"
+export ROSBRIDGE_HOST=127.0.0.1
+export ROSBRIDGE_PORT=19090
+export AUDIO_MIC_DEVICE="${AUDIO_MIC_DEVICE:-plughw:CARD=L6Microphone,DEV=0}"
+# Android WebView 通过 appassets 安全域加载本地前端，再跨域访问 BOX API。
+# 保留环境变量覆盖能力，方便部署方追加浏览器或管理端来源。
+export NAV_API_CORS_ORIGINS="${NAV_API_CORS_ORIGINS:-https://appassets.androidplatform.net}"
+/opt/python-api/bin/python3 -m uvicorn fastapi_service.app:app \
+    --host 0.0.0.0 --port 5000 &
+API_PID=$!
+
+set +e
+wait "$API_PID"
+STATUS=$?
+cleanup
+exit "$STATUS"

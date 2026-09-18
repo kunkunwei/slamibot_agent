@@ -1,0 +1,4 @@
+
+  44% 8014/com.example.metacam.debug: 32% user + 11% kernel / faults: 10004913 minor 38 major
+9.9% TOTAL: 5.3% user + 3.4% kernel + 0% iowait + 0.7% irq + 0.3% softirq
+

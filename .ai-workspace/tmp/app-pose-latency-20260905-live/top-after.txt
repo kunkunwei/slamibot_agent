@@ -1,0 +1,562 @@
+Tasks: 557 total,   1 running, 556 sleeping,   0 stopped,   0 zombie
+  Mem:  3741312K total,  3585600K used,   155712K free,     6824K buffers
+ Swap:  2097148K total,   395776K used,  1701372K free,  1530060K cached
+800%cpu  38%user   0%nice  38%sys 717%idle   0%iow   7%irq   0%sirq   0%host
+  PID USER         PR  NI VIRT  RES  SHR S[%CPU] %MEM     TIME+ ARGS
+ 8014 u0_a137      16  -4  17G 314M 167M S 34.4   8.6  84:09.11 com.example.metacam.debug
+20224 shell        20   0  12G 4.8M 3.7M R 13.7   0.1   0:00.06 top -b -n 1
+ 1226 system       -2   0  13G  50M  42M S 13.7   1.3 114:43.77 surfaceflinger
+16487 root         20   0    0    0    0 I  3.4   0.0   0:04.72 [kworker/2:0-events]
+ 1129 system       -3   0  13G  18M  16M S  3.4   0.4  53:58.76 vendor.qti.hardware.display.composer-service
+  526 root         RT   0    0    0    0 S  3.4   0.0  13:54.08 [irq/45-1b8e300.]
+   50 root         20   0    0    0    0 S  3.4   0.0   4:00.02 [rcuog/4]
+20080 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [kworker/5:0H]
+20076 root         20   0    0    0    0 I  0.0   0.0   0:00.03 [kworker/0:0-events]
+19906 root         20   0    0    0    0 I  0.0   0.0   0:01.28 [kworker/u16:0-memlat_wq]
+19777 root         20   0    0    0    0 I  0.0   0.0   0:00.00 [kworker/2:1-mm_percpu_wq]
+19627 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [kworker/4:0H]
+19591 root         20   0    0    0    0 I  0.0   0.0   0:00.10 [kworker/0:1-events]
+19587 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [kworker/5:1H]
+19546 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [kworker/6:0H]
+19375 root         20   0    0    0    0 I  0.0   0.0   0:00.00 [kworker/6:0]
+19318 root          0 -20    0    0    0 I  0.0   0.0   0:00.98 [kworker/u17:1-AR_RPC_RX_WORK_QUEUE]
+19251 root         20   0    0    0    0 I  0.0   0.0   0:00.00 [kworker/4:3]
+19196 u0_a137      20   0  12G 5.5M 2.4M S  0.0   0.1   0:04.23 ar8030_helper_socket -p 50002 -d 0
+19094 root         20   0    0    0    0 I  0.0   0.0   0:00.06 [kworker/0:3-events]
+19049 root         20   0    0    0    0 I  0.0   0.0   0:03.67 [kworker/u16:2-kverityd]
+18857 root         20   0    0    0    0 I  0.0   0.0   0:00.50 [kworker/2:2-events]
+18723 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [kworker/7:1H]
+18678 root         20   0    0    0    0 I  0.0   0.0   0:00.31 [kworker/4:1-events]
+18616 root          0 -20    0    0    0 I  0.0   0.0   0:01.71 [kworker/u17:4-AR_RPC_RX_WORK_QUEUE]
+18485 root         20   0    0    0    0 I  0.0   0.0   0:05.82 [kworker/u16:4-memlat_wq]
+18443 root         20   0    0    0    0 I  0.0   0.0   0:00.00 [kworker/7:2]
+18434 root         20   0    0    0    0 I  0.0   0.0   0:00.00 [kworker/5:0-mm_percpu_wq]
+18295 root         20   0    0    0    0 I  0.0   0.0   0:07.58 [kworker/u16:1-memlat_wq]
+17459 root         20   0    0    0    0 I  0.0   0.0   0:01.02 [kworker/6:1-events]
+16661 root          0 -20    0    0    0 S  0.0   0.0   0:00.40 [irq/208-dwc3]
+16631 root         20   0    0    0    0 I  0.0   0.0   0:01.45 [kworker/7:1-events]
+16627 root         20   0    0    0    0 I  0.0   0.0   0:01.44 [kworker/5:2-events]
+16534 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [kworker/1:0H]
+16459 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [kworker/2:1H]
+16405 root         20   0    0    0    0 I  0.0   0.0   0:00.00 [kworker/1:2-events]
+16213 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [kworker/0:2H]
+16182 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [kworker/3:2H]
+16096 root         20   0    0    0    0 I  0.0   0.0   0:01.25 [kworker/3:1-mm_percpu_wq]
+15794 root          0 -20    0    0    0 I  0.0   0.0   0:07.18 [kworker/u17:2-kgsl-events]
+14334 root         20   0    0    0    0 I  0.0   0.0   0:45.67 [kworker/u16:3-kgsl-lockless-work]
+14321 root         20   0    0    0    0 I  0.0   0.0   0:08.02 [kworker/3:0-sock_diag_events]
+12911 root         20   0    0    0    0 I  0.0   0.0   0:02.26 [kworker/1:0-mm_percpu_wq]
+ 9084 root          0 -20    0    0    0 I  0.0   0.0   0:35.02 [kworker/u17:0-OAL_MAIN_WORK_QUEUE]
+ 6767 system       20   0  16G  93M  49M S  0.0   2.5   0:00.12 com.android.keychain
+ 6750 shell        20   0  12G 4.3M 3.6M S  0.0   0.1   0:00.03 abb
+ 6295 u0_a22       20   0  16G 106M  58M S  0.0   2.9   0:04.16 android.process.media
+ 6290 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [usb_bam_wq]
+ 6289 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/99-arm-smmu]
+ 4767 u0_a60       20   0  15G  87M  43M S  0.0   2.3   0:00.15 com.qualcomm.qti.qms.service.trustzoneaccess
+ 4716 u0_a61       20   0  15G  86M  40M S  0.0   2.3   0:00.10 com.qualcomm.timeservice
+ 4628 system       20   0  15G  87M  42M S  0.0   2.3   0:00.13 com.qualcomm.qti.logkit.lite
+ 4549 system       20   0  15G  93M  51M S  0.0   2.5   0:00.32 com.android.upgrade
+ 4526 u0_a30       20   0  16G  97M  50M S  0.0   2.6   0:00.33 com.android.statementservice
+ 4481 u0_a87       20   0  16G  96M  54M S  0.0   2.6   0:00.33 com.android.remoteprovisioner
+ 4457 u0_a28       20   0  15G  92M  48M S  0.0   2.5   0:00.19 com.android.providers.calendar
+ 4437 u0_a130      20   0  16G 100M  59M S  0.0   2.7   0:00.73 com.android.permissioncontroller
+ 4304 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [SOCKET_TX_WORK_]
+ 4289 system       20   0  12G 3.2M 2.3M S  0.0   0.0   0:12.71 tuntap_bb -p 3 -c -n ar_net0 -m 00:4a:3b:6d:c4:a1 -s 0 -t 41304 -r 62608 -D
+ 4284 system       20   0  13G 5.3M 2.5M S  0.0   0.1  20:39.08 data_stream -l 0 -p 2 -b -1
+ 4085 u0_a97       20   0  16G 106M  65M S  0.0   2.9   0:00.34 org.codeaurora.dialer
+ 4025 system       20   0  13G 4.4M 2.4M S  0.0   0.1   4:29.63 daemon -i 3
+ 3892 u0_a38       20   0  16G 159M  94M S  0.0   4.3   0:05.42 com.google.android.inputmethod.pinyin
+ 3676 system       20   0  16G  93M  47M S  0.0   2.5   6:00.46 com.skydroid.rcservice
+ 3635 u0_a57       20   0  15G  90M  45M S  0.0   2.4   0:03.57 com.ms.msdisplay
+ 3610 u0_a132      20   0  16G 114M  66M S  0.0   3.1   0:29.88 com.android.providers.media.module
+ 3600 u0_a88       20   0  15G  90M  46M S  0.0   2.4   0:00.14 com.qualcomm.location.XT
+ 3585 system       20   0  15G  89M  45M S  0.0   2.4   0:00.13 com.qualcomm.qti.services.secureui:sui_service
+ 3544 u0_a104      20   0  15G  93M  49M S  0.0   2.5   0:00.28 com.qualcomm.location
+ 3537 system       20   0  15G  96M  57M S  0.0   2.6   0:00.29 com.meig.logger
+ 3503 u0_a109      20   0  15G  97M  51M S  0.0   2.6   0:00.46 com.qualcomm.qti.workloadclassifier
+ 3477 u0_a98       20   0  16G  87M  44M S  0.0   2.3   0:00.12 com.qualcomm.qti.services.systemhelper:systemhelper_service
+ 3472 nfc          20   0  15G  90M  46M S  0.0   2.4   0:00.15 com.android.nfc
+ 3423 u0_a91       20   0  15G  84M  40M S  0.0   2.3   0:00.12 com.qualcomm.qti.server.qtiwifi
+ 3420 system       20   0  15G  88M  44M S  0.0   2.4   0:03.84 com.skydroid.rc_daemon
+ 3300 root          0 -20  13G 4.1M 4.1M S  0.0   0.1   0:00.22 thermal-engine-v2
+ 3297 system       20   0  12G 3.6M 3.6M S  0.0   0.0   0:00.01 qspmsvc
+ 3252 u0_a78       20   0  15G 100M  57M S  0.0   2.7   0:00.47 com.android.deskclock
+ 3178 u0_a24       20   0  16G 102M  58M S  0.0   2.7   0:00.55 android.process.acore
+ 3086 u0_a114      20   0  15G  89M  46M S  0.0   2.4   0:00.14 com.qualcomm.qtil.btdsda
+ 2996 u0_a108      20   0  15G  85M  41M S  0.0   2.3   0:00.10 com.android.smspush
+ 2889 u0_a105      20   0  16G 170M 109M S  0.0   4.6   0:10.83 com.android.launcher3
+ 2810 u0_a133      20   0  15G  99M  52M S  0.0   2.7   0:01.93 android.ext.services
+ 2790 webview_zygote 20 0 1.1G  69M  34M S  0.0   1.8   0:00.08 webview_zygote
+ 2739 system       20   0  16G 164M 125M S  0.0   4.4   0:09.06 com.android.settings
+ 2722 u0_a113      20   0  15G  98M  54M S  0.0   2.6   0:00.30 com.qti.qcc
+ 2712 radio        20   0  16G 134M  84M S  0.0   3.6   0:07.37 com.android.phone
+ 2692 u0_a118      20   0  15G  90M  46M S  0.0   2.4   0:09.99 com.qualcomm.qti.devicestatisticsservice
+ 2680 secure_element 20 0  15G  87M  43M S  0.0   2.3   0:00.14 com.android.se
+ 2663 u0_a115      20   0  15G  85M  41M S  0.0   2.3   0:00.14 com.qti.qualcomm.mstatssystemservice
+ 2643 u0_a102      20   0  16G 102M  57M S  0.0   2.7   0:08.28 org.codeaurora.ims
+ 2618 system       20   0  15G  87M  44M S  0.0   2.3   0:00.12 vendor.qti.qesdk.sysservice
+ 2608 u0_a103      20   0  15G  96M  51M S  0.0   2.6   0:00.26 com.qualcomm.qtil.aptxals
+ 2599 u0_a110      20   0  15G  88M  44M S  0.0   2.4   0:00.16 com.qualcomm.qtil.aptxacu
+ 2570 u0_a59       20   0  15G  90M  46M S  0.0   2.4   0:00.17 .qms
+ 2560 u0_a80       20   0  15G  90M  46M S  0.0   2.4   0:00.19 com.qti.phone
+ 2551 u0_a58       20   0  16G  99M  53M S  0.0   2.6   0:00.62 .qtidataservices
+ 2538 radio        20   0  16G  93M  49M S  0.0   2.5   0:00.46 .dataservices
+ 2516 bluetooth    20   0  16G 126M  79M S  0.0   3.4   0:07.34 com.android.bluetooth
+ 2509 network_stack 20  0  16G 105M  60M S  0.0   2.8   0:37.67 com.android.networkstack.process
+ 2409 u0_a107      20   0  17G 253M 168M S  0.0   6.9   3:24.90 com.android.systemui
+ 2400 wifi         20   0  12G  10M 9.2M S  0.0   0.2   0:00.88 wpa_supplicant -O/data/vendor/wifi/wpa/sockets -puse_p2p_group_interface=1 -dd -g@android:wpa_wlan0
+ 2262 root         19  -1    0    0    0 S  0.0   0.0  10:03.96 [cds_ol_rx_threa]
+ 2261 root         18  -2    0    0    0 S  0.0   0.0   0:07.07 [scheduler_threa]
+ 2221 radio        20   0  12G 8.4M 8.4M S  0.0   0.2   0:00.02 ims_rtp_daemon
+ 2166 system       18  -2  20G 409M 288M S  0.0  11.1   7:44.21 system_server
+ 2160 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [dsi_err_workq]
+ 2141 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [wda_wq]
+ 2140 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [dfc_wq]
+ 2038 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [ipafreepagewq35]
+ 2037 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [iparepwq35]
+ 2035 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [ipawq35]
+ 2034 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [iparepwq34]
+ 2033 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [ipawq34]
+ 1872 root         20   0    0    0    0 S  0.0   0.0   0:00.01 [qrtr_rx]
+ 1871 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/229-glink-n]
+ 1774 shell        20   0  13G  15M 5.1M S  0.0   0.4   0:07.94 adbd --root_seclabel=u:r:su:s0
+ 1750 radio        20   0  12G 3.6M 3.6M S  0.0   0.1   0:00.02 adpl
+ 1748 root         20   0  12G 3.5M 3.3M S  0.0   0.0   0:34.08 msm_irqbalance -f /system/vendor/etc/msm_irqbalance.conf
+ 1744 radio        20   0  12G 3.7M 3.7M S  0.0   0.1   0:00.02 qti
+ 1681 system       20   0  12G 4.6M 4.5M S  0.0   0.1   0:00.07 tloc_daemon
+ 1680 system       20   0  13G 8.1M 8.1M S  0.0   0.2   0:00.03 qcc-trd
+ 1679 system       20   0  13G 8.2M 8.2M S  0.0   0.2   0:00.04 qcc-vendor
+ 1669 root         20   0  12G 8.2M 8.2M S  0.0   0.2   0:00.11 update_engine --logtostderr --logtofile --foreground
+ 1659 system       20   0  12G 5.0M 5.0M S  0.0   0.1   0:00.02 gatekeeperd /data/misc/gatekeeper
+ 1651 gps          20   0  13G  13M  13M S  0.0   0.3   0:00.07 xtra-daemon
+ 1650 gps          20   0  12G 5.6M 4.6M S  0.0   0.1   0:00.09 lowi-server
+ 1639 system       20   0  13G 5.3M 5.3M S  0.0   0.1   0:00.03 ATFWD-daemon
+ 1592 gps          20   0  12G 4.0M 3.9M S  0.0   0.1   0:00.03 loc_launcher
+ 1589 gps          20   0  12G 4.0M 4.0M S  0.0   0.1   0:00.01 mlid
+ 1582 radio        20   0  12G 1.9M 1.9M S  0.0   0.0   0:00.01 ssgqmigd
+ 1579 system       20   0  12G 5.7M 5.5M S  0.0   0.1   0:00.42 cnss-daemon -n -l
+ 1557 mediacodec   20   0  13G  21M  20M S  0.0   0.5   0:02.59 media.swcodec oid.media.swcodec/bin/mediaswcodec
+ 1536 system       20   0  12G 4.2M 4.2M S  0.0   0.1   0:00.01 wfdvndservice
+ 1534 system       20   0  12G 4.3M 4.3M S  0.0   0.1   0:00.01 cdsprpcd
+ 1526 system       20   0  12G 4.3M 4.3M S  0.0   0.1   0:00.02 adsprpcd
+ 1524 system       20   0  12G 5.5M 5.5M S  0.0   0.1   0:00.02 qsap_qapeservice
+ 1523 radio        20   0  13G 8.5M 7.8M S  0.0   0.2   0:00.41 qms
+ 1521 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/228-swr_wak]
+ 1519 radio        20   0  12G 3.6M 3.6M S  0.0   0.0   0:00.01 port-bridge
+ 1515 radio        20   0  14G  10M  10M S  0.0   0.2   0:00.73 netmgrd
+ 1512 radio        20   0  12G 7.1M 7.1M S  0.0   0.1   0:15.53 ipacm
+ 1511 radio        20   0  12G 3.3M 3.3M S  0.0   0.0   0:03.59 ipacm-diag
+ 1499 radio        20   0  13G  14M  14M S  0.0   0.3   0:00.22 imsdaemon
+ 1494 system       20   0  13G 9.3M 9.3M S  0.0   0.2   0:00.04 wifidisplayhalservice
+ 1491 system       20   0  13G  15M  15M S  0.0   0.4   0:00.24 cnd
+ 1490 mediacodec   20   0  36M 8.0M 7.9M S  0.0   0.2   0:00.09 media.codec hw/android.hardware.media.omx@1.0-service
+ 1487 system       20   0  12G 6.9M 6.7M S  0.0   0.1   0:00.03 wfdhdcphalservice
+ 1484 system       20   0  12G 6.7M 6.5M S  0.0   0.1   0:00.08 perfservice
+ 1482 wifi         20   0  12G 6.3M 5.8M S  0.0   0.1   0:12.18 wificond
+ 1479 root         RT   0    0    0    0 S  0.0   0.0   0:00.45 [irq/216-swr_mas]
+ 1478 root         30  10  12G 6.4M 4.9M S  0.0   0.1   0:22.41 storaged
+ 1477 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/215-swr_mas]
+ 1476 media        20   0  84M  23M  21M S  0.0   0.6   0:04.44 mediaserver
+ 1469 media        20   0  12G 7.8M 6.4M S  0.0   0.2   0:00.24 media.metrics diametrics
+ 1457 mediaex      20   0  13G  28M  26M S  0.0   0.7   0:00.56 media.extractor aextractor
+ 1455 root         20   0  12G 5.8M 5.1M S  0.0   0.1   0:00.52 installd
+ 1451 incidentd    20   0  12G 4.1M 4.1M S  0.0   0.1   0:00.01 incidentd
+ 1447 cameraserver 20   0  13G  26M  25M S  0.0   0.7   0:00.84 cameraserver
+ 1446 system       20   0  12G 7.3M 5.6M S  0.0   0.2  12:34.45 cnss_diag -q -f -t HELIUM
+ 1438 system       20   0  13G  10M 6.9M S  0.0   0.2   0:02.61 vendor.dpmd
+ 1436 radio        20   0  14G  36M  36M S  0.0   0.9   0:02.36 qcrilNrd
+ 1430 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/98-arm-smmu]
+ 1394 system       20   0  13G 5.2M 5.2M S  0.0   0.1   0:00.01 dpmQmiMgr
+ 1391 system       20   0  12G 4.4M 4.3M S  0.0   0.1   0:00.01 tcmd
+ 1387 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [glink_modem]
+ 1381 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [pdr_notifier_wq]
+ 1376 nobody       20   0  12G 6.0M 4.3M S  0.0   0.1   0:00.82 traced
+ 1373 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [qrtr_rx]
+ 1372 nobody       20   0  12G 8.2M 6.5M S  0.0   0.2   0:03.30 traced_probes
+ 1371 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/214-glink-n]
+ 1369 drm          20   0  28M 6.2M 6.1M S  0.0   0.1   0:00.07 drmserver
+ 1367 system       20   0  12G 3.7M 3.7M S  0.0   0.1   0:00.01 pm-proxy
+ 1236 system       20   0  12G 4.6M 4.6M S  0.0   0.1   0:00.01 sensors.qti
+ 1233 vendor_rfs   20   0  12G 2.9M 2.9M S  0.0   0.0   0:00.21 tftp_server
+ 1229 nobody       20   0  12G 3.4M 3.3M S  0.0   0.0   0:00.08 rmt_storage
+ 1218 gpu_service  20   0  12G 6.5M 6.2M S  0.0   0.1   0:00.04 gpuservice
+ 1208 credstore    20   0  12G 6.4M 6.4M S  0.0   0.1   0:00.01 credstore /data/misc/credstore
+ 1199 audioserver  20   0  13G  36M  31M S  0.0   0.9   0:07.13 audioserver
+ 1196 system       20   0  12G 3.6M 3.6M S  0.0   0.1   0:00.39 pm-service
+ 1191 system       20   0  12G 3.4M 3.4M S  0.0   0.0   0:00.05 pd-mapper
+ 1188 vendor_qrtr  20   0  12G 2.4M 2.4M S  0.0   0.0   0:00.00 qrtr-ns -f
+ 1185 root         20   0  12G 2.4M 2.4M S  0.0   0.0   0:00.01 sh
+ 1183 system       20   0  12G 5.3M 5.3M S  0.0   0.1   0:00.01 vendor.qti.secure_element@1.2-service
+ 1181 system       20   0  12G 4.7M 4.5M S  0.0   0.1   0:00.04 vendor.qti.qspmhal@1.0-service
+ 1174 system       20   0  12G 5.4M 5.4M S  0.0   0.1   0:00.02 vendor.qti.memory.pasrmanager@1.0-service
+ 1172 mediacodec   20   0  13G  14M  14M S  0.0   0.3   0:00.11 media.audio.qc.codec .qti.media.c2audio@1.0-service
+ 1170 mediacodec   20   0  13G  38M  33M S  0.0   1.0   0:00.43 media.hwcodec /vendor.qti.media.c2@1.0-service
+ 1163 system       20   0  12G 4.3M 4.2M S  0.0   0.1   0:00.17 vendor.qti.hardware.vibrator.service
+ 1162 system       20   0  12G 4.1M 4.1M S  0.0   0.1   0:00.00 vendor.qti.hardware.tui_comm@1.0-service-qti
+ 1161 system       20   0  12G 7.2M 7.2M S  0.0   0.1   0:00.02 vendor.qti.hardware.trustedui@1.0-service-qti
+ 1160 system       20   0  12G 4.9M 4.9M S  0.0   0.1   0:00.05 vendor.qti.hardware.soter@1.0-service
+ 1152 system       20   0  12G 4.5M 4.3M S  0.0   0.1   0:00.62 vendor.qti.hardware.servicetracker@1.2-service
+ 1151 system       20   0  12G 5.2M 5.2M S  0.0   0.1   0:00.01 vendor.qti.hardware.sensorscalibrate@1.0-service
+ 1149 system       20   0  12G 5.5M 5.5M S  0.0   0.1   0:00.02 vendor.qti.hardware.secureprocessor@1.0
+ 1143 root         20   0  13G  16M  14M S  0.0   0.4   0:16.55 vendor.qti.hardware.perf-hal-service
+ 1142 root         20   0  12G 4.3M 4.3M S  0.0   0.1   0:00.01 vendor.qti.hardware.limits@1.2-service
+ 1141 root          0 -20    0    0    0 I  0.0   0.0   0:12.33 [kworker/7:2H-kblockd]
+ 1140 system       20   0  12G 4.3M 4.1M S  0.0   0.1   0:00.02 vendor.qti.hardware.lights.service
+ 1139 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [qrtr_rx]
+ 1135 root         20   0  12G 6.8M 6.8M S  0.0   0.1   0:00.02 vendor.qti.hardware.iop@2.0-service
+ 1133 system       20   0  12G 4.0M 4.0M S  0.0   0.1   0:00.01 dspservice
+ 1132 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/213-glink-n]
+ 1128 system       20   0  12G 7.3M 7.0M S  0.0   0.2   0:05.34 vendor.qti.hardware.display.allocator-service
+ 1127 system       20   0  13G 4.0M 4.0M S  0.0   0.1   0:00.01 vendor.qti.hardware.capabilityconfigstore@1.0-service
+ 1124 system       20   0  12G 6.0M 6.0M S  0.0   0.1   0:00.02 vendor.display.color@1.0-service
+ 1122 system       20   0  12G 4.9M 4.9M S  0.0   0.1   0:00.01 qfp-daemon
+ 1120 nobody       20   0  12G 4.1M 3.9M S  0.0   0.1   0:00.99 vendor.qti.hardware.memtrack-service
+ 1119 wifi         20   0  12G 9.4M 8.7M S  0.0   0.2   2:44.68 android.hardware.wifi@1.0-service
+ 1117 root         20   0  12G 4.4M 4.2M S  0.0   0.1   0:09.16 android.hardware.usb@1.2-service-qti
+ 1116 root         20   0  12G 4.4M 4.0M S  0.0   0.1   0:01.67 android.hardware.usb.gadget@1.1-service-qti
+ 1114 root         20   0  12G 4.1M 4.1M S  0.0   0.1   0:00.03 android.hardware.thermal@2.0-service.qti-v2
+ 1110 system       20   0  12G 7.8M 7.8M S  0.0   0.2   0:00.03 android.hardware.sensors@2.1-service.multihal
+ 1108 system       20   0  12G 5.3M 5.3M S  0.0   0.1   0:00.02 android.hardware.power-service
+ 1106 system       20   0  12G 6.2M 6.2M S  0.0   0.1   0:00.06 android.hardware.identity-service-qti
+ 1104 system       20   0  12G 5.4M 5.1M S  0.0   0.1   1:40.95 android.hardware.health-service.qti
+ 1101 gps          20   0  13G  15M  14M S  0.0   0.4   0:06.12 android.hardware.gnss-aidl-service-qti
+ 1097 media        20   0  12G 5.7M 5.5M S  0.0   0.1   0:00.02 android.hardware.drm-service.clearkey
+ 1096 media        20   0  22M 3.9M 3.9M S  0.0   0.1   0:00.02 android.hardware.cas@1.2-service
+ 1091 cameraserver 20   0  13G  24M  22M S  0.0   0.6   0:00.78 android.hardware.camera.provider@2.4-service_64
+ 1086 bluetooth    20   0  13G 5.8M 5.7M S  0.0   0.1   0:06.67 android.hardware.bluetooth@1.0-service-qti
+ 1085 audioserver  20   0  13G  23M  20M S  0.0   0.6   0:14.74 android.hardware.audio.service_64
+ 1084 system       20   0  12G 6.3M 6.0M S  0.0   0.1   0:00.02 qccsyshal@1.2-service
+ 1082 system       20   0  12G 3.6M 3.4M S  0.0   0.1   0:00.02 android.hidl.allocator@1.0-service
+ 1076 system       20   0  12G 4.6M 4.3M S  0.0   0.1   0:13.53 diag-router
+ 1075 system       20   0  13G  10M  10M S  0.0   0.2   0:00.34 ssgtzd
+ 1070 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [glink_cdsp]
+ 1069 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [glink_adsp]
+ 1034 root         20   0  12G 2.9M 2.5M S  0.0   0.0   0:02.47 ip6tables-restore --noflush -w -v
+ 1033 root         20   0  12G 2.9M 2.6M S  0.0   0.0   0:02.84 iptables-restore --noflush -w -v
+ 1024 root         20   0 1.2G 161M 127M S  0.0   4.4   0:02.50 zygote
+ 1023 root         20   0  15G 188M 143M S  0.0   5.1   0:03.84 zygote64
+ 1022 root         20   0  13G  10M 9.0M S  0.0   0.2   0:16.92 netd
+ 1021 statsd       20   0  12G 4.4M 4.1M S  0.0   0.1   0:30.25 statsd
+ 1016 root         RT   0    0    0    0 S  0.0   0.0   0:13.48 [irq/212-fts_ts]
+  993 system       20   0  12G 3.4M 3.3M S  0.0   0.0   0:00.02 time_daemon
+  992 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [fts_wq]
+  954 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [qdss_sw]
+  953 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [qdss_mdm]
+  952 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [qdss]
+  951 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [at_usb2]
+  950 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [at_usb1]
+  949 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [at_usb0]
+  931 tombstoned   20   0  12G 1.9M 1.9M S  0.0   0.0   0:00.00 tombstoned
+  926 root         20   0    0    0    0 S  0.0   0.0   0:00.01 [f2fs_gc-254:14]
+  925 root         20   0    0    0    0 S  0.0   0.0   0:00.56 [f2fs_discard-25]
+  924 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [f2fs_flush-254:]
+  923 root         20   0    0    0    0 S  0.0   0.0   0:00.82 [f2fs_ckpt-254:1]
+  903 system       20   0  12G 4.4M 4.4M S  0.0   0.1   0:00.00 vendor.qti.hardware.qteeconnector@1.0-service
+  900 system       20   0  12G 5.9M 5.9M S  0.0   0.1   0:00.01 vendor.qti.esepowermanager@1.1-service
+  899 nfc          20   0  12G 6.5M 6.5M S  0.0   0.1   0:00.01 vendor.nxp.hardware.nfc@2.0-service
+  898 system       20   0  12G 4.9M 4.9M S  0.0   0.1   0:00.01 android.hardware.gatekeeper@1.0-service-qti
+  897 root         20   0  12G 4.2M 4.2M S  0.0   0.1   0:00.01 android.hardware.boot@1.2-service
+  895 system       20   0  12G 4.3M 4.0M S  0.0   0.1   0:00.01 android.hardware.atrace@1.0-service
+  894 keystore     20   0  12G  12M  11M S  0.0   0.3   0:00.08 keystore2 /data/misc/keystore
+  892 system       20   0  13G 4.7M 4.1M S  0.0   0.1   0:02.50 android.system.suspend@1.0-service
+  887 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [clnt_req]
+  886 root         20   0    0    0    0 S  0.0   0.0   0:10.63 [wlan_logging_th]
+  885 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [cds_recovery_wo]
+  884 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [iparepwq32]
+  883 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [ipawq32]
+  882 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [ipafreepagewq33]
+  881 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [iparepwq33]
+  880 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [ipawq33]
+  879 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [iparepwq36]
+  878 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [ipawq36]
+  877 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [ipa_interrupt_w]
+  869 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [ext4-rsv-conver]
+  868 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [jbd2/mmcblk0p86]
+  856 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [kdmflush]
+  852 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [ext4-rsv-conver]
+  851 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [jbd2/mmcblk0p38]
+  846 root          0 -20    0    0    0 I  0.0   0.0   0:12.65 [kworker/6:2H-kblockd]
+  845 root          0 -20    0    0    0 I  0.0   0.0   0:12.66 [kworker/5:2H-kblockd]
+  841 root         -2   0    0    0    0 S  0.0   0.0   0:00.26 [psimon]
+  816 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [card0-crtc0]
+  815 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [pp_event]
+  814 root         RT   0    0    0    0 S  0.0   0.0   2:41.53 [crtc_event:82]
+  813 root         RT   0    0    0    0 S  0.0   0.0  12:08.82 [crtc_commit:82]
+  812 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/97-arm-smmu]
+  811 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/96-arm-smmu]
+  809 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [ext4-rsv-conver]
+  808 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [jbd2/mmcblk0p6-]
+  807 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [rot_fenceq_0_15]
+  806 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [rot_fenceq_0_14]
+  805 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [rot_fenceq_0_13]
+  804 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [rot_fenceq_0_12]
+  803 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [rot_fenceq_0_11]
+  802 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [rot_fenceq_0_10]
+  801 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [rot_fenceq_0_9]
+  800 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [rot_fenceq_0_8]
+  799 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [rot_fenceq_0_7]
+  798 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [rot_fenceq_0_6]
+  797 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [rot_fenceq_0_5]
+  796 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [rot_fenceq_0_4]
+  795 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [rot_fenceq_0_3]
+  794 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [rot_fenceq_0_2]
+  793 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [rot_fenceq_0_1]
+  792 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [rot_fenceq_0_0]
+  791 root         -6   0    0    0    0 S  0.0   0.0   0:00.00 [rot_doneq_0_1]
+  790 root         -6   0    0    0    0 S  0.0   0.0   0:00.00 [rot_doneq_0_0]
+  789 root         -6   0    0    0    0 S  0.0   0.0   0:00.00 [rot_commitq_0_1]
+  788 root         -6   0    0    0    0 S  0.0   0.0   0:00.00 [rot_commitq_0_0]
+  787 root         20   0  12G 6.9M 6.9M S  0.0   0.1   0:02.71 vold --blkid_context=u:r:blkid:s0 --blkid_untrusted_context=u:r:blkid_untrusted:s0 --fsck_context=u:r:fsck:s0 --fsck_untrusted_context=u:r:fsck_untrusted:s0
+  786 system       20   0  12G 4.3M 4.3M S  0.0   0.1   0:00.01 vendor.qti.hardware.qseecom@1.0-service
+  785 system       20   0  12G 6.7M 6.7M S  0.0   0.1   0:00.11 android.hardware.security.keymint-service-qti
+  784 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [ipa_usb_wq]
+  783 system       20   0  13G 5.9M 5.9M S  0.0   0.1   0:00.06 qseecomd
+  782 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [dsi_post_cmd_tx]
+  781 root         RT   0    0    0    0 S  0.0   0.0  23:14.20 [kgsl_dispatcher]
+  780 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [kgsl_devfreq_wq]
+  779 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/95-arm-smmu]
+  778 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/63-arm-smmu]
+  777 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/53-arm-smmu]
+  776 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/51-arm-smmu]
+  775 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [kgsl-events]
+  774 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [kgsl-lockless-w]
+  773 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/94-arm-smmu]
+  772 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/93-arm-smmu]
+  771 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [kgsl-workqueue]
+  770 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/92-arm-smmu]
+  769 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [cam_cci_wq]
+  768 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [cam_cci_wq]
+  767 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [ipa_pm_activate]
+  766 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [page_recycle_st]
+  765 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [transport_power]
+  764 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [ipa_power_mgmt]
+  761 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [qcom,cam-ope-cd]
+  760 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [qcom,cam-ope-cd]
+  759 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [qcom,cam-ope-cd]
+  758 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [qcom,cam-ope-cd]
+  757 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [qcom,cam-cpas-c]
+  756 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [qcom,cam-cpas-c]
+  755 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [qcom,cam-cpas-c]
+  754 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [qcom,cam-cpas-c]
+  752 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [qcom,cam_virtua]
+  750 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [cam-cpas]
+  749 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/91-arm-smmu]
+  748 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/90-arm-smmu]
+  747 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/89-arm-smmu]
+  742 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [byte-cntr]
+  741 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/88-arm-smmu]
+  736 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/87-arm-smmu]
+  735 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [k_ipa_usb]
+  734 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/86-arm-smmu]
+  733 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/85-arm-smmu]
+  732 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/84-arm-smmu]
+  731 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/137-msm-vid]
+  730 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [batch_workq]
+  729 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [pm_workq]
+  728 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/207-ss_phy_]
+  727 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/206-dm_hs_p]
+  726 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/205-dp_hs_p]
+  725 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/49-pwr_even]
+  724 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [pdr_notifier_wq]
+  722 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/83-arm-smmu]
+  721 root         20   0    0    0    0 S  0.0   0.0   0:00.81 [sdio_tx_tp_test]
+  720 root         20   0    0    0    0 D  0.0   0.0   0:00.82 [sdio_tp_test_st]
+  718 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [SDIO_RX_WORK_QU]
+  717 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [SDIO_REG_WORK_Q]
+  716 root         20   0    0    0    0 S  0.0   0.0   0:00.80 [stat_dump_threa]
+  714 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [AR_RPC_RX_WORK_]
+  713 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [OAL_RX_WORK_QUE]
+  712 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [OAL_TX_WORK_QUE]
+  711 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [OAL_MAIN_WORK_Q]
+  710 system       20   0  12G 4.2M 4.0M S  0.0   0.1   0:00.72 vndservicemanager /dev/vndbinder
+  709 system       20   0  12G 5.7M 4.9M S  0.0   0.1   0:03.35 hwservicemanager
+  703 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [fts_workqueue]
+  702 system       20   0  12G 4.8M 4.1M S  0.0   0.1   0:03.69 servicemanager
+  699 lmkd         -2   0  12G 7.2M 6.0M S  0.0   0.1   0:01.68 lmkd
+  689 logd         30  10  12G 6.6M 4.2M S  0.0   0.1   0:19.15 logd
+  684 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/82-arm-smmu]
+  683 root         20   0    0    0    0 S  0.0   0.0   0:00.07 [smcinvoke_objec]
+  681 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/81-arm-smmu]
+  680 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [smcinvoke_shmbr]
+  675 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/80-arm-smmu]
+  674 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [cfg80211]
+  673 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [qcrypto_seq_res]
+  672 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/79-arm-smmu]
+  630 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/78-arm-smmu]
+  627 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [uaudio_svc]
+  595 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/77-arm-smmu]
+  589 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/76-arm-smmu]
+  587 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/75-arm-smmu]
+  574 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/172-pm-adc-]
+  573 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/204-tsens-c]
+  572 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/74-arm-smmu]
+  566 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/203-soc:ext]
+  564 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/136-tsens-u]
+  563 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/73-arm-smmu]
+  562 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/44-q6v5 wdo]
+  561 media        20   0  12G 4.5M 4.4M S  0.0   0.1   0:00.26 audioadsprpcd audiopd
+  560 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/196-soc:ext]
+  559 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/72-arm-smmu]
+  558 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/35-q6v5 wdo]
+  557 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/187-i2c_pmi]
+  549 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/34-q6v5 wdo]
+  548 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/71-arm-smmu]
+  545 root          0 -20    0    0    0 I  0.0   0.0   0:22.51 [kworker/2:2H-kblockd]
+  544 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/70-arm-smmu]
+  543 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/173-qcom,te]
+  542 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/69-arm-smmu]
+  537 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/68-arm-smmu]
+  535 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/135-limits_]
+  525 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/135-limits_]
+  524 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/67-arm-smmu]
+  523 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/66-arm-smmu]
+  522 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/65-arm-smmu]
+  521 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [bwmon_wq]
+  497 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [memlat_wq]
+  496 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [rq_stats]
+  495 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [pdr_notifier_wq]
+  492 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [pdr_notifier_wq]
+  466 root          0 -20    0    0    0 I  0.0   0.0   0:23.26 [kworker/3:1H-kblockd]
+  439 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [msm_perf:events]
+  437 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [cdsprm-wq-delay]
+  428 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [cdsprm-wq]
+  426 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/50-arm-smmu]
+  419 root          0 -20    0    0    0 I  0.0   0.0   0:23.29 [kworker/0:1H-kblockd]
+  413 root          0 -20    0    0    0 I  0.0   0.0   0:24.57 [kworker/1:1H-kblockd]
+  343 prng_seeder  20   0  12G 2.5M 2.5M S  0.0   0.0   0:00.01 prng_seeder
+  325 root         20   0  12G 7.1M 5.8M S  0.0   0.1   1:31.84 ueventd
+  323 root         20   0  12G 6.5M 5.7M S  0.0   0.1   0:00.19 init subcontext u:r:vendor_init:s0 14
+  321 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [ext4-rsv-conver]
+  320 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [kverityd]
+  319 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [kdmflush]
+  318 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [ext4-rsv-conver]
+  317 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [kverityd]
+  316 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [kdmflush]
+  315 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [ext4-rsv-conver]
+  314 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [kverityd]
+  313 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [kdmflush]
+  312 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [ext4-rsv-conver]
+  311 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [kverityd]
+  310 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [kdmflush]
+  309 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [ext4-rsv-conver]
+  308 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [kverityd]
+  307 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [kdmflush]
+  306 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [ext4-rsv-conver]
+  305 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [kverityd]
+  304 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [kdmflush]
+  301 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [ext4-rsv-conver]
+  300 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [kverityd]
+  299 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [kdmflush]
+  298 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [kdmflush]
+  297 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [kdmflush]
+  296 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [kdmflush]
+  295 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [kdmflush]
+  294 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [kdmflush]
+  293 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [kdmflush]
+  292 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [kdmflush]
+  291 root         20   0    0    0    0 S  0.0   0.0   0:00.01 [f2fs_gc-259:44]
+  290 root         20   0    0    0    0 S  0.0   0.0   0:00.05 [f2fs_discard-25]
+  289 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [f2fs_flush-259:]
+  288 root         20   0    0    0    0 S  0.0   0.0   0:00.01 [f2fs_ckpt-259:4]
+  286 root          0 -20    0    0    0 I  0.0   0.0   0:12.38 [kworker/4:1H-kblockd]
+  284 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [mmc_complete]
+  283 root         RT   0    0    0    0 S  0.0   0.0   0:00.19 [irq/36-mmc0]
+  282 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [sdhci]
+  281 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/38-mmc1]
+  280 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [sdhci]
+  279 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [sdhci_msm_gener]
+  278 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/39-4784000.]
+  277 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [sdhci_msm_gener]
+  276 root         RT   0    0    0    0 S  0.0   0.0   0:03.00 [irq/37-4744000.]
+  275 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/64-arm-smmu]
+  274 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/62-arm-smmu]
+  273 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/61-arm-smmu]
+  272 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/60-arm-smmu]
+  271 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/59-arm-smmu]
+  270 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [core_ctl]
+  269 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [hwrng]
+  268 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [qseecom-unload-]
+  267 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [qseecom-unreg-l]
+  266 root         RT   0    0    0    0 S  0.0   0.0   0:00.05 [halt_drain_rqs]
+  265 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [ngd_master]
+  263 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [pdr_notifier_wq]
+  236 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/33-glink-na]
+  235 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [glink_rpm-glink]
+  234 root         20   0    0    0    0 S  0.0   0.0   0:00.45 [qrtr_ns]
+  225 root         30  10    0    0    0 S  0.0   0.0   0:00.20 [qcom,system-unc]
+  224 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/43-smp2p_5]
+  223 root         30  10    0    0    0 S  0.0   0.0   0:00.11 [qcom,system-poo]
+  222 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/42-smp2p_2]
+  221 root         RT   0    0    0    0 S  0.0   0.0   0:00.48 [msm-watchdog]
+  220 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [irq/41-smp2p_1]
+  211 root         20   0    0    0    0 S  0.0   0.0   0:00.21 [kworker/4:2+events]
+  178 root         10 -10    0    0    0 S  0.0   0.0   0:00.00 [krfcommd]
+  177 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [ipv6_addrconf]
+  175 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [mld]
+  174 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [dm_bufio_cache]
+  173 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [uas]
+  172 root         39  19    0    0    0 S  0.0   0.0   0:01.78 [dmabuf-deferred]
+  168 root         20   0    0    0    0 S  0.0   0.0   0:02.65 [kswapd0]
+  141 root         RT   0    0    0    0 S  0.0   0.0   0:00.00 [watchdogd]
+  140 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [devfreq_wq]
+  139 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [edac-poller]
+  138 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [blkcg_punt_bio]
+  137 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [kblockd]
+   85 root         20   0    0    0    0 S  0.0   0.0   0:00.62 [kcompactd0]
+   84 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [writeback]
+   83 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [oom_reaper]
+   82 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [khungtaskd]
+   81 root         20   0    0    0    0 S  0.0   0.0   0:00.12 [kauditd]
+   73 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [inet_frag_wq]
+   72 root         20   0    0    0    0 S  0.0   0.0   0:37.36 [rcuop/7]
+   69 root         20   0    0    0    0 S  0.0   0.0   0:02.24 [ksoftirqd/7]
+   68 root         -2   0    0    0    0 S  0.0   0.0   0:00.00 [rcuc/7]
+   67 root         RT   0    0    0    0 S  0.0   0.0   0:00.11 [migration/7]
+   66 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [cpuhp/7]
+   65 root         20   0    0    0    0 S  0.0   0.0   0:37.98 [rcuop/6]
+   62 root         20   0    0    0    0 S  0.0   0.0   0:02.23 [ksoftirqd/6]
+   61 root         -2   0    0    0    0 S  0.0   0.0   0:00.00 [rcuc/6]
+   60 root         RT   0    0    0    0 S  0.0   0.0   0:00.13 [migration/6]
+   59 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [cpuhp/6]
+   58 root         20   0    0    0    0 S  0.0   0.0   0:41.11 [rcuop/5]
+   55 root         20   0    0    0    0 S  0.0   0.0   0:02.34 [ksoftirqd/5]
+   54 root         -2   0    0    0    0 S  0.0   0.0   0:00.00 [rcuc/5]
+   53 root         RT   0    0    0    0 S  0.0   0.0   0:00.08 [migration/5]
+   52 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [cpuhp/5]
+   51 root         20   0    0    0    0 S  0.0   0.0   0:40.11 [rcuop/4]
+   47 root         20   0    0    0    0 S  0.0   0.0   0:02.08 [ksoftirqd/4]
+   46 root         -2   0    0    0    0 S  0.0   0.0   0:00.00 [rcuc/4]
+   45 root         RT   0    0    0    0 S  0.0   0.0   0:00.09 [migration/4]
+   44 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [cpuhp/4]
+   43 root         20   0    0    0    0 S  0.0   0.0   1:00.81 [rcuop/3]
+   40 root         20   0    0    0    0 S  0.0   0.0   0:35.70 [ksoftirqd/3]
+   39 root         -2   0    0    0    0 S  0.0   0.0   0:00.00 [rcuc/3]
+   38 root         RT   0    0    0    0 S  0.0   0.0   0:00.34 [migration/3]
+   37 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [cpuhp/3]
+   36 root         20   0    0    0    0 S  0.0   0.0   1:04.47 [rcuop/2]
+   33 root         20   0    0    0    0 S  0.0   0.0   0:18.17 [ksoftirqd/2]
+   32 root         -2   0    0    0    0 S  0.0   0.0   0:00.00 [rcuc/2]
+   31 root         RT   0    0    0    0 S  0.0   0.0   0:00.33 [migration/2]
+   30 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [cpuhp/2]
+   29 root         20   0    0    0    0 S  0.0   0.0   1:05.42 [rcuop/1]
+   26 root         20   0    0    0    0 S  0.0   0.0   0:04.41 [ksoftirqd/1]
+   25 root         -2   0    0    0    0 S  0.0   0.0   0:00.00 [rcuc/1]
+   24 root         RT   0    0    0    0 S  0.0   0.0   0:00.21 [migration/1]
+   23 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [cpuhp/1]
+   22 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [cpuhp/0]
+   20 root         RT   0    0    0    0 S  0.0   0.0   0:00.19 [migration/0]
+   19 root         -2   0    0    0    0 S  0.0   0.0   0:00.00 [rcu_exp_par_gp_]
+   18 root         -2   0    0    0    0 S  0.0   0.0   0:00.86 [rcu_exp_gp_kthr]
+   17 root         -2   0    0    0    0 S  0.0   0.0   0:00.00 [rcuc/0]
+   16 root         -2   0    0    0    0 S  0.0   0.0   0:00.03 [rcub/0]
+   15 root         20   0    0    0    0 S  0.0   0.0   1:09.78 [rcuop/0]
+   14 root         20   0    0    0    0 S  0.0   0.0   6:25.94 [rcuog/0]
+   13 root         -2   0    0    0    0 I  0.0   0.0   6:59.80 [rcu_preempt]
+   12 root         20   0    0    0    0 S  0.0   0.0   0:16.18 [ksoftirqd/0]
+   11 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [rcu_tasks_trace]
+   10 root         20   0    0    0    0 S  0.0   0.0   0:00.00 [rcu_tasks_kthre]
+    8 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [mm_percpu_wq]
+    4 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [netns]
+    3 root          0 -20    0    0    0 I  0.0   0.0   0:00.00 [rcu_gp]
+    2 root         20   0    0    0    0 S  0.0   0.0   0:00.25 [kthreadd]
+    1 root         20   0  12G  10M 7.8M S  0.0   0.2   0:21.39 init second_stage

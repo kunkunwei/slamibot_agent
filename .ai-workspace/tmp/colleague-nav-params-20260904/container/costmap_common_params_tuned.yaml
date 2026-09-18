@@ -1,0 +1,32 @@
+
+footprint: [[0.306, 0.29], [0.306, -0.29], [-0.306, -0.29], [-0.306, 0.29]]
+footprint_padding: 0.0
+
+# robot_radius: 0.15
+
+
+obstacle_range: 4
+raytrace_range: 10
+
+# ---- 障碍高度过滤（2D 雷达 + 室外平地） ----
+max_obstacle_height: 1.0
+min_obstacle_height: 0.0     # 不过滤低障，防止漏掉路沿/台阶
+
+# ---- TF 时间容忍 ----
+
+transform_tolerance: 0.5
+
+# ---- 膨胀（核心约束）----
+inflation_radius: 0.10
+cost_scaling_factor: 12.0
+
+# ---- 观测源 ----
+observation_sources: scan
+scan:
+  data_type: LaserScan
+  topic: /scan
+  marking: true
+  clearing: true
+  expected_update_rate: 3.3
+  observation_persistence: 0.0    # 不保留旧观测，窄道判断要"现时" (default 即 0.0)
+  inf_is_valid: true              # 

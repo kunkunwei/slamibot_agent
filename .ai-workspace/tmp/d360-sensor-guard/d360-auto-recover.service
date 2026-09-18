@@ -1,0 +1,9 @@
+[Unit]
+Description=D360 automatic sensor recovery
+After=docker.service network-online.target
+Wants=docker.service network-online.target
+
+[Service]
+Type=oneshot
+User=root
+ExecStart=/usr/local/sbin/d360-auto-recover

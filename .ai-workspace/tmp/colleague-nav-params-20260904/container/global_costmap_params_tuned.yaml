@@ -1,0 +1,43 @@
+# =============================================================================
+# global_costmap  —  tuned2
+# Unitree Go2 quadruped (0.65 m × 0.30 m), 0.46 m outdoor narrow passage
+# =============================================================================
+#
+# 关键原则：
+#
+#   【全局/局部 inflation 必须一致】
+#     若全局 inflation > 局部 inflation:
+#       全局 A* 会绕开窄口（因为窄口被 inflated 标记），TEB/DWA 拿不到穿越路径
+#     若全局 inflation < 局部 inflation:
+#       全局路径"穿墙"，局部规划器不断受挫
+#     ==> 与 local_costmap_params_tuned.yaml 严格相同的 0.10 m + 12.0
+#
+#   【低更新频率（1.5 Hz）】
+#     静态地图不需要频繁刷新；省下的 CPU 留给 controller_frequency=12 Hz
+#     和 TEB 优化（costmap_converter + homotopy class planning）
+#
+#   【transform_tolerance 与 local 一致】
+#     避免全局与局部 TF 容忍不一致导致的"地图错位"问题
+# =============================================================================
+
+global_costmap:
+  global_frame: map
+  robot_base_frame: base_link
+
+  update_frequency: 1.5           # 静态地图，低频更新即可
+  publish_frequency: 0.5          # rviz 可视化频率，不影响规划
+
+  static_map: true
+  rolling_window: false
+  resolution: 0.05
+
+  transform_tolerance: 0.5
+
+  map_type: costmap
+
+  # ---- 膨胀（与 local_costmap_params_tuned.yaml / costmap_common_params_tuned.yaml 一致）----
+  inflation_radius: 0.10
+  cost_scaling_factor: 12
+
+  # ---- 自身清除（与 local 保持一致）----
+  footprint_clearing_enabled: true

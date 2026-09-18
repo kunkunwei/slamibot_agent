@@ -1,0 +1,60 @@
+services:
+  core:
+    image: registry.cn-shanghai.aliyuncs.com/slamibot/slamibot_d360_firmware:latest
+    container_name: core
+    network_mode: host
+    privileged: true
+    stdin_open: true
+    tty: true
+    restart: always
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - /dev:/dev
+      - type: bind
+        source: /mnt
+        target: /mnt
+        bind:
+          propagation: rshared
+      - /etc/slamibot:/etc/slamibot
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/slamibot/system/overrides/core.launch:/root/SLAMIBOT_D360_Framework/install/share/project_control/launch/core.launch:ro
+      - /etc/slamibot/system/overrides/stm32_cmd_latch_relay.py:/root/SLAMIBOT_D360_Framework/install/lib/project_control/stm32_cmd_latch_relay.py:ro
+    working_dir: /root/SLAMIBOT_D360_Framework
+    command: bash -c "source install/setup.bash && roslaunch project_control core.launch"
+
+  firmware-sensors:
+    image: registry.cn-shanghai.aliyuncs.com/slamibot/slamibot_d360_firmware:latest
+    container_name: firmware-sensors
+    network_mode: host
+    privileged: true
+    restart: always
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - /dev:/dev
+      - type: bind
+        source: /mnt
+        target: /mnt
+        bind:
+          propagation: rshared
+      - /etc/slamibot:/etc/slamibot
+      - /etc/localtime:/etc/localtime:ro
+    working_dir: /root/SLAMIBOT_D360_Framework
+    command: bash -c "source install/setup.bash && sleep 3 && roslaunch --wait project_control sensors.launch"
+    depends_on:
+      - core
+
+  ota_web:
+    image: registry.cn-shanghai.aliyuncs.com/slamibot/slamibot_d360_firmware:latest
+    container_name: ota_web
+    network_mode: host
+    restart: always
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - /etc/slamibot:/etc/slamibot
+      - /run/dbus/system_bus_socket:/run/dbus/system_bus_socket
+      - /etc/localtime:/etc/localtime:ro
+    working_dir: /root/SLAMIBOT_D360_Framework/install
+    command: ./setting_server

@@ -1,0 +1,11 @@
+--- tmp/subscribe_715.py	2026-09-16 20:20:03.811335900 +0800
++++ tmp/subscribe_701.py	2026-09-16 20:20:02.822355000 +0800
+@@ -117,7 +117,7 @@
+ 
+         self.update_params()
+ 
+-        if compression == "cbor-raw":
++        if compression == "cbor-raw" and not msg_type:
+             msg_type = "__AnyMsg"
+ 
+         # Subscribe with the manager. This will propagate any exceptions

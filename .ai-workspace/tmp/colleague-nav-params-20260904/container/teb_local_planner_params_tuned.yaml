@@ -1,0 +1,153 @@
+TebLocalPlannerROS:
+  odom_topic: odom
+  map_frame: map
+
+  # ===========================================================================
+  # 轨迹时间分辨率
+  # ===========================================================================
+  teb_autosize: True  #默认值
+  dt_ref: 0.20                     # 窄道密时间柱（参见说明）
+  dt_hysteresis: 0.02              # ≈10% 滞回，避免频繁重采样
+  min_samples: 5
+  max_samples: 200
+  exact_arc_length: False  #默认值
+  publish_feedback: True #
+
+  # ===========================================================================
+  # 全局路径跟随
+  # ===========================================================================
+  global_plan_overwrite_orientation: True  #默认值
+  global_plan_viapoint_sep: 1.5   # 
+  global_plan_prune_distance: 1.0  #默认值
+  max_global_plan_lookahead_dist: 2.5   # 与 local_costmap 4 m / obstacle_range 3.0 协调
+  force_reinit_new_goal_dist: 1.0  #默认值
+  feasibility_check_no_poses: 5    #默认值 检查前 5 个姿态可行性
+  allow_init_with_backwards_motion: True   # 允许后退初始化，便于恢复
+
+  # ===========================================================================
+  # 机器人运动学（non-holonomic：差速 + 原地转，与 Go2 cmd_vel 模型一致）
+  # ===========================================================================
+  max_vel_x: 0.60                  # 窄口降速，提高控制精度
+  max_vel_x_backwards: 0.20        # 允许后退恢复
+  max_vel_y: 0.0                   # 严格非完整约束
+  max_vel_theta: 0.80              # 较大角速度，快速对准窄口轴线
+  acc_lim_x: 0.50
+  acc_lim_y: 0.0
+  acc_lim_theta: 1.0
+  min_turning_radius: 0.0          # Go2 可原地旋转
+  holonomic_robot: False           # 关键：禁用侧滑，避免规划-执行偏差
+
+  # ===========================================================================
+  # 足迹模型（真实多边形，绝不降级为圆形）
+  # ===========================================================================
+  footprint_model:
+    type: "polygon"
+    vertices: [[0.306, 0.29], [0.306, -0.29], [-0.306, -0.29], [-0.306, 0.29]]
+
+  # ===========================================================================
+  # 目标容忍度
+  # ===========================================================================
+  xy_goal_tolerance: 0.12
+  yaw_goal_tolerance: 0.15
+  free_goal_vel: False  #默认值
+  complete_global_plan: True  #默认值
+
+  # ===========================================================================
+  # 障碍物约束（窄道核心）
+  # ===========================================================================
+  min_obstacle_dist: 0.1          # 
+  inflation_dist: 0.25             # 
+  include_costmap_obstacles: True  #默认值
+  costmap_obstacles_behind_robot_dist: 0.5   # 关注后方 0.5 m 内障碍（防止后撤撞墙）
+  obstacle_poses_affected: 15      # 窄道墙上点多，比 tuned3 的 8 更密
+  legacy_obstacle_association: False  #默认值
+  obstacle_association_force_inclusion_factor: 1.5  #默认值
+  obstacle_association_cutoff_factor: 5.0  #默认值
+  include_dynamic_obstacles: False # 室外静态场景，关闭以省 CPU
+
+  # ===========================================================================
+  # CostmapToPolygons 转换（tuned2 新增的核心优化）
+  # ===========================================================================
+
+  costmap_converter_plugin: "costmap_converter::CostmapToPolygonsDBSMCCH"
+  costmap_converter_spin_thread: True  #默认值
+  costmap_converter_rate: 8        # 8 Hz 转换，给 controller 12 Hz 留余量
+
+  # 转换器内部参数（DBSMCCH）
+  costmap_converter/CostmapToPolygonsDBSMCCH:
+    cluster_max_distance: 0.4  #默认值
+    cluster_min_pts: 2  #默认值
+    cluster_max_pts: 30  #默认值
+    convex_hull_min_pt_separation: 0.1  #默认值
+
+  # ===========================================================================
+  # 优化权重
+  # ===========================================================================
+  no_inner_iterations: 5  #默认值
+  no_outer_iterations: 4  #默认值
+  optimization_activate: True
+  optimization_verbose: False
+  penalty_epsilon: 0.03
+
+  # 速度/加速度上界惩罚（轻，便于窄道蠕动）
+  weight_max_vel_x: 1.0
+  weight_max_vel_theta: 1.0  #默认值
+  weight_acc_lim_x: 1.0  #默认值
+  weight_acc_lim_theta: 1.0  #默认值
+
+  # 运动学约束（关键：1000 强制非完整）
+  weight_kinematics_nh: 1000  #默认值
+  weight_kinematics_forward_drive: 80     #   默认值  轻微偏好前进，但允许后退恢复
+  weight_kinematics_turning_radius: 0
+
+  # 障碍物权重
+  weight_obstacle: 50.0           # 强避障，与 inflation_dist=0.12 配合
+  weight_inflation: 8            # 软梯度辅助权重
+  weight_dynamic_obstacle: 50       #默认值
+  weight_dynamic_obstacle_inflation: 0.1  #默认值
+
+  # 全局路径跟随
+  weight_viapoint: 1            # 强贴合全局路径，窄道里对齐窄口轴线
+
+  # 时间最优
+  weight_optimaltime: 3.0          # 中低，安全优先但保持前进
+  weight_shortest_path: 0.0       #默认值
+  weight_adapt_factor: 2.0         #默认值 障碍权重在迭代中渐增，收敛更稳
+
+  # ===========================================================================
+  # 同伦类规划（窄道入口的关键开关）
+  # ===========================================================================
+  # 在窄口入口前，TEB 同时探索"左绕"/"右绕"/"直穿"三种拓扑路径，
+  # 避免对称窄口前因局部最小卡死。
+  enable_homotopy_class_planning: false       #默认值
+  enable_multithreading: True       #默认值
+  max_number_classes: 3            # 3 条候选拓扑足够；更多增加 CPU
+  selection_cost_hysteresis: 1.0       #默认值
+  selection_prefer_initial_plan: 0.95   #默认值  优先延续上一帧拓扑，减少左右抖动
+  selection_obst_cost_scale: 2.0   #默认值 选轨迹时偏好远离障碍的拓扑
+  selection_viapoint_cost_scale: 1.0       #默认值
+  selection_alternative_time_cost: False       #默认值
+
+  obstacle_heading_threshold: 0.45
+  roadmap_graph_no_samples: 15
+  roadmap_graph_area_width: 4.0    # 比 tuned3 的 5 m 略窄，聚焦窄道
+  roadmap_graph_area_length_scale: 1.0       #默认值
+  h_signature_prescaling: 0.5       #默认值
+  h_signature_threshold: 0.1       #默认值
+  obstacle_keypoint_offset: 0.1       #默认值
+  switching_blocking_period: 0.0       #默认值
+  visualize_hc_graph: False       #默认值
+
+  # ===========================================================================
+  # 恢复行为（被困时的脱困策略）
+  # ===========================================================================
+  # shrink_horizon_backup: 卡住时缩短规划域，用更短窗口找脱困路径
+  shrink_horizon_backup: True       #默认值
+  shrink_horizon_min_duration: 10.0       #默认值
+
+  # oscillation_recovery: 检测到振荡时主动重启
+  oscillation_recovery: True       #默认值
+  oscillation_v_eps: 0.1       #默认值
+  oscillation_omega_eps: 0.1       #默认值
+  oscillation_recovery_min_duration: 10.0       #默认值
+  oscillation_filter_duration: 10.0       #默认值

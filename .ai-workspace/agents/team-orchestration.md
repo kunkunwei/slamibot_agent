@@ -82,6 +82,14 @@ Codex 只做必要动作：
 
 Codex 根据现象先判断故障属于 frontend/backend/navigation 哪一层，只退回对应 lane 修复一次；不让三个 Agent 同时盲改，也不自动进入无限修复回环。
 
+## 共享路径写锁
+
+- 写锁登记字段至少包括：`lock_id`、`task_id`、`path`（或目录前缀）、`owner`、`base_hash`、`acquired_at`、`status`（`active|blocked|released`）、`inherited_from`（如有）、`expires_at`（仅提示，如有）、`released_at` 和 `release_reason`；建议登记于 `current.md` 固定区域，但本规则不创建该区域。
+- 只有 Sol 主代理或状态文件 owner 才能登记、继承和释放写锁；获取前检查路径冲突。目录前缀重叠即冲突，不能仅因文件名不同而并发写入。
+- 未持有锁不得写共享路径；不得通过更换工具、模型或 Agent 绕过锁。Claude→Luna 降级必须原样继承锁，不能重新抢占或扩大范围。
+- 冲突时等待或返回待合并片段；`expires_at` 仅用于提醒复核，超时、Agent崩溃或会话结束均不自动释放。完成、阻塞、取消或转交时由 owner 明确更新 `status`、`released_at`、`release_reason`，并在收口前检查锁已释放。
+- `current.md`、`context-checkpoint.md`、`completed.md`、`facts/`、`rules/` 默认受共享保护；checkpoint 具体单一 owner/唯一合并入口见 `../core/context-compaction.md`，版本与三方合并见 `../core/change-policy.md` 和 `../core/git-safety.md`。
+
 ## 并发上限
 
 - Codex subagent：最多 3 个分析 lane 并行。

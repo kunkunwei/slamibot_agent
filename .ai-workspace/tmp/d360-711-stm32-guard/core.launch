@@ -1,0 +1,29 @@
+<launch>
+  <!-- ========== 系统服务 ========== -->
+  <!-- STM32 命令保护中继：稀疏命令事件驱动、保留最后灯态 -->
+  <node name="stm32_cmd_latch_relay" pkg="project_control" type="stm32_cmd_latch_relay.py" output="screen" respawn="true" respawn_delay="5" />
+
+  <!-- 系统监控服务：STM32 串口、电池、CPU、温度、SD 卡、Topic 频率 -->
+  <node name="system_monitor" pkg="project_control" type="SystemMonitor" output="screen" respawn="true" respawn_delay="5">
+    <remap from="/stm32_cmd" to="/stm32_cmd_guarded" />
+  </node>
+
+  <!-- RTK 服务：串口 GNSS + NTRIP 客户端 -->
+  <node name="ntrip_rtk_service" pkg="project_control" type="ntrip_rtk_ros_service" output="screen" />
+
+  <!-- LED 控制服务 -->
+  <node name="led_control" pkg="project_control" type="LEDControl" output="screen" />
+
+  <!-- rosbridge websocket：供 web 前端通过 roslibjs 通信 -->
+  <include file="$(find rosbridge_server)/launch/rosbridge_websocket.launch" />
+
+  <!-- ========== 控制与业务服务 ========== -->
+  <!-- 相机参数控制服务 -->
+  <node name="camera_service" pkg="project_control" type="camera_control_service" output="screen" />
+
+  <!-- 项目控制服务：设备启停、SLAM/录制 -->
+  <node name="device_basic" pkg="project_control" type="project_control_service" output="screen" />
+
+  <!-- 设备基础信息服务：版本查询、U盘格式化 -->
+  <node name="device_service" pkg="project_control" type="device_basic_service" output="screen" />
+</launch>

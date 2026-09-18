@@ -1,0 +1,73 @@
+<launch>
+
+<!--启动 Scout Mini 2D 导航（加载地图 → AMCL 定位 → move_base 路径规划 → RViz 可视化） 
+    1.加载建好的地图
+    2.启动AMCL定位
+    3.启动Move_base导航
+    4.启动rviz显示导航结果 -->
+
+
+<!-- 加载地图 -->
+    <arg name="map_file" default="$(find my_nav)/maps/api_map/dinggu7_6/dinggu7_6.yaml"/>
+    <!-- <node pkg="map_server" type="map_server" name="map_server" args="$(find my_nav)/maps/carto_map8.yaml"/> -->
+    <node pkg="map_server" type="map_server" name="map_server" args="$(arg map_file)"/>
+
+<!-- 启动AMCL定位 -->
+    <node pkg="amcl" type="amcl" name="amcl">
+        <!-- 坐标系设置 -->
+        <param name="global_frame_id" value="map"/>
+        <param name="odom_frame_id" value="odom"/>
+        <param name="base_frame_id" value="base_link"/>
+
+        <param name="use_map_topic" value="true"/>
+
+        <!-- 1. 粒子数相关 (加大上限，帮助在复杂或相似特征环境中收敛) -->
+        <param name="min_particles" value="500"/>
+        <param name="max_particles" value="3000"/>
+
+        <!-- 2. 激光雷达参数 (提高对点云数据的利用率) -->
+        <param name="laser_max_beams" value="60"/> <!-- 原为30。现代雷达精度高，调到60-100抓取更多特征 -->
+        <param name="laser_model_type" value="likelihood_field"/> <!-- 似然场模型，计算更快、对噪声鲁棒 -->
+        <param name="laser_z_hit" value="0.95"/> <!-- 增加由于障碍物产生的准确测量的权重 -->
+        <param name="laser_z_rand" value="0.05"/> <!-- 降低随机噪声的影响 -->
+
+        <!-- 3. 里程计模型 (加入噪声协方差) -->
+        <param name="odom_model_type" value="omni-corrected"/> <!-- ommi-corrected更适合对里程计漂移做修正 -->
+        <!-- odom_alpha 1~5 设置里程计的信任度（值越小表示你越信任你的里程计，太大会导致粒子散得太开） -->
+        <param name="odom_alpha1" value="0.10"/> <!-- 旋转时的旋转噪声 -->
+        <param name="odom_alpha2" value="0.10"/> <!-- 平移时的旋转噪声 -->
+        <param name="odom_alpha3" value="0.15"/> <!-- 平移时的平移噪声 -->
+        <param name="odom_alpha4" value="0.10"/> <!-- 旋转时的平移噪声 -->
+        <param name="odom_alpha5" value="0.15"/> <!-- 全向移动时的平移侧向噪声 -->
+
+        <!-- 4. 更新条件与重采样 (让机器人更新得更敏感) -->
+        <param name="update_min_d" value="0.0"/> <!-- 设为0：只要里程计出现非零平移就触发更新 -->
+        <param name="update_min_a" value="0.0"/> <!-- 设为0：只要里程计出现非零转角就触发更新 -->
+        <param name="resample_interval" value="1"/> <!-- 每次滤波器更新都重采样 -->
+
+        <!-- 5. 动态环境/迷失恢复 (应对地图动态变化或被短暂遮挡导致飞点) -->
+        <param name="recovery_alpha_slow" value="0.001"/> <!-- 添加缓慢权重，探测长期变差 -->
+        <param name="recovery_alpha_fast" value="0.1"/> <!-- 添加快速权重，应对被绑架问题 (突然失效) -->
+
+        <!-- 6. 其它系统参数 -->
+        <param name="transform_tolerance" value="0.3"/> <!-- 容忍TF树的一定延迟，稍大于0.2缓解TF警告 -->
+        <param name="gui_publish_rate" value="20.0"/> <!-- RViz显示更平滑 -->
+    </node>
+
+
+<!-- 启动Move_base-->
+    <include file="$(find my_nav)/launch/move_base_tuned2.launch">
+        <arg name="planner" value="teb"/>
+    </include>
+    
+
+<!-- 启动rviz(已关闭:用户用前端可视化,后台不再弹 rviz 窗口) -->
+
+    <!-- <node pkg="rviz" type="rviz" name="rviz" args="-d $(find my_nav)/rviz/rviz_config3.rviz"/> -->
+
+
+
+
+
+
+</launch>

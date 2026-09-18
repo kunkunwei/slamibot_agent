@@ -1,6 +1,94 @@
 # 当前任务（current）
 
+## TASK-2026-09-05-MAP-CONSISTENCY：地图列表、删除和增量更新
+
+- status: **arm64_image_built / cloud_synced / deployment_pending**
+- save-policy: 保存仅生成原始 PCD、2D PGM/YAML 和 transform；不自动生成 display PCD，不自动激活新地图。
+- restore: 保存前活动地图被保留；保存完成后恢复该地图、导航栈和 `/map`；成功时恢复 `OWNER_AUTO`。
+- backend: GitHub/Gitee `codex/video-link-stream-20260904@4d6a01c`；手动 `/api/map/downsample` 是显示点云唯一生成入口。
+- app: GitHub `codex/native-compose-filament@b786e3e`；保存后刷新列表并优先选中后端状态活动地图。
+- delete: `d4d71b6` 完整删除 + `4de4daa` 删除不回灌已推送；既有孤儿目录未擅自清理。
+- patch: 当前活动地图仍禁止补图；尚不支持通过负观测可靠清除已消失障碍物。
+- runtime: 热部署容器仍运行 `scout-nav:product-v1-dc05f79-arm64`；新不可变镜像 `scout-nav:product-v1-4d6a01c-arm64` 已在 Jetson 构建，ID `25ba3200...aac530e3`，尚未切换。
+- tests: py_compile/diff-check PASS；本机转换 smoke test因缺 numpy BLOCKED；Jetson 真实保存与手动降采样 PENDING。
+- next: 用户确认后使用 `scout-nav:product-v1-4d6a01c-arm64` 创建测试容器，复用唯一宿主持久化数据根并做真机保存验收。
+## TASK-2026-09-05-MAPPING-MODE：APP 建图模式无响应
+
+- status: **built / deployed / mapping_api_pass / field_save_test_pending**
+- navigation: `dc05f79`，GitHub `kunkunwei/codex/video-link-stream-20260904`；FAST_LIO 安装 `launch/config/rviz_cfg`。
+- app: `0c08540`，GitHub `origin/codex/native-compose-filament`；OkHttp read timeout `5s -> 15s`，需重编安装 APK。
+- runtime: `scout-nav-product-v1-dc05f79-mapping-test-20260905` / `scout-nav:product-v1-dc05f79-arm64` / image `4b3e6d4b...8b8dbf40`。
+- validation: FAST_LIO 安装资源存在；health 200、rosbridge=true；强制建图接口 200；mapping=true/navigation=false；laserMapping/fastlio_cloud_relay 在线。
+- persistence: 唯一挂载 `/var/lib/slamibot/scout-nav:/var/lib/slamibot/scout-nav`；旧 d0b7b15 容器停止保留回滚。
+- next: APP 现场验证点按建图、保存地图、PCD/数据库落盘；之后再决定是否固化为正式产品标签。
+- safety: 未修改/重启 `firmware-sensors`，未碰 `/clock`、timeshare、硬触发。
+- tests: build PASS；deploy/runtime API PASS；field mapping/save PENDING。
+
+## TASK-2026-09-04-VIDEO-LINK：低带宽实时视频
+
+- status: **deployed / user_experience_passed / extended_validation_pending**
+- backend: `5ad6000`；Jetson 镜像 `scout-nav:video-link-5ad6000-on-9eebfd5-arm64`；容器 `scout-nav-video-link-5ad6000-test-20260904`。
+- result: 5秒带宽 `20.81Mbps -> 0.955Mbps`（约下降95.4%）；实际约9.8FPS，受OAK源流约10FPS限制；用户反馈流畅。
+- safety: 旧 `product-9eebfd5` 容器保留；宿主地图/PCD/DB/相册挂载复用；根盘仅余约869MB。
+- next: 如需正式验收，连续测试60秒并检查温度、延迟不增长、相册原图不变；暂不处理APP构建。
+
 > 只记录尚未完全验收或仍需人工决策的任务。已完成操作及证据见 `completed.md`。
+## TASK-2026-09-01-003：D360S ROS2 原生部署与一键安装器
+
+- status: **paused / product_runtime_base_pass / web_monitoring_wip_saved**
+- migration: true
+- target: D360S `jetson@192.168.31.35`；Ubuntu22.04.5/L4T R36.5/arm64/原生ROS2 Humble。
+- repo: `/home/jetson/SLAMIBOT_D360_Framework`；分支`codex/d360s-ros2-product-runtime`。
+- stable_commits: Faster-LIO=`09b10a1`；STM32/LED/监控/OAK=`2a2dc1b`；ROS2 bridge=`a6f2099`；D360控制台=`fa6d225`，均已推送Gitee。
+- paused_wip: `8a81fe89b6e59170f2a4081e4f85dc8356a70c28`（`wip(web): save D360S monitoring fixes`）已推送，保存六文件未完成改动；不得当作验收完成版本。
+- product_boundary: SCAN是祖先；D360/D360S复用共用功能但排除云台/扫拍/PRY；根`web_page`为SCAN，5001只使用`ota_server/web_page` D360页面；RTK不纳入D360S当前产品。
+- implemented: MID360S/OAK三相机/Faster-LIO、STM32单一串口manager、机身LED、battery/driver/storage/CPU/memory/slam_pose、基础与相机服务、9090 ROS2自定义接口、D360 5001页面来源。
+- verified: Livox约10Hz、IMU约200Hz、CAM_A/B/C约9.7-10Hz、driver_status=15、Faster-LIO约4-5Hz、STM32 READY；LED蓝色常亮write/flush PASS。
+- web_wip_scope: 三画面DOM/订阅、`topic_frequencies`、`camera_temperature`、`/api/frpp/status`；源码已保存但尚未完成最终build/E2E/用户验收。
+- shutdown: 2026-09-05下班暂停时已精确停止临时systemcontrol/rosbridge/OTA；TCP5001/9090关闭；相关进程none；systemcontrol/stm32锁free；三个unit disabled/inactive；STM32 READY/COG206。
+- next: 从WIP提交继续，先审计并完成四项Web监控修复，标准build后重新部署供用户浏览器/APP验收；随后迁移rosbag2项目采集、统一生命周期和容器镜像。
+- residual: D360S最终frame/外参仍UNKNOWN；`/path`默认关闭；项目采集、容器化、点云着色尚未完成；不合并main/dev_ros2。
+- evidence: `evidence/d360s-faster-lio-ros2-20260905/`及远端`d360s-system-backups/web-fix-*`。
+
+## TASK-2026-09-01-002：回滚 2D 导航不停与 Web/RViz 位姿不一致
+
+- status: **runtime_diagnosis / amcl_threshold_hotfix_applied / motion_test_halted_after_collision**
+- technology: ROS1 Noetic（CURRENT）；当前演示容器保持运行，未停止、未重启、未修改。
+- symptom: 导航到达后仍持续规划；Web 与 RViz 标记初始化位姿时显示不一致；2026-09-01 用户进一步确认 RViz 直接发送 0.5–1 m 空旷直线目标也复现，接近目标后出现多条绕行轨迹并持续规划，因此 Web 坐标换算不是核心导航故障主因。
+- confirmed_map: 当前 `map0901.yaml` resolution=0.05、origin=[-3.6500,-10.6017,0]；PGM=282×561；地图来自宿主 bind mount。
+- confirmed_frontend: 2026-09-01 读取实际 `/app/` bundle；Web 订阅 `/map`，OccupancyGrid 图像 Y 翻转及 pixel↔world 基础公式与 ROS map 方向一致；本地未提交诊断改动未修改该公式。
+- confirmed_bug: 两个 2D 组件的 `yawToKonvaRotation()` 使用 `yaw_deg - 90`；Konva 三角形默认尖端朝上，ROS yaw 映射应为 `90 - yaw_deg`。当前会把 +X/-X 朝向镜像显示，预览/机器人/点位箭头与 RViz 方向不一致；用户按错误预览校准时可提交错误终点朝向，可能导致 move_base 到点后持续调姿。
+- backend_local: 本地 `ros_client.py` 的 `/initialpose` 固定 `frame_id=map`；Jetson 运行中 install 版本尚未成功核对。
+- local_nav_evidence: `F:\slamibot_test\d360_nav2D` master@`a16dc8f` 与当前仓库的 AMCL、move_base、TEB/DWA、FAST-LIO+2D 入口及整个 `scout_base` 源码一致；老仓库初始 `fc2b278` 已包含 `omni-corrected`、Go2/窄口式 TEB、强非完整/前进权重和 0.612×0.58m footprint，不能直接视为健康回滚配置。后期关键差异是 `d80ea9a` 将 Scout 驱动启动转给从 install 加载 launch 的 FastAPI 管理器、`36f8638` 统一 inflation=0.10，以及新增 3D 重定位链。
+- local_nav_risks: 首要候选是驱动启动所有权改变后发生 src/install 串台、双 `/odom`/双 `odom→base_link`、心跳重启导致 odom 归零；其次是 2D AMCL 与新增 3D `map→camera_init` 定位链同时运行。local inflation 0.05→0.10 只在局部 scan/costmap 有假障碍且 GlobalPlanner 直、TEB 绕时优先。旧有 `omni-corrected`、强前进 TEB、严格终点容忍度更像异常放大器。
+- runtime_blocker: 2026-09-01 再次使用固定 LAN SSH 入口检查，`192.168.31.135:22` 超时；本地密钥还被当前沙箱报告不可访问。未抓到运行参数、路径、TF、AMCL 或 status，也未产生新的远端诊断进程。
+- test_handoff: 已生成 .ai-workspace/procedures/ros1-navigation-near-goal-ai-field-test-2026-09-01.md，供同事 AI 按 READ_ONLY 阶段检查容器/镜像、src/install、节点与 Topic publisher、TF、运行参数和 0.5–1 m 短目标，并按 A–E 分类输出标准报告。
+- next: Jetson 连通后先只读确认单一 `/odom` publisher、单一 `odom→base_link` broadcaster、单一 map 定位主链和导航中 odom 不重置；再同步采集 GlobalPlanner、TEB local plan、status、amcl_pose、odom、cmd_vel 与运行 rosparam。不要直接用老仓库覆盖；按证据依次隔离驱动/3D定位链、A/B local inflation、A/B AMCL `diff-corrected`，最后才调整 goal tolerance。Web yaw 显示 bug 单独处理。
+- 2026-09-03 runtime: RViz短直线目标可收到并前进，但蠕动/走停、近终点久晃，随后撞墙并由用户切断底盘电源；上次move_base最终ABORTED（无法找到有效规划）。`/cmd_vel`同时由move_base与scout_nav_rosbridge发布。`/scan`约10Hz、`/odom`约50Hz。`/use_sim_time=true`且Livox发布/clock约195Hz。`update_min_d/a`已在当前容器动态改为0/0；本地两处launch同步改0，尚未构建部署。完全静止时AMCL仍不会重复发布，属其“大于阈值”实现。\r\n- safety: 真机运动测试暂停；先检查车体/急停，再查局部代价地图、TEB可行性、双cmd_vel发布者和跨时基TF，禁止直接恢复高速导航。\r\n- tests: SKIPPED（底盘断电；仅动态参数核验与只读ROS检查）。
+## TASK-2026-09-01-001：回滚导航持久化与产品 install-only 镜像
+
+- status: **demo_field_validated / product_image_built / media_hotfix_deployed / app_ui_validation_pending**
+- technology: ROS1 Noetic（CURRENT）；未混入 ROS2。
+- demo: `scout-nav-timefix-20260827` 继续运行，用户已确认新建图保存、点云和栅格地图显示正常；本轮未替换或停止。
+- persistence: maps、FAST_LIO PCD、nav_api DB 均为宿主 bind mount；11 套完整地图已入库，`map25` 保持激活。
+- product_source: `F:\d360_nav2D` 分支 `codex/product-nav-runtime-refactor-20260831`，HEAD `ec245a7`；Jetson 独立构建仓库同提交且 clean。
+- product_image: `scout-nav:product-ec245a7-c411cf9d-arm64`，image `c411cf9d926b...`，arm64，约 5.28 GB。
+- validation: build PASS；运行时无 src/build/devel，仅 install；关键 ROS 包可发现；Python API 导入、持久化默认路径、stop_mapping PCD 非破坏守卫、静态检查均 PASS。
+- isolation: 未混入本地其他 AI/用户未提交改动；未部署、未改 compose、未 prune、未删除旧镜像/地图/缓存。
+- next: 等用户提供测试窗口后，以独立产品容器挂载现有 maps/PCD/DB，完成 AMCL、建图保存、容器重启持久化和后端 API 真机回归，再决定正式切换。
+- source_publish: 产品分支尚未推送 Gitee。
+- runtime_media_2026_09_03: 测试容器已从本地 `f376a4c` 热补 `app.py`、`capture.py`、`nav-api-entrypoint`；`/health`、MJPEG 与历史图片静态 URL 均 200，历史相册 `fileExists=true`。最新记录 `20260903_051044_4801699261.jpg` 的宿主文件确实不存在。
+- media_next: 用户在 APP 刷新/重进导航页确认视频与相册；通过后再制作新不可变 tag 或从 `f376a4c` 正式构建。原始产品镜像与同事恢复容器保持不变。
+## 并行 Agent 占用范围（2026-08-31，用户确认）
+
+- lane_voice_asr: 已完成并解除写锁；`F:\run_mic_sherpa` 本地/远端仅保留`main`，HEAD `a16fb7942b2884346a45244b0a254a865d04f4aa`。
+- lane_camera_keyframe: 另一 AI 正在修复 Jetson 相机不出图，计划远端修改：
+  - `/home/jetson/SLAMIBOT_D360_Framework/src/device_service/launch/sensors.launch`
+  - `/home/jetson/SLAMIBOT_D360_Framework/Dockerfile.keyframe-respawn`
+  - `/etc/slamibot/system/docker-compose.yml`（仅 `firmware-sensors.image`，部署前备份）
+- collision_policy: 相机任务的三个远端路径继续视为并行写锁；不得以导航或语音整理覆盖其现场。
+- camera_lane_scope: 本地仅允许该相机任务同步工作台记录，不修改其它业务仓库。
+
 
 ## TASK-2026-08-27-003：scout-nav 2D 导航容器接入 WebRTC 控制宇树 GO2
 
@@ -58,7 +146,7 @@
 
 ## TASK-2026-08-27-001：开始作业视频 /keyframe 无发布者（stitcher 在 roslaunch 上下文自杀）
 
-- status: **awaiting_runtime_or_fix_authorization**（2026-08-27 现场复核：直接故障与 rosbridge 误报均已确认）
+- status: **persistent_runtime_hotfix_deployed**（2026-08-31 本地热修复镜像已部署并独立验收；尚未提交/推送）
 - project: firmware-sensors（OAK 相机 + keyframe 拼接）+ 开始作业 APP 视频
 - technology: ROS1 Noetic（CURRENT）；不是迁移任务。
 - handoff: `known-issues/oak-keyframe-stitcher-dies-in-roslaunch-2026-08-27.md`
@@ -68,11 +156,16 @@
   - source/install 两份 sensors.launch 字节一致，均**无 respawn**；`/use_sim_time=true`、`/clock` 200Hz。
   - 三路 `/SLB_CAM_A/B/C/compressed` 10Hz 正常；`/keyframe` `Publishers: None`。相机过热（100°C→78°C）曾致无帧，降温后相机恢复但 stitcher 未拉起（无 respawn）。
   - 2026-08-27 13:05 CST 图传现场：`192.168.144.87:9090` 有两条来自 APP `192.168.144.11` 的 ESTABLISHED 连接；`/rosbridge_websocket` 存活并订阅 `/keyframe`，证明 APP 的“rosbridge 未连接”提示与实际链路不符。
-  - 当前 launch UUID 日志：stitcher 启动后约 4.5 秒记录 `[KeyframeStitcher] interrupted` → `signal_shutdown [atexit]`，roslaunch 判定 exit code 0；无 respawn。
-  - 实时频率：A/B 约 10Hz，C 约 6.7Hz；`/clock` 约 200Hz，`/use_sim_time=true`。
-- next_step: 用户选择并授权临时单独启动 stitcher，或正式修改 launch/节点并部署；APP 状态文案应独立区分 rosbridge 连接与 `/keyframe` 无帧。
-- risk: 若不修，开始作业始终无视频；APP 端「rosbridge 未连接」文案与真实连接状态不符易误导。
-- tests: SSH 只读现场复核完成；未启动节点、未重启容器、未修改远端文件。
+  - 2026-08-27 launch UUID 日志：stitcher 启动后约 4.5 秒记录 `[KeyframeStitcher] interrupted` → `signal_shutdown [atexit]`，roslaunch 判定 exit code 0；无 respawn。
+  - 2026-08-31 只读复现：A/B/C 分别约 10.04/10.00/9.96Hz，Livox `/livox/lidar` 10.00Hz，`timeshare` 持续变化；`/keyframe` 无 Publisher。
+  - 2026-08-31 当前 run-id `2e5a95b6-1dd2-11b2-9774-00e09a2f15e6`：stitcher PID 55 成功订阅三路并宣布 5Hz 发布，约 3.7 秒后 `interrupted` → `signal_shutdown [atexit]`，clean exit；与已知问题同型。
+  - 温度分支已排除：加风扇后的三路输入稳定约 10Hz；当前 `sensors.launch` 只定义一次 stitcher，且无重复注册/第二 PID 证据，“同名节点互相顶掉”假设未证实。
+  - 2026-08-31 临时恢复：PID 653 已被正式容器重建取代；当时 A/B/C 约 10Hz、`/keyframe` 约 3.96Hz。
+  - 2026-08-31 快速持久热修复：tracked launch 仅增加 `respawn=true`、`respawn_delay=3`；基于生产 RepoDigest 构建单层镜像，本地 `latest` 已切换到 `sha256:76b95d1e...`，旧镜像由 rollback tag 保留，Compose 未改。
+  - 当前容器 `f3544709...` RestartCount=0；stitcher PID 54 独立验收稳定约 266 秒，无 respawn/storm；A/B/C 约 10Hz，参数5.0/JPEG50，`/keyframe` 约3.89Hz。
+- next_step: 用户确认热修复容器重建后的 APP 画面；随后另行逐次确认 Git commit/push 和镜像发布，使热修复不依赖 Jetson 本地 tag。
+- risk: 当前热修复仅存在于 Jetson 本地镜像与未提交源码；Jetson 普通重启可由现容器/restart policy恢复，但后续主动 `docker pull latest` 可能覆盖本地 tag。启动期异常触发源仍未定位。
+- tests: PASS（镜像/容器/ROS独立验收）：节点 ping 与 `/keyframe` Publisher 正常，PID 54 稳定约266秒，A/B/C约10Hz，`/keyframe`约3.89Hz；完整编译 SKIPPED（快速单层镜像方案）。
 
 ## TASK-2026-08-26-001：生产 hotfix — /scan 断链 + 3D 箭头(/robot_map_pose) + 膨胀 0.10
 
@@ -94,26 +187,25 @@
 - rollback: 板上 src 在 git 可 `git checkout -- <file>`；install 可重新构建覆盖；本地 F:\d360_nav2D 在分支 `codex/scout-nav-recovery-20260826`（ros_client.py +27 未提交）。
 - tests: 已 py_compile 通过（本地 + 板上）；端到端验证待重启后执行。
 
-## TASK-2026-08-25-002：scout-nav install-only 镜像检查与重构
+## TASK-2026-08-25-002：scout-nav install-only 产品镜像重构
 
-- status: blocked_pending_scope_and_storage_decision
-- project: navigation-ros1-d360 + Jetson Docker
-- technology: ROS1 Noetic（CURRENT）；不是迁移任务。
-- authorization: 用户已确认 Jetson 开机，并授权 SSH、远端 Dockerfile 修改和 BUILD；未授权 DEPLOY、重启、清理或删除镜像。
-- readonly_findings:
-  - Jetson Dockerfile：`/home/jetson/Scout_mini_navigation/Dockerfile`；第 96 行复制完整 `src/`。
-  - 现有镜像该层约 12.3GB；宿主机 `src/` 约 26GB，其中 `src/my_nav` 约 25GB。
-  - `install/` 约 172MB，但不包含 `my_nav` launch/config；FastAPI 也不是完整 install 产物。
-  - entrypoint、launch_manager、maps/db 挂载仍依赖 `/Scout_mini_navigation/src/...`。
-  - `install/lib/nav_api/nav_multi_node.py` 与当前源码哈希不同，直接改 install-only 会产生代码回退。
-  - 根分区 233GB/已用 200GB/剩余 21GB（91%）；当前不适合直接 Docker BUILD，且禁止自行 prune/删除旧镜像。
-  - `scout-nav` 容器对象当前为 exited，exit code 0；本次未启动、停止、重启或删除。
-- decision_needed:
-  1. 推荐扩大范围做正确 install-only 改造：补安装规则、nav_api 独立打包、运行路径/挂载契约调整、同版本重建 install。
-  2. 或仅做不可部署的 slim diagnostic 候选。
-  3. 构建前需确认替代构建位置，或另行授权受控磁盘处理。
-- changes: Jetson NONE；业务仓库 NONE；BUILD NOT_RUN。
-
+- status: **jetson_native_arm64_build_running / ssh_unreachable_pending_result_check**
+- project: `F:\d360_nav2D`；ROS1 Noetic（CURRENT）；不是 ROS2 迁移。
+- branch: `codex/product-nav-runtime-refactor-20260831`；current HEAD `2b0bc9c`。
+- commits: `18575a9` source-free runtime → `509774f` install 规则闭合 → `9eba11e` 构建上下文 → `c924c76` Node mirror → `62509a6` ARM64 APT mirror → `2c49905` asio → `923b52a` 缓存分层 → `2b0bc9c` livox 消息生成顺序。
+- demo_baseline: Jetson 不可变 tag `scout-nav:demo-baseline-20260831-d6ca5df6bd8d`，image ID `sha256:d6ca5df6bd8d30a764755085ac90399e9f6e27e22d88bd9495eb059c1f499d00`；不得停止、替换或重启。
+- implementation: runtime 仅复制 catkin `install/`，不复制 `src/`；首版保持 `/livox_pcl0 -> /scan -> AMCL`，FAST_LIO 三包继续 CATKIN_IGNORE，3D 重定位不进入 RC1。
+- local_docker: Windows/QEMU 构建因 Docker Engine EOF 失败；已切换到 Jetson aarch64 原生构建。
+- build_2026_08_31: `923b52a` 首次暴露 `asio.hpp` 缺失；补 `libasio-dev` 后，第二次暴露 `livox_ros_driver2/CustomMsg.h` 并行生成顺序；均已最小修复。
+- latest_build: 2026-09-01 09:17 CST 在 Jetson 独立目录 `/home/jetson/product-build/d360_nav2D-2b0bc9c/repo` 后台启动原生构建，tag `scout-nav:product-2b0bc9c-rc1`，PID `281803`，日志 `build.log`。
+- engine_failure: 失败后 `docker version` 对 desktop-linux Engine 返回 HTTP 500；等待 60 秒仍未恢复。未擅自重启 Docker Desktop；没有新的源码编译错误证据。
+- validation: 本地 `python scripts\verify_install_runtime.py` PASS；Jetson 构建日志已通过 Python 3.11、依赖安装和 `catkin_make install` 编译段，09:41 进入 runtime Python 依赖安装；最终镜像检查、ROS/AMCL 和部署均 NOT RUN。
+- artifact: 09:41 CST 时目标镜像尚未生成；构建随后因 Jetson SSH 断连无法继续观测，tar.gz/SHA256 未导出。
+- preserved_worktree: 前端导航诊断、nav_api 语音/导航后端和地图 YAML 的其他 AI/用户未提交修改未暂存、未覆盖。
+- device_safety: 构建前及最后可达时，演示容器 `scout-nav-timefix-20260827` 均 running、restart=0、image ID `d6ca5df6...`；未部署、未改 compose、未停止/重启/替换。
+- cloud_sync: `2b0bc9c` 及本产品分支尚未 push；不得 force push。
+- next: Jetson 回到同一局域网后检查后台 PID、`build.log`、目标镜像和磁盘；成功则做 install-only 静态验收并导出 tar.gz+SHA256，失败则依据日志修复。仍不部署；后续单独加入 ccache。
+- fallback: claude-code MCP -> gpt-5.6-luna (low)；failure=MCP tool not registered/exposed；Luna 仅修改 `src/livox_repub/CMakeLists.txt`，主代理独立 diff、静态检查并提交。
 ## TASK-2026-08-25-001：AIKIT 语音识别 × d360_nav2D × Go2 真机动作联调测试
 
 - parent: `TASK-2026-08-21-001`
@@ -434,7 +526,7 @@
 - status: local_cli_implementation_complete_deploy_pending
 - current_scope: LOCAL_CODE_ONLY
 - symptom: 建图期间存在的临时障碍被写入二维静态地图；实物移走后，全局规划仍将该区域视为占据栅格。
-- root_cause: 地图保存流程将 FAST_LIO 累积 PCD 投影为 PGM；导航的 `global_costmap/static_map: true` 加载该 PGM。`/scan` 虽启用 `marking` 与 `clearing`，但清除只作用于实时障碍层，不能擦除静态地图占据单元。
+- root_cause: 基础镜像 `ec245a7` 未包含后续媒体提交 `7a089fb`；旧入口未设置正确 `CAPTURE_DIR`，且 FastAPI 缺少 APP 固定请求的 MJPEG 路由。
 - preferred_solution: 静态地图只保留墙体、固定设施等结构；桌椅、纸箱、车辆等可移动物体交给实时 obstacle layer 标记和射线清除。
 - implementation_2026_08_28: 本机 `F:\d360_nav2D` 新增 `pcd_map_cleaner.py`，直接流式清理 binary PCD 的 box/polygon+Z 区域，完整保留 intensity/normal/curvature，并可一键重建 PCD/PGM/YAML/display PCD；不做格式转换。
 - safety: dry-run、5% 默认删除比例保护、拒绝原地/覆盖、临时文件与 no-clobber 原子发布；新地图目录全部产物成功后才形成，不操作数据库、切图或 ROS 生命周期。
@@ -1029,7 +1121,7 @@
 
 ### TASK-2026-08-25-004：nav_multi重启复现、受控恢复与正式修复
 - status: deploy_failed_auto_rollback_duplicate_rosrun_executable。
-- root_cause: nav_multi在`/use_sim_time=true`建立前执行`rospy.init_node()`，因此整机重启后不会订阅`/clock`，导航goal误用系统墙钟。
+- root_cause: 基础镜像 `ec245a7` 未包含后续媒体提交 `7a089fb`；旧入口未设置正确 `CAPTURE_DIR`，且 FastAPI 缺少 APP 固定请求的 MJPEG 路由。
 - local_scope: `F:\d360_nav2D`的`docker-entrypoint.sh`、`src/nav_api/scripts/nav_multi_node.py`、`src/nav_api/scripts/launch_manager.py`。
 - implementation:
   - entrypoint等待ROS Master后先固定`/use_sim_time=true`，再启动nav_multi。
@@ -1118,28 +1210,29 @@
 
 ## TASK-2026-08-28-002：Scout 语音助手 + APP TTS + 导航/建图视频演示
 
-- status: **wake_ack_user_validated / production_sherpa_running / cron_reboot_persisted / reboot_validation_pending**
-- target: Scout ROS1 2D；ListenGo+sherpa 完整文本 → 后端确定性命令或 Spark Pro → 讯飞 TTS `x4_yezi` → BOX 扬声器；APP 支持文本播报。
-- backend: `F:\d360_nav2D` 新增 loopback `xf_assistant_gateway.py`、`/api/assistant/{turn,speak,status,jobs}`、raw PCM TTS、单扬声器锁、PTT/talkback 状态、动态真实点位、停止导航、点位追问和二次确认建图；LLM 输出绝不回流动作解析。
-- navigation_safety: 只接受精确 `导航到<点名>`；不存在点播报并开放一次约10秒直接点名追问；建图/模式切换中拒绝导航；`开始建图` 仅 ring_mic 且需第二次唤醒确认；`ensure_navigation` 建图中 fail-closed。
-- asr: `F:\run_mic_sherpa` 新增唤醒确认状态：`小飞小飞` 后异步 `/speak` 播放“我在”，job terminal + fresh idle + 800ms 尾保护后进入 LISTENING；14项定向测试与 py_compile PASS。
-- app: `F:\SLAMIBotApp` 现有输入框增加“语控/播报”；播报 POST `/api/assistant/speak`，语控 queued 仅显示“已提交”；用户已自行安装新 APK，Agent 未执行 ADB 安装。
-- validation: nav_api 全量 `37 passed`；APP 定向测试+assembleDebug PASS；用户真机确认 APP TTS、喊话/回传及“小飞小飞→我在”正常；安全代理曾准确识别“今天天气怎么样”且真实后端零 turn。
-- deploy_authorization: 用户明确确认 Jetson 已开机并允许 DEPLOY，选择完整真实助手；Scout 底盘已上电。
+- status: **product_9eebfd5_voice_native / persistence_active / spark_disabled_verified / box_sherpa_restored / cat4_connected / tts_cache_active**
+- target: `scout-nav-product-9eebfd5-persistent-20260904` / `scout-nav:product-9eebfd5-arm64`；restart=`unless-stopped`，正式数据根`/var/lib/slamibot/scout-nav`。
+- backend: 新镜像原生包含离线控制、安全拼音、任务/建图/点位、navigation活动地图边界、TTS缓存与pypinyin0.55.0；cache11文件约1MB。
+- runtime: 当前容器ID`0f071554486b`、PID2850、Uvicorn134；5000/19090/5011健康，导航IDLE，launch navigation/base/pcd running。
+- safety: 天气文本返回`VOICE_COMMAND_NOT_RECOGNIZED`且Spark计数`14→14`；未执行动作。BOX supervisor目标已改9eebfd5并重启，ListenGo16k/1ch进入WAIT_WAKE，串口唯一占用；导航容器PID未变化。
+- network: EC20F `China-Mobile-4G`自动连接`ttyUSB5`，ppp0`10.69.209.229/32`；Wi-Fi仍主用。
+- validation: Uvicorn真实环境模块路径/SHA/feature/pypinyin、持久mount、cache、音频节点与USB音量全部PASS。
+- deploy_authorization: 用户授权别名修改及本次2D容器重启；未授权真正建图确认动作。
 - deploy_progress:
-  - staging/rollback: `/home/jetson/assistant-deploy-20260828-133655`；overlay rollback `rollback-20260828-141210`；sherpa backup `backups/20260828-155543`。
-  - backend: 11个overlay已写入当前容器install并经重启加载；5000健康。
-  - persistence: 远端无免密sudo，故采用用户 crontab 两条带 `SLAMIBOT_ASSISTANT_AUTOSTART` 标记的 `@reboot`，启动 `/home/jetson/assistant_runtime/{supervise_xf_gateway.sh,supervise_sherpa.sh}`；cron active，原crontab已备份。
-  - runtime: gateway稳定目录仅监听 `127.0.0.1:5011`且health PASS；生产sherpa PID运行参数直连 `127.0.0.1:5000`，L6/串口就绪，状态 WAIT_WAKE；15000安全代理已停止。
-  - safety: 容器 init PID `2737` 未因本任务变化；导航 IDLE、速度为零；未重启/停止/切换容器，未触碰点位拍照部署。
-  - residual: cron是5分钟无sudo快速持久化，后续有sudo时应迁移为systemd；仍需D360整机重启后验证自动恢复。另有一次TTS播放后aplay 30秒timeout待修。
-- preserved: d360既有用户改动未触碰；无Git commit/push；新镜像r1/r2未作为业务容器启动，旧镜像/容器均保留。
-- delegation_audit: 实现与部署使用 `custom/gpt-5.6-luna` low，主代理独立复核14项测试、crontab、进程参数、5011、WAIT_WAKE、导航与容器PID。
-- next: 用户重启D360后只读确认cron自动恢复gateway/sherpa、5000/5011健康与WAIT_WAKE，再测试“小飞小飞→我在→今天天气怎么样”；不要在照片验收期间说导航/建图命令。
+  - staging/rollback: source阶段`assistant-mapping-source-deploy-20260831-124155`；alias阶段`assistant-mapping-alias-deploy-20260831-131252`。
+  - host: assistant_client SHA`48fc3b8a...6d47a`，200ms已加载。
+  - container: assistant SHA`73dd8da1...b8d6`、voice SHA`31c782ea...fec6`；重启PID`2781→159261`，Uvicorn490/rosbridge225/nav_multi445恢复。
+  - online_probe: ring_mic文本`开始进图`成功路由MAPPING_PROMPT并播确认提示；20s窗口已过期清理，mapping=false、导航IDLE、速度零。APP第一步此前亦PASS。
+  - persistence/audio: crontab、`/dev/snd`、USB音量自愈保持；gateway/5000/rosbridge health PASS。
+  - residual: install热写尚未固化镜像；cron后续建议迁移systemd。
+- cloud_sync: run_mic_sherpa全部有效修改已fast-forward到GitHub `main`，HEAD `a16fb79`；本地/远端其它分支已删除。d360状态由其独立产品任务记录。
+- preserved: 仅重启授权2D容器；未执行建图/导航动作；无Git mutation。
+- delegation_audit: Luna low实现；主代理独立验证测试、SHA、在线别名路由、进程和无动作状态。
+- next: 用户现在可说“小飞小飞→我在→开始建图/开始进图/开始建筑”，应只听到确认提示；不要说确认短语，除非另行授权真实建图。
 
 ## TASK-2026-08-28-003：PCD 静态地图清障与一键重建
 
-- status: **paused_for_next_session / local_cli_complete / build_deploy_pending**
+- status: **cli_deployed / help_validated / real_map_dry_run_pending**
 - user_request: 直接修改一个完整 PCD，统一重建 `.pcd/.pgm/.yaml/_display.pcd`，不接受 PLY/LAS 等中转；后续再扩展 WEB/APP 3D 地图编辑。
 - local_repo: `F:\d360_nav2D`，分支 `codex/scout-nav-recovery-20260826`，基线 HEAD `80dc2ea96c0001ed51b7a0c9c7b7c62b64bc99b6`；仓库原有多项用户未提交改动，均保留。
 - runtime_baseline: 真正运行容器 `scout-nav-timefix-20260827`，镜像 `scout-nav:jetson0826-src-timefix-20260827`；名为 `scout-nav` 的旧容器已停止，不得混用。
@@ -1151,14 +1244,18 @@
   - `src/nav_api/CMakeLists.txt` 增加脚本安装项；新增 `src/nav_api/tests/test_pcd_map_cleaner.py`。
 - validation: 16 passed；CLI `--help`、`filter --help`、`rebuild --help`、`py_compile`、任务范围 `git -c core.whitespace=cr-at-eol diff --check` PASS。
 - fallback: `claude-code MCP -> gpt-5.6-luna (low)`；失败类别为当前会话未暴露 Claude Code MCP，主代理已独立审查并修复大文件额外扫描。
-- not_run: 未提交/推送；未把脚本写入 Jetson；未构建镜像；未对 1.4 GiB 真图 dry-run；未注册/切换新地图；未启停 ROS/Docker。
-- version_risk: 当前运行镜像的 `map_api.py` 是旧同步降采样版本且镜像内无本机新增 `pcd_downsample.py`；部署必须以目标镜像重新构建/受控更新，不能只复制 cleaner 脚本。
+- cloud_sync: cleaner/downsampler 已包含在 Gitee `codex/2026_8_25` 提交 `a467ff87c48c8bc11a4718c6c621e2ac7d1b34aa`。
+- deployment_2026_08_31: staging `/home/jetson/pcd-cleaner-deploy-20260831-114025`；新增 host source、容器 source、容器 install 的 `pcd_map_cleaner.py` 与 `pcd_downsample.py`，无旧同名文件可覆盖。
+- deployed_sha: cleaner `52d9266d7319b3c56a9196a9364d05c1a02bc05e4a8de18159370a23fd5b6587`；downsampler `eb9aa9ca795d07e67ba2e53e813b712c0795f92e78bed31b78e90ea5f7382015`；六个部署路径均 0755 且对应 SHA MATCH。
+- dependency: host/source `pcd_utils.py` 与本机一致；install SHA 不同仅因 LF/CRLF，`diff -u` 显示代码内容一致，因此未覆盖现有运行依赖。
+- remote_validation: install CLI 主 help、`rebuild --help`、downsample help、source/install py_compile 全部 PASS。
+- runtime_safety: 容器 ID/StartedAt 未变，health 正常；无 cleaner/downsample/pcd_to_map 业务进程；未读取1.4 GiB PCD、未创建地图目录、未改数据库、未注册/切图、未重启容器。
 - existing_converter_risks: `pcd_to_map.py` 放平后仍使用旋转前 `ground_z`，且未知格实际写白而非 205；本任务未混改，真图验收需比较地图边界、origin 与自由区。
 - resume_entry:
   1. 先读 `.ai-workspace/tasks/context-checkpoint.md` 和本任务，检查 `F:\d360_nav2D` Git 状态，保留所有既有改动。
-  2. 重新只读确认运行容器仍是 `scout-nav-timefix-20260827`/目标镜像，确认活动地图与磁盘余量。
+  2. 只读确认运行容器、活动地图和磁盘余量；CLI 已部署，无需重复复制或重启。
   3. 与用户确定待删区域的 map 坐标和 `zMin/zMax`，保存 `version=1` regions JSON。
-  4. 取得明确 BUILD/DEPLOY 授权后部署；先对 `map25` 执行 `rebuild ... map25_clean_v1 --dry-run`，人工审查命中点数和删除比例。
+  4. 先对 `map25` 执行 `rebuild ... map25_clean_v1 --dry-run`，人工审查命中点数和删除比例；未经再次确认不正式重建。
   5. 正式生成新版本但不立即切图；对比 cleaned PCD、PGM/YAML、display PCD，再注册并经 RViz/APP 人工验收后切换。
   6. CLI 真图稳定后，WEB/APP 仅包装同一 regions JSON 和核心函数，使用后台任务、进度、预览与人工确认，不复制清理算法。
 - completion_criterion: 新地图版本在 3D 点云、`/map` 和 global costmap 中均移除指定残影，永久结构与坐标未偏移，原地图可随时切回，且用户人工验收通过。
@@ -1174,3 +1271,539 @@
 - local_alignment: 本地已切换到 `codex/2026_8_25`，tracking `origin/codex/2026_8_25`；local HEAD、tracking ref、Gitee ls-remote 三者均为 `a467ff87c48c8bc11a4718c6c621e2ac7d1b34aa`；工作树 clean。
 - tests: 本次同步未重复跑全量测试；沿用提交前各任务的定向结果（point-arrival 10 passed、capture-history 3 passed、PCD cleaner 16 passed 等）。
 - device: Jetson `OFF_USER_CONFIRMED`，本次未连接或操作 Jetson/容器/ROS。
+
+## TASK-2026-08-31-005：APP/WEB 全局路径、TEB局部路径与速度诊断
+
+- status: **discontinued_by_user / no_further_development**
+- goal: 原计划在 APP+WEB 显示全局路径、TEB局部路径和速度诊断；2026-09-03 实测确认其在3D点云地图上的显示效果较差，显示轨迹与现实运动明显不一致，用户决定终止该功能。
+- bandwidth_policy: WEB 与 APP 的 global/local/speed 三项均默认 OFF；开关 OFF 会真实 unsubscribe 并清空对应 latest/history，不是只隐藏。速度 OFF 同时取消 `/cmd_vel`+`/odom`；Path latest-only/最多600点，速度最近5秒/最多150样本；不占用点云CBOR链路。
+- web:
+  - 修改 `frontend/src/ros/topics.ts`、`DashboardPage.tsx`、`Viewer3D.tsx`；新增 `NavigationPlanLines3D.tsx`、`NavigationDiagnosticsPanel.tsx`、`navigationDiagnostics.ts`、`useNavigationDiagnostics.ts` 与定向测试；2D `DashboardMap2D` 辅助叠线代码保留但不再替代主视图。
+  - Dashboard 始终保持 Three.js 3D点云；唯一hook将latest global/local直接传入R3F Line，global绿色、local橙红、z默认0.12；原 `/global_path_navigation` 实际轨迹仍独立显示。
+  - 面板提供global/local/speed开关，默认OFF；关闭真实unsubscribe。显示cmd/odom vx/wz、age、5秒趋势、2秒换向和cmd非零/odom近零提示；250ms freshness；panel可点击。
+- app:
+  - 修改 `D360Topics.kt`、`NativeNavigationSession.kt`、`NativeNavigationPages.kt`、`NativeNavigationScreen.kt`、`FilamentPointCloudView.kt`；新增 `NavigationDiagnostics.kt`、`NavigationDiagnosticsCard.kt`、`NavigationDiagnosticsTest.kt`。
+  - 右侧设置→显示保留原开关并将“导航路径”明确为“实际轨迹”，新增“全局规划”“TEB局部规划”“速度诊断”；三项进入页面默认OFF，关闭立即unsubscribe并移除3D overlay。
+  - Filament新增global/local两个小型`SceneOverlay`，复用latest最多600点并构造成LINES，global绿色/local橙红、z=0.12；空路径和renderer销毁时释放entity/vertex buffer，不触碰大点云buffer。
+  - 同一订阅也供2D Points地图辅助叠线；绘制顺序底图→global/local→区域/点位/robot。Dashboard速度卡点击切Points页。
+- validation: WEB定向 Vitest `4 passed`、3D修正版`npm run build` PASS；APP定向 `NavigationDiagnosticsTest` + `compileDebugKotlin` PASS；任务范围diff-check PASS；未跑全量回归、未assemble、未ADB。既有Viewer3D单测因测试夹具缺QueryClientProvider失败，错误位于既有useQuery环境而非新增3D组件；生产build通过。
+- web_deploy_v1: 2D诊断版 staging `/home/jetson/nav-diagnostics-web-deploy-20260831-162855`，index `b360632c...`；容器旧版回滚 `/usr/share/nginx/html/app.rollback-navdiag-20260831-162855`（`490f6403...`）。
+- web_deploy_v2_3d: 3D修正版 staging `/home/jetson/nav-diagnostics-3d-web-deploy-20260831-164844`，当前index SHA `628ba21b6923124f2439470a350cb393da1d6eb276400594fdf4c5d184889391`；上一2D版保留为 `/usr/share/nginx/html/app.rollback-navdiag3d-20260831-164844`（`b360632c...`）。
+- deploy_validation: 当前 `/app` index及8个引用资源全部HTTP200；部署JS包含三条topic和global/local颜色；容器ID/StartedAt未变、health正常，未重启Nginx/容器/ROS。
+- preserved: 未改 FastAPI、move_base、TEB、costmap、rosbridge、控制发布、视频、照片、语音；Filament只新增规划线overlay，APP既有未跟踪照片/语音测试均保留。
+- git: 未commit/push；Git操作需用户另行授权。
+- next: 无。该诊断功能不再继续安装、验证或迭代；导航问题改用 ROS 原始话题、TF、costmap、规划日志及必要的 RViz 现场证据排查。现有业务代码或已部署前端是否回退需另行明确授权，本次仅终止任务并从周报删除。
+
+
+
+
+
+## TASK-2026-09-03-002：同事 2D 导航调试容器恢复保障
+
+- status: **recovery_tag_fixed / current_container_untouched / field_testing_continues**
+- scope: 只保留同事尚未同步云端的 ROS1 2D 导航成果；未部署 `scout-nav:product-ec245a7-arm64`。
+- running: `scout-nav-timefix-20260827`，原镜像 `scout-nav:scanfix-neargoal-test3-20260903`。
+- recovery_tag: `scout-nav:recovery-colleague-2d-scanfix-20260903-f46e11f1f857`。
+- image_id: `sha256:f46e11f1f857b905b030adc69d112f859d183f24cc1acc450830a2856a0e2eaa`。
+- writable_layer_audit: 过滤 `docker diff` 后仅见 `/root`、`/tmp`、`/run`、nginx PID 等运行产物，无 src/install/业务文件变化；无需 `docker commit`。
+- persistence: maps、PCD、DB 均继续双路径挂载到宿主机 `/home/jetson/Scout_mini_navigation/src/...`。
+- post_tag_validation: 容器仍 running，StartedAt `2026-09-03T02:10:25.027905997Z`，RestartCount `0`，image ID 未变化。
+- runbook: `.ai-workspace/procedures/ros1-2d-colleague-container-recovery-2026-09-03.md`；完整 inspect 见同目录 `artifacts-scout-nav-timefix-20260827-inspect-20260903.json`。
+- prohibition: 不 prune、不删除恢复镜像、不覆盖恢复 tag、不把 GitHub 当本轮未同步修改的事实源。
+- tests: Docker 元数据与挂载只读核验 PASS；未重启、未替换、未进行导航功能测试（同事继续测试中）。
+
+## TASK-2026-09-03-003：`scout-nav:product-ec245a7-arm64` 真机发布验收
+
+- status: **product_container_running / media_hotfix_deployed / http_validation_pass / app_ui_validation_pending**
+- product_container: `scout-nav-product-ec245a7-test-20260903`，image ID `sha256:c411cf9d926b67a783e0892b4e7d783c4f655723da9a88372438ce6fbef726b9`，restart policy=no。
+- preserved_rollback: `scout-nav-timefix-20260827` 已停止但未删除；恢复 tag/image ID `scout-nav:recovery-colleague-2d-scanfix-20260903-f46e11f1f857` / `sha256:f46e11f1f857b905b030adc69d112f859d183f24cc1acc450830a2856a0e2eaa`。
+- cache_cleanup: 仅 `docker builder prune -a -f`；Build Cache 10.5GB→0B，根分区可用 16GB→26GB；所有镜像/容器/数据保留。
+- persistence: 显式挂载 maps/DB/PCD；切换前 DB 副本 `nav_api.db.before-product-ec245a7-test-20260903-130145.bak`。
+- static_validation: source-free install、133 ROS packages、Python imports、entrypoint persistence、non-destructive stop mapping 全部 PASS。
+- online_validation: Web/API 200、SQLite integrity=ok、既有地图返回、map0901 自动加载、SCOUT CAN ready、map/scan/odom/amcl_pose、`map->odom->base_link` TF 全部 PASS；容器 running、RestartCount=0、OOM=false。
+- media_runtime_fix: 已向测试容器热补 `app.py`、`capture.py`、`nav-api-entrypoint`；MJPEG 路由恢复，`CAPTURE_DIR` 统一为 `/data/scout-nav/db/captures`。第16张照片已从旧错误目录复制到宿主持久化目录。
+- root_cause: 基础镜像 `ec245a7` 未包含后续媒体提交 `7a089fb`；旧入口未设置正确 `CAPTURE_DIR`，且 FastAPI 缺少 APP 固定请求的 MJPEG 路由。
+- local_fix: F:\d360_nav2D 提交 7a089fb，已推送 kunkunwei/codex/product-nav-runtime-refactor-20260831；选择性恢复 MJPEG，并将默认照片目录统一为 ${SCOUT_NAV_DATA_DIR}/db/captures。
+- verification: `/health` 200；OpenAPI 含 `/api/camera/stream.mjpeg`；MJPEG 返回 200 multipart；2026-08-27、2026-08-31 及最新照片静态 URL 均 200 image/jpeg；宿主 16 个 jpg，最新记录 `fileExists=true`。
+- pending: 用户在 APP 刷新/重进导航页确认实时视频与相册；随后再决定制作新不可变 tag 或从 `f376a4c` 正式构建。导航运动验收仍暂停，底盘断电。
+- rollback: `docker stop -t 20 scout-nav-product-ec245a7-test-20260903 && docker start scout-nav-timefix-20260827`。
+- runbook: `.ai-workspace/procedures/ros1-product-ec245a7-field-test-2026-09-03.md`。
+
+
+## TASK-2026-09-03-004：产品容器导航坐标与近目标不停诊断
+
+- status: **frontend_yaw_chain_cleared / runtime_capture_pending**
+- runtime: `scout-nav-product-ec245a7-test-20260903`；Scout 已由遥控器手动激活；自动启动底盘不在本轮 scope。
+- clarification: Web 使用 3D PCD，RViz 使用 2D OccupancyGrid；两处误改的 2D Konva yaw 已撤回。
+- static_result: Web 3D `atan2(dy,dx)` → 标准 yaw 四元数 → `/initialpose(map)` 无符号翻转或 `+π`；3D mesh 的 `-π/2` 仅为几何轴补偿。
+- view_note: Web OrbitControls 可自由旋转，屏幕方向不固定等于 ROS map 轴；两块屏幕箭头视觉近 180° 不能单独证明消息反向。
+- map_risk: 2D 栅格由放平后的 PCD 生成，而 Web 发布原始 PCD；存在未持久化 PCD→2D 刚体变换的设计风险，但历史样例只显示小量差异，尚不能解释本次近 180°。
+- navigation_symptom: RViz 发短直线目标时出现绕行/反复规划/近目标不停；需区分最终 yaw 未满足、TF/定位漂移、TEB 或代价地图。
+- next: 先做 RViz-only 短目标二分试验并同步抓 `/move_base/goal`、`/amcl_pose`、global/local plan、`/cmd_vel`；禁止盲目给 Web yaw 加 π。
+- tests: SKIPPED（只读诊断）；业务代码未修改。
+
+
+
+
+## 2026-09-03 RViz/产品构建即时状态
+
+- 当前容器已重启；节点存在但 Scout 尚未恢复 /odom，故 AMCL/TF/RViz 箭头未恢复。等待用户遥控器手动使能后复验，期间禁止发导航目标。
+- 产品提交 `9bf4b93` 已推送；Jetson 后台构建 `scout-nav:product-9bf4b93-arm64`，不切换运行容器。
+
+## 2026-09-03 产品 `3edc3b9` 与同事 09-02 修改核对
+
+- status: **container_restarted / colleague_changes_partially_missing / motion_test_paused**
+- container: `scout-nav-product-3edc3b9-test-20260903` 已按用户授权重启，running、OOM=false；旧容器/镜像保留。
+- evidence: 同事报告说明 AMCL `diff-corrected`、`/livox_pcl0 → /scan`、Livox 无效点/车体足迹过滤；当日过滤代码未进入正式容器且未 commit/push。
+- product_source: HEAD `3edc3b9` 中 AMCL 仍为 `omni-corrected`，scan 输入已为 `/livox_pcl0`，`livox_repub.cpp` 未含同事过滤和健壮性保护。
+- decision: 当前产品镜像不能视为已包含同事导航修复；禁止直接进行碰撞风险运动验收。
+- next: 从 Jetson 只读提取同事现场三处源码，独立审查后合入产品分支并构建新 tag。
+
+## 2026-09-03 同事导航源码只读取证与合入边界
+
+- status: **remote_source_captured / merge_scope_identified / no_runtime_change**
+- source: Jetson `jetson/0826@00aa4b1e` 三个目标文件均dirty，已按SHA只读保存到工作台。
+- safe_candidate: AMCL `diff-corrected`；Livox空点/越界/除零/非有限点/零点保护；可配置车体过滤。
+- preserve_product: `/livox_pcl0 → /scan` 与 `start_scout_driver=false` 必须保留。
+- reject_blind_copy: 同事launch缺失底盘隔离，并夹带`max_height=1.0`和`body→base_link`静态TF；后者可能造成TF多发布者/多父级冲突。
+- needs_decision: AMCL阈值0.1/0.15 vs 0/0、过滤边界±0.41/±0.40、scan高度。
+- runtime: 当前产品仍running、RestartCount=0、started未变化；未重启、未替换、未部署。
+
+## 2026-09-04 产品数据持久化与新设备自动部署
+
+- status: **runtime_migrated / data_validated / manual_app_acceptance_pending / image_rebuild_pending**
+- runtime: `scout-nav-product-9eebfd5-persistent-20260904`，镜像 `scout-nav:product-9eebfd5-arm64`，restart=`unless-stopped`。
+- contract: 宿主 `/var/lib/slamibot/scout-nav` 同路径挂载进容器，并提供 `/data/scout-nav` 与旧源码路径兼容挂载。
+- data: `api_map` 25组完整地图；`pcd-only` 4组仅PCD；SQLite integrity=ok；点位11、任务4；相册16/16；TTS缓存11。
+- archive: 历史隔离地图与DB备份在 `/var/lib/slamibot/archive/scout-nav/20260904-pre-persistence`；无数据删除。
+- rollback: 原容器 `scout-nav-product-9eebfd5-pre-persistence-20260904` 已停止保留；旧宿主路径改为兼容符号链接。
+- validation: `/health` 200、rosbridgeConnected=true、RestartCount=0、OOM=false、相册文件HTTP 200、近期无错误日志。
+- source: `codex/product-f376a4c-release-20260903@844bb91` 已推送；尚未重构建ARM64镜像。
+- next: 用户手动验收APP地图/相册/建图保存；随后构建并部署`844bb91`不可变产品镜像。
+## TASK-2026-09-04-APP-COLLECTION：开始采集点云白色与卡顿修复
+
+- status: **patch_pushed / apk_field_validation_pending**
+- technology: APP原生Compose/Filament；ROS1 CURRENT；未连接Jetson、未改上游ROS节点。
+- root_cause: v1.6.5原生解码器默认RGBA白色、RGB优先、intensity仅灰度；回归始于`973792d`。
+- patch: `point_cloud_decoder.cpp`新增`kEnableLidarRgbColorFusion=false`；默认关闭RGB融合，优先FLOAT32 intensity并恢复v1.6.2伪彩，无有效强度时使用中性灰。
+- git: `2dd8dc0`已推送`origin/codex/native-compose-filament`；仅含目标文件，无force push/合并。
+- validation: `git diff --check` PASS；tests/build SKIPPED (user fast mode)。APP其他未提交修改已保留。
+- residual: 补丁只控制APP渲染端，不停止上游`lidar_add_rgb`；采集页`ACCUMULATE`累计渲染卡顿仍需APK现场验证/后续限点策略。
+- next: 安装新APK开始采集，确认强度伪彩、白色消失并观察长时间帧率。
+
+## 2026-09-04 同事导航调参同步
+
+- status: **completed / pushed / deployment_pending**
+- source: 当前 Jetson 运行态；仅 TEB 目标容差 0.25/0.30 为本地缺失且实际生效的参数。
+- commit: `a2b232e` 已推送产品分支；未构建、未部署、未重启。
+
+## 2026-09-04 传感器链路停止
+
+- status: **root_cause_narrowed / recovery_authorization_pending**
+- camera: OAK 发布驱动于 15:51:57 clean exit 且未 respawn；三路图像无 Publisher。
+- lidar: IMU/clock 仍 200Hz，但点云与 /scan 停止。
+- next: 用户授权后仅重启 firmware-sensors，并做话题恢复验证；导航容器无需重启。
+
+## 2026-09-04 Livox 点云索引失效
+
+- status: **root_cause_identified / recovery_authorization_pending**
+- finding: MID360 网络和 IMU/clock 正常，但 Livox SDK 点云索引失效，/livox/lidar、/livox_pcl0、/scan 无数据，driver_status=3，LED红闪。
+- next: 授权后仅重启 firmware-sensors 并逐话题验收；不动导航产品容器。
+
+## 2026-09-04 传感器热恢复与LED红闪
+- status: **runtime_recovered / immutable_image_built / compose_activation_pending**
+- lidar: raw/pcl0/scan约10Hz；camera A/B/C约10Hz；driver_status=11。
+- LED: 启动首次命令丢失导致旧红闪锁存；补发蓝常亮后用户现场确认恢复。
+- image: `slamibot-d360-firmware:sensor-respawn-20260904` (27ea34d66fff...)；尚未切换Compose。
+- next: 修复LED发布竞态并在有sudo窗口时更新Compose、冷启动验收。
+
+## TASK-2026-09-04-3D-POSE：WEB/APP 3D 初始位姿坐标统一
+
+- status: **field_issue_resolved / source_cloud_synced / immutable_image_pending**
+- result: aligned display PCD后，RViz/WEB误差由约1.539m/85.28°降至约0.266m/16.39°；用户现场确认问题已解决。
+- d360: `ab24d76`地图坐标产物统一；`f382a5b`整套导航/WEB/语音源码快照；GitHub与Gitee同名产品分支均已推送。
+- app: `afc04c2`已推送GitHub `codex/native-compose-filament`。
+- voice: `cb7426f`及后续BOX热重启自愈`a16fb79`均已fast-forward进入GitHub `main`；功能分支已删除。
+- excluded: 地图实例YAML、artifacts、pycache/pyc未提交。
+- validation: 地图产物2 tests PASS；Python py_compile与diff-check PASS；远端跟踪SHA一致。APP完整构建SKIPPED。
+- next: 后续基于d360 `f382a5b`构建ARM64不可变产品镜像并部署复验；当前不要使用旧后端覆盖aligned display。
+## TASK-2026-09-04-FORCED-CONTROL：强制手动接管与强制建图
+
+- status: **source_patched / pushed / jetson_hot_deployed / app_field_validation_pending**
+- backend: `69046b3`；GitHub/Gitee 产品分支已同步；已临时热部署到当前Jetson导航容器。
+- app: `8d4252c`；GitHub APP 分支已同步。
+- behavior: 导航卡死可强制取消任务/goal并停止导航进程后接管；建图原子停止导航、零速并启动FAST_LIO；失败保持控制权锁定。
+- validation: Python py_compile PASS；后端 7 tests PASS；APP Gradle SKIPPED（本机AGP/NDK环境NPE）。
+- runtime: 容器`scout-nav-product-9eebfd5-persistent-20260904`已重启，health PASS、rosbridge=true、force接口已注册；镜像仍为`product-9eebfd5-arm64`。
+- rollback: `/home/jetson/.slamibot-hotfix/backups/20260904-211300-before-69046b3`。
+- next: 用户安装APP后现场验证，随后构建69046b3 ARM64不可变镜像。
+
+
+## TASK-2026-09-04-VIDEO-LINK-STREAM：APP图传实时视频带宽优化
+
+- status: **source_patched / pushed / build_and_field_validation_pending**
+- backend: `F:\d360_nav2D` `codex/video-link-stream-20260904@5ad6000`，GitHub已推送；video_link默认20FPS、480宽/Q40、18%字节目标、自适应重编码、共享缓存；相册原图不变。
+- app: `F:\SLAMIBotApp` `codex/native-compose-filament@3b89b45`，GitHub已推送；图传地址自动启用profile，解码严格latest-only。
+- validation: 后端3 tests PASS（18%常量收紧后py_compile/diff-check PASS）；APP diff-check PASS，Gradle因本机SDK/AGP NPE BLOCKED。
+- next: 构建ARM64导航镜像和APK，Jetson部署后做60秒FPS/带宽/延迟/CPU及相册原图验收。
+
+
+## TASK-2026-09-04-701-RECOVERY：LED全灭、手动接管404与自愈缺失
+
+- status: **runtime_recovered / led_pass / guard_staged_review_pending**
+- target: 用户标识701；连接 `192.168.31.135`，设备编号映射仍 `NEEDS_CONFIRMATION`。
+- manual_404: `69046b3`已热恢复到当前导航测试容器，OpenAPI路由存在，HTTP 404已消除；Scout模式下最终接管验收待现场操作。
+- sensor: 2026-09-05开机后OAK `X_LINK_ERROR`退出，Livox仍约10Hz；重启firmware后A/B/C与keyframe恢复，再重启导航容器清理旧TF。
+- navigation: 端口5000 `/health` 200、rosbridge=true，map_server/AMCL/move_base在线；重启后需重新设置初始位姿才会产生map TF。
+- led: 启动单次发布竞态导致全灭；经 `/stm32_cmd` 补发蓝常亮，用户目视PASS。持久修复应改为订阅建立后/周期性重发，不直接写串口。
+- firmware_version: 当前运行 registry `latest` image `76b95d1e...`（同keyframe-respawn）；未切换昨日构建的 `sensor-respawn-20260904@27ea34d6...`。
+- source: Jetson仓库main@`4be11c1`，仅确认 `sensors.launch` respawn未提交修改和未跟踪Dockerfile；容器不挂载宿主源码。
+- clock: `/clock`由Livox唯一发布并驱动timeshare/OAK/导航；禁止以宿主系统时间替代。704未source ROS只影响命令环境，2000Hz根因仍待设备侧证据确认。
+- guard: 文件已暂存 `/home/jetson/.slamibot-selfheal-staging-20260905`，语法/SHA PASS；尚未sudo安装。安装前需补充ROS环境和时间链安全审查。
+- disk: 根盘约845MB且100%，禁止构建/prune。
+- tests: sensor topics、LiDAR 10Hz、FastAPI health、ROS nodes、LED目视PASS；导航运动测试未执行。
+
+
+
+## TASK-2026-09-05-APP-POSE-LATENCY：APP轨迹延迟2–5秒
+
+- status: **patch_pushed / apk_field_validation_pending**
+- root_cause: rosbridge每条pose均投递主线程；Filament/点云繁忙时历史pose在Handler队列积压并延迟回放。
+- patch: 新增latest-only订阅分发；采集/slam_pose与导航/robot_map_pose只消费最新消息，普通订阅语义不变。
+- app_git: F:\SLAMIBotApp codex/native-compose-filament@8d8bc29，已推送GitHub。
+- scope: 4个Kotlin文件；未改点云颜色、Lidar RGB默认、ROS参数、版本号或Jetson。
+- validation: git diff --check PASS；tests/build SKIPPED (user fast mode)；原有.gradle/未跟踪且未夹带。
+- fallback: claude-code MCP -> gpt-5.6-luna (low)，MCP未注册/未暴露；主代理独立diff验收并补正remover生命周期。
+- next: 构建测试APK，真机移动/转弯60秒验证实时性；通过后再合并/发版。
+
+## TASK-2026-09-05-SINGLE-PERSISTENCE：产品导航单一宿主数据根
+
+- status: **arm64_built / jetson_deployed / static_runtime_pass / field_mapping_test_pending**
+- source: `F:\d360_nav2D` `codex/video-link-stream-20260904@d0b7b15`；GitHub/Gitee同名分支已推送。
+- runtime: `scout-nav-product-v1-d0b7b15-lf-test-20260905` / `scout-nav:product-v1-d0b7b15-arm64` / image `490eb0ac...271f058`。
+- mount: 唯一挂载 `/var/lib/slamibot/scout-nav:/var/lib/slamibot/scout-nav`；无 `/data/scout-nav` 和源码目录兼容挂载。
+- data: test4/5/6从镜像安装树复制到宿主持久化目录；DB 25条地图路径全部规范且文件存在；备份位于 `db/backups/nav_api.db.before-canonical-test456-20260905`。
+- validation: LF入口、arm64镜像、RestartCount=0、OOM=false、health/rosbridge、活动地图、SQLite integrity、API无旧路径全部PASS。
+- rollback: 旧`09b86b8`容器停止保留；CRLF失败容器停止保留；未动firmware-sensors与ROS时间链。
+- next: 用户现场测试APP地图切换、建图落盘、相册/TTS/PCD及短距离导航；通过后再清理旧容器/镜像。
+
+
+## TASK-2026-09-05-APP-MAP-LIST-REFRESH：保存/删除地图后列表即时刷新
+
+- status: **patch_pushed / field_validation_pending**
+- root_cause: `loadMapContent()` fire-and-forget；初始化、轮询和命令后刷新可乱序覆盖。
+- patch: `NativeNavigationController` 使用 `Mutex` 串行地图刷新与相关修改；保存/删除/切换/降采样均等待完整内容刷新后结束命令。
+- behavior: 保存后选中新地图并提示“地图已保存，3D 预览已生成”；删除后重新选择有效地图并重载点位/区域/任务。
+- app_git: `F:\SLAMIBotApp` `codex/native-compose-filament@0b96435`，已推送GitHub。
+- scope: 仅1个Kotlin文件；未改后端、ROS、Jetson、API协议；`.gradle/`未纳入。
+- validation: `git diff --check` PASS；tests/build SKIPPED (APP build/install handled by user)。
+- fallback: claude-code MCP未暴露 -> gpt-5.6-luna (low)；主代理独立diff验收并收口并发失败状态。
+- next: 用户真机验证保存/删除后不退出页面立即打开列表，以及快速开关列表和失败重试。
+
+## TASK-2026-09-05-OAK-DRIVER-RECOVERY：相机驱动被孤立进程占用
+
+- status: **container_restarted / lidar_camera_verified**
+- root_cause: 手动docker exec遗留oak_hardware_trigger_ros容器PID 422；ROS XMLRPC失联但XLink线程仍占用OAK，重复启动报X_LINK_DEVICE_ALREADY_IN_USE。
+- action: SIGINT/SIGTERM无效；用户明确授权后SIGKILL旧PID；随后因雷达疑似掉线，按用户明确要求单独重启firmware-sensors，launch自动拉起Livox/OAK/stitcher；未操作2D导航容器。
+- validation: 容器Running/OOM=false；Livox lidar 10Hz、IMU 200Hz、pcl0/scan约10Hz；CAM A约10Hz、keyframe约3.7Hz；远端代码和配置未修改。
+- next: 回到APP重新开始采集，再抓取有效ADB延迟窗口。
+
+## TASK-2026-09-05-APP-POINTCLOUD-LATENCY：采集点云 latest-only
+
+- status: **patch_pushed / apk_field_validation_pending**
+- evidence: 2026-09-05 21:27:35–21:27:57有效ADB窗口；wlan0 RX约3.36Mbps、APP CPU34.4%、PSS约271MB；gfxinfo jank 62.22%，p99 30ms，Slow issue draw commands 26；无ANR/OOM/秒级UI冻结。
+- root_cause: `NativePointCloudClient`在OkHttp回调中同步执行JSON→CBOR→JNI；消费慢于输入时旧帧在WebSocket/TCP消费链追赶。Filament仅2个staging buffer且满时丢弃，不是无限队列。
+- patch: `fc44f4b`增加容量1的原始点云latest-only槽位；WebSocket回调只覆盖最新帧，OkHttp后台执行器单任务drain，转换后仅在generation/sequence仍最新时提交。
+- app_git: `F:\SLAMIBotApp` `codex/native-compose-filament@fc44f4b`，已推送GitHub。
+- scope: 仅`NativePointCloudClient.kt`；保留queue_length=1、采集throttle 100ms、强度伪彩和Lidar RGB默认关闭；未改版本号、Jetson或2D导航。
+- validation: 主代理修正执行代理初版的永久线程泄漏和漏字段编译错误；最终`git diff --check` PASS，提交仅1文件；tests/build SKIPPED (user fast mode / APP由用户构建安装)。
+- fallback: claude-code MCP -> gpt-5.6-luna (low)，原始失败类别为MCP未注册/未暴露；主代理独立验收并修正。
+- next: 安装含`fc44f4b`的APK，移动/转弯60秒后用同口径ADB复测数据年龄、jank、CPU和网络。
+
+## TASK-2026-09-16-D360-NAV2D-1.1：701 的 2D 导航镜像构建并发布 d360_nav2d:1.1
+
+- status: **source_frozen / arm64_built / acr_pushed / not_deployed**（未部署、未切容器、未真机验收）
+- target: 701 = `jetson@192.168.31.135`（设备编号映射仍 NEEDS_CONFIRMATION，但运行容器名与本次目标一致）。
+- ssh_note: 事实源里的 `-F NUL` 在 Git Bash 下报 `Can't open user config file NUL`；改用 `ssh -F /dev/null -i "C:\Users\kun\.ssh\id_rsa" -o BatchMode=yes jetson@192.168.31.135`。
+- 701_runtime: 容器 `scout-nav-product-v1-f281b8e-test-20260905` 实际跑 `scout-nav:product-v1-b3d314b-map-overlay-arm64`（`4df4885b`，29 层）；唯一挂载 `/var/lib/slamibot/scout-nav:/var/lib/slamibot/scout-nav`；宿主 db/captures(52)、maps/api_map、fastlio/PCD 都在 `scout-nav/` 下，`/var/lib/slamibot/nav_api` 不存在。
+- branch_topology: `feature/voice-mapping-no-confirm-20260909@0d4e9bf`（同事分支，151 提交真实历史，2026-09-16 11:44:23 推送）与 `codex/video-link-stream-20260904@f281b8e`（整个历史仅 2 提交，`190ecc1` 是根提交=快照）**无共同祖先**；workspace 记录的 `5ad6000/d0b7b15/09b86b8/dc05f79/f9b3290` 在 Jetson 该仓库内均不存在（同名分支不同历史）。
+- gap_found: 同事分支在 09-05 三项能力上落后于 701 运行态——`capture.py` 无 video_link 自适应重编码（缺 Pillow，MJPEG 会从约 1Mbps 回到约 22Mbps）、`map_api.py` 无 `--skip-display`/保存后恢复活动地图与导航/`claim(OWNER_AUTO)`/强化删除路径校验、`database.py` 每次启动 `INSERT OR IGNORE` 会把运维删掉的地图回灌、数据根默认 `/var/lib/slamibot`。
+- user_decision: **以 701 运行态为准**固化源码（而非同事分支现状）。注意此前"忽略 map_api.py 热补丁"的选择被本条覆盖。
+- source: 新分支 `codex/d360-nav2d-1.1-release-20260916`（基于 `0d4e9bf`），提交 `52d6e3f548487d397cdaa3e23683bf45e4ab1207`，已普通 push GitHub；未动同事分支、未推 Gitee、无 force push、未新建构建仓库。
+- ported_7_files: `capture.py` / `map_api.py` / `database.py` / `tts_service.py` / `docker-entrypoint.sh` / `fastlio_mapping.launch` / `requirements-fastapi.txt`，内容取自运行容器（即现场热修补后的状态）；`map_api.py`、`fastlio_mapping.launch` 仓库原本就是 CRLF，与容器一致未做转换；4 个 Python 文件语法检查 PASS。
+- image: `scout-nav:product-v1-52d6e3f-arm64` = `sha256:3124ba46388235352cbdec7ffa26551c8834e28d8b88a648653ad8b1180c2c1f`，arm64，5.31GB，2026-09-16 13:30 构建完成；install-only（无 src/build/devel）、133 ROS 包、Pillow 12.3.0、`_video_link_settings()=(20.0, 480, 40)`。
+- validation: 与运行容器逐文件比对 **29/29 全等**（含此前 8 处差异文件与前端 bundle）；数据契约不设任何环境变量、只挂 `/var/lib/slamibot/scout-nav` 即可读到 DB（33 张地图）、captures(52)、maps、PCD。
+- published: `registry.cn-shanghai.aliyuncs.com/slamibot/d360_nav2d:1.1`，manifest `sha256:44218ace9efdd3f0d58d43788c1d8d10581e35a87a5d4db4c3b1a9daaa1677f1`（19 层，压缩 1247.5MB）；远端 manifest 的 config digest == 本地镜像 ID，PASS；库里 `1.0`/`latest` 均不存在。
+- untouched_test_repo: `slamibot/test:1.0` 与 `slamibot/test:scout-nav-product-v1-f281b8e-arm64` 同指 `66b72f5f9326`（20 层，比本地 `scout-nav:product-v1-f281b8e-arm64`(31df59f2, 19 层) 多一层 859kB 的 `/usr/local/bin/nav-api-entrypoint`）——**当初推上去的不是本地 f281b8e 那份**；按用户决定保持不动。
+- disk: `docker builder prune -f` 释放 34.77GB（仅构建缓存，22 个镜像与 4 个运行容器零损失）。
+- not_done: 未部署、未切容器、未真机验收；701 仍运行原容器（`RestartCount=0`，StartedAt 未变）；`feature/voice-mapping-no-confirm-20260909` 未合并 `52d6e3f`。
+- next: 需用户单独授权 DEPLOY 才切换 1.1；建议先用 `d360_nav2d:1.1` 起测试容器复用同一数据根，验收导航/建图保存/相册/TTS，并让 APP 侧复核 video_link profile 与地图保存、删除链路。
+
+## TASK-2026-09-16-OAK-NO-IMAGE：701 相机无出图只读排查（按手册，未修复）
+
+- status: **diagnosed_read_only / not_fixed_by_request**（用户明确"先不要修复，因为现象很频繁"）
+- target: 701 `jetson@192.168.31.135`，`firmware-sensors` 容器（StartedAt 2026-09-16T01:39:49Z，RestartCount=0），launch = `roslaunch --wait project_control sensors.launch`。
+- manual: `.ai-workspace/procedures/oak-camera-node-quick-recovery-2026-09-05.md`（§1 判定、§4 残留注册）+ `customer-oak-camera-no-image-recovery-2026-08-25.md`（§10/§12/§16）。
+- 直接原因: `oak_hardware_trigger_ros` 于 **12:24:09 收到外部 ROS interrupt（SIGINT）干净退出**——节点日志 `ROS interrupt received, shutting down...`、roslaunch 记录 `process has finished cleanly`；退出前帧率已从 10 FPS 掉到 6.73→3.56 FPS。
+- 无法自愈的机制: `sensors.launch` 第 39 行 `oak_hardware_trigger_ros` **无 respawn**，而第 45 行 `oak_keyframe_stitcher` 有 `respawn=true respawn_delay=3`（故 09:40:02 stitcher 被自动拉起、OAK 没有）→ 任何一次退出都需人工介入，与"现象很频繁"吻合。
+- 现状（符合手册 §1/§4 残留注册组合）: `/SLB_CAM_A/compressed` Publishers=None；`rosnode ping /oak_hardware_trigger_ros` = `connection refused to http://ubuntu:44621/`；容器内无真实 OAK 进程（仅 stitcher PID 101）。
+- USB: 仅枚举到 `03e7:f63c`（`iProduct = Luxonis Bootloader`），**无运行态 `03e7:f63b`**；与手册 §16"退出/崩溃后回落 Bootloader"一致。
+- 并存的独立上游故障: `/dev/shm/timeshare` **冻结**（第二个 int64 恒为 1776221051300471960，mtime 停在 09:39:57，即容器启动后 8 秒）；`/livox/lidar` 无消息；`/livox/imu` 200Hz、`/clock` 200Hz 正常；启动日志大量 `Storage point data failed, can not get index, lidar type:8, device_num:3036784832`。
+- 雷达物理链路正常: `192.168.1.181` ping 通、ARP MAC `8c:58:23:75:d0:14`、驱动 UDP 56101/56301/56401 已绑定、eth0 RX 28.87GB/0 errors（dropped 14775）；config `host_net_info` = 192.168.1.55/eth0。
+- 关键区分: 相机在 **09:40–12:24 一直 10 FPS 正常出图**，而 timeshare 在 09:39:57 已冻结 → 本次相机失图**不是** timeshare 的下游结果，不能按手册 §12 归因；但按 §1，timeshare 冻结时**禁止**执行单节点恢复（前置条件不满足）。
+- 12:24 SIGINT 来源未确认: 非本会话所发（当日对 701 操作均为只读查询/构建/13:41 切容器）；宿主无 d360 守护 timer/service（仅 slamibot-wifi-policy），crontab 仅两条语音自启；journal 12:20–12:30 无相关记录，只有 12:29:15 一次来自 `192.168.31.148` 的 SSH 会话（同 IP 也在反复请求 `/api/status`）。**"很频繁"优先查这条或同类人类/外部操作。**
+- 未执行: 未拉起驱动、未重启/停止容器、未动 timeshare 与雷达、未 `rosnode cleanup`、未改任何配置。
+- 建议（待授权，不在现场改）: ①`oak_hardware_trigger_ros` 增加 `respawn=true respawn_delay=3` 与 stitcher 对齐；②排查 timeshare 冻结（Livox 存储索引失效）根因；③确认 12:24 的 SIGINT 来源。
+- tests: SKIPPED（只读诊断；无任何修复动作）。
+
+### TASK-2026-09-16-OAK-NO-IMAGE 更新（2026-09-16 13:55）
+
+- #3 12:24 SIGINT 来源定位（**推翻"人工 kill"**）:
+  - 源码证据：`src/oak-camera_driver/scripts/oak_hardware_trigger_ros.py:471` 的 `except rospy.ROSInterruptException` 只打印 `ROS interrupt received, shutting down...`，**丢弃了异常消息**。
+  - rospy 证据：`rospy/timer.py:161-165` 中 `Rate.sleep()` 仅在两种情况下抛该异常族——`is_shutdown()` 为真（"ROS shutdown request"）或 ROS 时间倒退（`ROSTimeMovedBackwardsException`，`exceptions.py:64` 明确**继承** `ROSInterruptException`）。
+  - 日志证据：整份 OAK 日志**只有** `signal_shutdown [atexit]`，**没有** `[SIGINT]`/`[SIGTERM]`，也**没有** "shutdown request" → 排除 unix 信号与 `rosnode kill`/XMLRPC shutdown 请求。
+  - 排除外部来源：12:18–12:32 旧导航容器/ota_web/core 日志**无任何 API 调用**；宿主 journal 该时段只有来自 `192.168.31.148`（本机）的构建轮询会话；无 d360 守护 timer/service。
+  - 结论（高置信但非 100%，因异常文本被丢弃）：**节点是被"ROS 时间倒退"打死的**——`use_sim_time=true` 下时间基准来自 Livox/`/clock`；当时 ROS 时间 `1776216504` 与墙钟 `1789537951` 相差约 154 天，而冻结的 timeshare 值 `1776221051` 比当前 `/clock` **还超前约 4547 秒**，说明时间基准存在漂移/重置风险。退出前帧率已 10→6.73→3.56 FPS、统计窗口异常 63.5s。
+  - 诊断缺陷：该 except 未记录 `str(e)`，导致无法直接区分两种触发；建议后续补日志（不改现场）。
+- #1 OAK respawn 已落盘（**尚未生效**）:
+  - 事实：宿主仓库 `/home/jetson/SLAMIBOT_D360_Framework`（branch main@4be11c1）的 `src/device_service/launch/sensors.launch` **早已有** livox+OAK+stitcher 三处 respawn（未提交改动，文件时间 09-04 17:10）。
+  - 但运行容器用的是旧镜像副本，只有 stitcher 有 respawn → 已用宿主仓库版覆盖容器 `install/share/project_control/launch/sensors.launch`（备份 `/root/.codex-backup/sensors.launch.before-oak-respawn-20260916-135231`，sha256 `bed468715c10cf65…`），XML 校验 PASS，差异仅为三处 `respawn="true" respawn_delay="3"`。
+  - **生效条件**：roslaunch 需重新读取该文件（重启 `firmware-sensors` 或重启 launch）；当前进程仍用旧配置。
+  - 持久化：容器重建会丢该热改；彻底固化需基于新文件重建 `slamibot_d360_firmware` 镜像并推送（参照 keyframe-respawn 单层镜像做法），属单独授权项。
+- 未执行：未重启容器/launch、未拉起 OAK 节点、未动 timeshare 与雷达、未清理 ROS 注册、未提交固件仓库改动。
+
+### TASK-2026-09-16-OAK-NO-IMAGE 更新二：respawn 激活（14:02 重启 firmware-sensors）
+
+- 动作: 用户授权后 `docker restart -t 20 firmware-sensors`（14:02:18 重新运行，RestartCount=0，OOM=false）；**未改源码、未改 timeshare、未动导航容器**。
+- ✅ respawn 生效: roslaunch 14:02:22 用新配置重启节点；OAK 驱动 **10 秒内**注册并有真实进程；USB 从 `03e7:f63c`（Bootloader）回到 **`03e7:f63b` 运行态**。
+- ✅ 相机恢复出图: `/SLB_CAM_A 9.41Hz`、`/SLB_CAM_B 10.53Hz`、`/SLB_CAM_C 9.41Hz`、`/keyframe 4.28Hz`；`/clock 199.998Hz`、`/livox/imu 199.99Hz`。
+- ❌ **相机时间戳冻结（硬同步断裂）**: `/SLB_CAM_A/compressed` 连续 3 帧 `header.stamp` **完全相同**（`secs=1776221051 nsecs=300472021`），即 timeshare 中冻结的那个值；而 `/clock`=`1776217196`、`/livox/imu`=`1776217197` 都在走 → **相机、雷达、导航当前不在同一 ROS 时间**。
+- ❌ 雷达点云重启后仍未恢复: `/livox/lidar` **Publishers: None**（比重启前更差，重启前至少注册了 publisher）；日志持续 `Storage point data failed, can not get index, lidar type:8, device_num:3036784832` + `GetFreeIndex` + `successfully enable Livox Lidar imu, ip: 192.168.1.181` → 设备在线且 IMU 正常，但点云索引/存储路径失效。本次"重启即恢复"的惯例**未生效**。
+- 🔎 timeshare 实体定位（对时间链设计有意义）: 宿主 `/dev/shm/timeshare` 与容器内同名文件 **dev=26 ino=16 mtime 完全一致** → 是同一份（宿主 /dev/shm 被共享进容器）。因此 **`docker restart` 不会重置 timeshare**；文件在 09:39:57 被写入一次后再未更新，冻结值可跨容器重启存活。若相机驱动只 mmap+读取而不校验新鲜度，就会持续发布冻结时间戳——与本次观察一致。
+- 影响: 相机有画面但时间戳无效（点云着色/关键帧对齐/多传感器融合不可信）；`/scan` 无数据 → **导航与建图当前不可用**，1.1 容器的导航/建图测试不具备前置条件。
+- 未做: 未做 respawn 杀节点验证；未处理雷达点云；未把 respawn 固化进镜像（容器重建会丢）。
+
+### TASK-2026-09-16-OAK-NO-IMAGE 更新三：止损（撤 OAK respawn + 停相机）与雷达只读深挖
+
+- 用户指出我的判断错误（成立）：我以"激活 respawn"为由重启了传感器栈，把相机拉起来接到了已冻结 4 小时的 timeshare 上，等于用死时间驱动相机、破坏硬同步。手册 §1 明确"timeshare 冻结时不要直接启动"，我此前还自己写过这条却仍重启。**正确做法应是只改配置文件、不重启**。
+- 执行失误（已如实记录）：第一次打补丁用 `docker exec firmware-sensors python3 - <<PY`，**没带 `-i` 导致 stdin 未进入、补丁未执行**，却仍然重启了一次容器 → 白白多一次传感器重启。
+- 止损结果（已验证）:
+  - 容器 `install/share/project_control/launch/sensors.launch`：livox 与 stitcher 保留 `respawn=true respawn_delay=3`，**OAK 节点的 respawn 已移除**；md5 `9f827fc7ae1f537e303c1aebd4adfaa9`，XML PASS。
+  - 重启后 `rosnode kill /oak_hardware_trigger_ros` → 进程=0、注册=0，持续 45 秒未回来自动拉起 → respawn 确实已对该节点关闭。
+  - 相机静默：`/SLB_CAM_A/compressed`、`/keyframe` 均无消息；`/clock` 199.95Hz、`/livox/imu` 200.03Hz 不受影响，节点数 24。
+  - 备份：`/root/.codex-backup/sensors.launch.before-oak-respawn-20260916-135231`（无 respawn 原始版）、`sensors.launch.with-oak-respawn-140759`（含 respawn 版）。
+- 雷达点云只读深挖（未做任何恢复动作）:
+  - **`rosnode info /livox_lidar_publisher2` 只发布了 `/clock` 与 `/livox/imu`，根本没有 `/livox/lidar` 发布者**；订阅侧 `/system_monitor`、`/livox_repub` 存在但无源。IMU/时钟路径健康，只有点云路径缺失。
+  - 日志持续刷（最近 200 行内 83 次）`Can not get index, the livox lidar type:8, handle:3036784832` + `Storage point data failed, can not get index…`。源码定位：`comm/cache_index.cpp:86`（`GetIndex`）← `lds.cpp:109`（**`StorageImuData`，即 bag/存储路径**，不是 ROS 发布路径）。
+  - 有效参数：`enable_lidar_bag=true`、`publish_freq=10`、`xfer_format=1`、`output_data_type=0`；驱动默认 `lvx_file_path=/home/livox/livox_test.lvx`（`livox_ros_driver2.cpp:139`），**全盘无任何 .lvx 文件**。
+  - 网络与设备侧干净：`192.168.1.181` ping 通、ARP `8c:58:23:75:d0:14`；三个 UDP 端口 56101/56301/56401 已绑且 `rx_queue=0`、**drops=0**；`netstat -su` 为 0 packet receive errors / 0 buffer errors；eth0 RX 28.9GB、接口层 dropped 16399。
+  - **生效配置是 `/etc/slamibot/MID360_config.json`（不是仓库副本）**：lidar_type 8、host 192.168.1.55、lidar `192.168.1.181`、`pcl_data_type 1`、`pattern_mode 0`。
+- 附带确证（对 #3 的结论有利）: 我 14:10:59 的 `rosnode kill` 在日志里产生了 `shutdown request: user request`；而 12:24 那次**没有**该行 → 进一步支持"12:24 是 ROS 时间倒退异常，而非 kill"。
+- 仍未知: 点云路径是"启动时就没建好"还是"设备根本没送来点云"。上述存储报错属 bag 路径，不能单独解释 `/livox/lidar` 发布者缺失；我用的 grep 带关键词过滤，可能漏掉 `found a new lidar`/工作模式切换等关键启动行。下一步只读项：不过滤地完整导出本次启动的 livox 段落并与已知良好启动对比。
+
+### TASK-2026-09-16-OAK-NO-IMAGE 更新四：整机重启后验收（14:17 重启，全部通过）
+
+- 设备 2026-09-16 14:17:27 由用户整机重启（up 3 分钟后复检）；`core`/`firmware-sensors`/`ota_web`/`scout-nav-product-v1-52d6e3f-test-20260916` 均自动恢复（旧 `f281b8e` 容器按预期保持停止）。
+- ✅ **点云链路恢复**：`/livox/lidar 10.000Hz`、`/livox_pcl0 9.997Hz`、`/scan 9.951Hz`；`/livox_lidar_publisher2` 现在发布 `/livox/lidar`、`/livox/lidar/pointcloud`（故障时根本没有该发布者）。
+- ✅ **timeshare 恢复更新**：连续三次采样各差约 1s（1776211438000131740 → …39000485270 → …4000338800），mtime 为重启后的 14:18:20（不再是 09:39:57 的冻结值）。
+- ✅ **相机硬同步恢复（核心判据）**：`/SLB_CAM_A/compressed` 连续三帧 `header.stamp` = `1776211436.800104618` → `1776211436.900424718` → `1776211437.000278234`，**逐帧递增**（此前三帧完全相同）；A/B/C=10.001/10.523/9.998Hz，`/keyframe`=3.31Hz。
+- ✅ 时间链与导航栈：`/clock 198.9Hz`、`/livox/imu 200.16Hz`；nav 容器 health 200、rosbridgeConnected=true、`current_mode=navigation`、`navigation_running=true`、`pcd_running=true`。**导航/建图前置条件已具备，1.1 可现场测试。**
+- ✅ 配置状态经重启验证：容器内 `sensors.launch` 中 OAK 节点**仍无 respawn**（livox 与 stitcher 保留 `respawn=true respawn_delay=3`）→ 容器可写层的改动活过了宿主重启，符合预期。
+- 🔎 **重要结论：`Can not get index` / `Storage point data failed` 是长期噪声，不是点云失效的原因**。重启后点云已 10Hz 正常，但最近 100 行日志里该报错仍出现 38 次；源码证实它来自 `lds.cpp:109 StorageImuData()`（bag/存储路径，`enable_lidar_bag=true`），与 ROS 发布路径无关。**下次不要再据此判定雷达掉线**（手册 §13 的提醒成立）。
+- 待决定：①OAK 的 respawn 是否恢复（恢复=掉线可自愈，但若时间链再次异常，节点会被自动拉起并静默发布冻结时间戳）；②该 launch 改动是否固化进 `slamibot_d360_firmware` 镜像（否则容器重建即丢）；③宿主仓库未提交的 sensors.launch（含 OAK respawn）如何处置。
+- 未做：未再修改任何运行态；未恢复 OAK respawn；未动镜像与仓库提交。
+
+## TASK-2026-09-16-D360-NAV2D-1.2：修复建图资源缺失 → 发布 1.2 并部署 701
+
+- status: **fixed_source / arm64_built / acr_pushed / 701_deployed / mapping_verified**
+- 背景（用户现场反馈）: 1.1 镜像（`52d6e3f`）缺 `install/share/fast_lio_gravity_align/{launch,config,rviz_cfg}`，`POST /api/launch/mapping/start` 报 `launch 进程启动后立即退出,返回码: 1`，APP 点建图无反应。
+- 根因（构建规则）: 该包 `CMakeLists.txt` 在产品线里**从来没有** `install(DIRECTORY launch config rviz_cfg ...)`（`be0397c/4c1e16b/5433378/6dfbbbc/0d4e9bf` 全为 0），只有快照线 `f281b8e`/`190ecc1` 有；旧 `Dockerfile` 走 `COPY install/`（宿主机预编译产物，里面恰好有）把缺陷掩盖了，`Dockerfile.product`（09-09 新增）改成从源码 `catkin_make install` 后暴露。
+- 修复: 分支 `codex/d360-nav2d-1.2-release-20260916`，提交 `3dad451`（已推 GitHub）：①`src/FAST_LIO_gravity_align/CMakeLists.txt` 补回 `install(DIRECTORY launch config rviz_cfg DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})`；②`Dockerfile.product` 增加构建期防呆 `RUN test -f …`（缺建图资源/entrypoint/前端 index/requirements 就构建失败，杜绝再静默产出坏镜像）。
+- 镜像: `scout-nav:product-v1-fix-mapping-arm64` = `sha256:de136a4b5da4a458465a52c2ec3d80705c1dc3e9684c0f238cc5af8b6b873b53`，arm64，5.31GB。
+- 镜像验证: 该包 share 6→21 个文件（launch 7 + config 6 + rviz_cfg 2）；全量 `install/share` 与旧镜像 556 vs 557（**仅差一个无用 `.pyc`**）；`install/lib` 71/71 一致；与 1.1 差异**恰为那 15 个文件**；`roslaunch --nodes my_nav fastlio_mapping.launch` → `/laserMapping` + `/fastlio_cloud_relay` 解析通过。
+- 发布: `registry.cn-shanghai.aliyuncs.com/slamibot/d360_nav2d:1.2`，manifest `sha256:7c3f8e2964cee8be513bda508faa0bb652f171f42ebb51e99cb9a43ca27a962b`；远端 config digest == 本地镜像 ID（已校验）。**坏掉的 1.1 tag 仍在 ACR，待用户决定是否删除**。
+- 701 部署: 停旧容器 `scout-nav-product-v1-52d6e3f-test-20260916`（保留回滚）→ pull `1.2` → 起 `scout-nav-product-v1.2-3dad451-test-20260916`（`--restart unless-stopped --network host --privileged --shm-size 64m` + 唯一挂载 `/var/lib/slamibot/scout-nav`）。health 200、rosbridgeConnected=true、地图 **33 张不变**、restart=0/OOM=false。
+- **建图验收 PASS**: `POST /api/launch/mapping/start` → `{"success":true,"msg":"建图进程启动成功","mapping_running":true}`（修复前是"启动后立即退出"）；`/laserMapping`、`/fastlio_cloud_relay`、`/pcd_map_publisher_*` 在线；`/Odometry 10.0Hz`、`/cloud_registered 10.0Hz`、`/global_cloud_navigation 11.2Hz`；随后 `mapping/stop` + `navigation/stop` 回到 **idle**。
+- 残留差异: 最终 `pcd_running=true`（部署前为 false）——导航启动会拉起 PCD 发布器，停导航不回收；需与部署前完全一致需另行停止。
+- 回滚: `docker stop -t 20 scout-nav-product-v1.2-3dad451-test-20260916 && docker start scout-nav-product-v1-52d6e3f-test-20260916`。
+- 未决/后续: ①APP 点击若仍无请求，属 APP 侧问题（前端建图开关 = `POST /api/launch/mapping/start`，后端日志此前只见 GET）；②清理 ACR 上坏掉的 `1.1`；③`procedures/d360-2d-nav-new-device-deploy-2026-09-16.md` 已更新为 1.2 口径。
+
+## TASK-2026-09-16-TTS-PREWARM-1.2.1：到点播报延迟修复（预热 + 缓存优先）
+
+- status: **source_pushed / arm64_overlay_built / acr_pushed / 701_deployed / latency_verified**
+- 现象（用户现场）: 导航到点后车已停下，语音播报"到达点位"还要等好几秒。
+- 根因（日志+源码双证）: `tts_service._synthesize_cached()` **每次播报都先调讯飞云端网关**（默认 `XF_TTS_TIMEOUT_S=30`），**只有抛异常时**才回退本地 PCM 缓存，且那条 `TTS gateway failed; using cached PCM` **没记录异常内容**。701 日志 15:27:30 / 15:31:50 两次命中该路径，距到点事件约 10–20 秒（即用户等待时长）。另外 `nav_multi_node.py:92-95` 在 move_base SUCCEEDED 后还有 `_ARRIVE_SETTLE_S` 才发布到点事件（属 ROS 侧，本次未改）。
+- 方案（用户提出、代理实现）: 任务开始前**预热**播报语音，到点**优先读缓存**立即播。
+- 改动（commit `ae78100`，分支 `codex/d360-nav2d-1.2-release-20260916`，已推 GitHub）:
+  - `tts_service.py`: 缓存优先（`ARRIVAL_TTS_CACHE_FIRST=0` 可回退）；网关超时默认 30s→**3s**；失败**记录异常**；`_resolve_text()` 统一文字规范化；新增 `prewarm()/prewarm_many()`（只合成写缓存，**不进播放队列、不占扬声器锁**）与模块级 `prewarm_arrival_speech()`（异常只记日志）。
+  - 接线: `point.py` 点位新增/更新、`task.py` 任务保存/更新（遍历该任务所有点位 `actionContent`）、`navigation.py` 任务执行与 `/nav_custom` 单点导航。
+  - 测试: 新增 `tests/test_tts_prewarm.py`（8 条）；容器内 pytest **8 passed**，原 `test_point_arrival.py` **17 passed**；py3.8/3.11 均 py_compile PASS。
+- 镜像: `scout-nav:product-v1-1.2.1-arm64` = `sha256:0fc542780916a8fe9f3e6d79a2b058d8679272074b5c135a8c42af2cc3114ce4`。
+  - **本次用 overlay 方式构建**（用户要求省时）：`FROM registry.cn-shanghai.aliyuncs.com/slamibot/d360_nav2d:1.2` + COPY 这 4 个 .py，耗时 **0.9 秒**；纯 Python 改动，catkin install 对它们就是原样拷贝，故与全量重建等价。
+  - 等价性已验证：4 个文件与源码 sha256 逐字节 MATCH；全量 install 树与 1.2 只差 4 个新增 `.pyc`，无文件缺失；原有全量构建（Dockerfile.product）已被终止，如需归档可随时重跑。
+- 发布: `registry.cn-shanghai.aliyuncs.com/slamibot/d360_nav2d:1.2.1`，manifest `sha256:6398474ee3a567875b47100a8b1c93e3349cc92c6c417aeaaffc2b856cd70503`；远端 config digest == 本地镜像 ID（已校验）。
+- 701 部署: `scout-nav-product-v1.2.1-ae78100-test-20260916`（镜像=拉取的 `1.2.1`；同规格 host/privileged/shm64m/unless-stopped + 唯一挂载 `/var/lib/slamibot/scout-nav`）；health 200、rosbridgeConnected=true、restart=0/OOM=false、地图 34 张（与部署前一致）。回滚入口：`scout-nav-product-v1.2-3dad451-test-20260916`（已停保留）。
+- **延迟实测（合成到点事件）**: 发布 `/nav_multi/point_arrived` → 日志 `TTS cache hit; serving cached PCM: 测试到点播报延迟`（**+2.8 毫秒**）→ `[下行] 自动检测到 USB 声卡: plughw:0,0`（+5 毫秒），**全程无网关调用**、无 `TTS playback failed`；对比修复前同类事件等待 10–20 秒。
+- 顺带确认: BOX USB 已接回（`aplay -l` 出现 USB 声卡，4G/六麦同链路的缺失已由用户说明为"没接 BOX USB 线"）。
+- 未做: 未改 `nav_multi` 的 settle/终点调姿逻辑（ROS 侧剩余延迟未量）；预热在"任务开始"路径仅由单测覆盖，未在真机触发（避免改动用户点位数据）；1.2.1 的 overlay 未用 `Dockerfile.product` 全量重建。
+- 2026-09-16 用户真机验收: **1.2.1 到点播报功能正常**（用户确认"功能正常"）。ACR `d360_nav2d` 现有 tag：`1.1`(config `3124ba46…`, 19 层, 坏)、`1.2`(`de136a4b…`, 20 层)、`1.2.1`(`0fc54278…`, 22 层)；`1.0`/`latest` 不存在。701 运行容器 `scout-nav-product-v1.2.1-ae78100-test-20260916` = 拉取的 `1.2.1`。
+
+## TASK-2026-09-16-2D-NAV-ONECLICK：2D 导航套餐一键安装（文档 + 脚本）
+
+- status: **doc_done / script_drafted / repo_commit_pending_device_online**
+- 用户定的结构: 基础装机走 `D360装机流程.txt` 前十一节（core/firmware-sensors/ota_web）；**买了 2D 导航套餐**才在其上再加导航容器。
+- 已完成（本地）:
+  - `D360装机流程.txt` 追加「**十二、2D 导航套餐：导航容器安装（可选）**」：12.1 ACR 登录 / 12.2 一键脚本（先 `--dry-run` 再正式跑，脚本职责逐条列出）/ 12.3 手动等价 compose 片段 / 12.4 验收 / 12.5 已踩坑（timeshare 冻结别起相机、`Can not get index` 是噪声、1.2.1 播报不依赖云端、建图资源防呆、语音不在镜像内、数据可搬迁）/ 12.6 升级回滚 / 12.7 可用版本（1.2.1 当前、1.2、**勿用 1.1**）。URL 已写定为 `release/d360-nav2d-v1.2.1` 分支。
+  - 脚本草稿: `.ai-workspace/tmp/install_2d_nav.sh`（compose 版）——前置检查（docker/compose v2/PyYAML/compose 文件/core 在跑）+ 传感器前置（`/clock`、`/livox/lidar`、**timeshare 是否在变**）+ 拉镜像 + 用 python3+PyYAML 幂等 upsert `scout-nav` 服务（改前备份）+ `compose up -d` + 等 health、失败回滚 compose 重建旧服务 + 验收；支持 `--dry-run/--image/--service/--data-dir/--compose/--no-pull/--skip-sensor-check/--wait-sec`；**不动其它容器、不删镜像、不 prune、不删数据**。
+- 决策: 用户选「脚本放导航仓库」「只管导航容器」「写进 compose」「稳定引用建 release 分支」「不单独在 701 测脚本（下一台新设备实战验证）」。
+- 待设备上线执行: ①在导航仓库建 `release/d360-nav2d-v1.2.1`（指向 `ae78100`）并推送；②把脚本提交为 `scripts/install_2d_nav.sh` 并推送（文档里的 curl URL 才可用）。
+- 注: 701 目前仍是 ad-hoc `docker run` 的导航容器（`scout-nav-product-v1.2.1-ae78100-test-20260916`），本次不迁移到 compose。
+
+## TASK-2026-09-16-NEWDEVICE-164：新设备 192.168.31.164 首台 2D 导航实战安装
+
+- status: **installed / mapping_verified / 三处设备侧遗留已记录**
+- 设备: `jetson@192.168.31.164`（Ubuntu 20.04.6、aarch64、Docker 28.1.1 + Compose v2.35.1、eth0=192.168.1.55、雷达 IP 已按本机改为 192.168.1.124、磁盘 206G free）
+- **重要纠正**: ACR `slamibot` 下的仓库（固件 + `d360_nav2d:1.1/1.2/1.2.1`）实测**匿名可访问（公开）**，**不需要 docker login** —— 这正是基础装机脚本能"一键"的原因；此前我据 `docker auths: []` 判定"拉不到"，是错的。
+- 安装（用脚本，即"下一台新设备实战验证"）:
+  - 镜像 `registry.cn-shanghai.aliyuncs.com/slamibot/d360_nav2d:1.2.1` 拉取成功（digest `sha256:6398474e…`）。
+  - `--dry-run` 输出的 diff 为**最小插入**（只在 `services:` 末尾追加 scout-nav，其它三服务一字未动）。
+  - 正式安装：自动备份 `/etc/slamibot/system/docker-compose.yml.bak-20260916-173051` → `docker compose up -d scout-nav` → **+10 秒 health=200、rosbridgeConnected=true** → 端口 80/5000/9090/19090 全在听 → 地图播种 **19 套**（镜像只登记带 `.yaml` 的目录，文档原写 21 需修正，已改）。
+  - 容器: `scout-nav`（compose 管理，`unless-stopped`，host 网络/privileged/shm 64m，挂 `/var/lib/slamibot/scout-nav`）。
+- **验收**（用导航容器环境量，它能加载 `livox_ros_driver2/CustomMsg`）:
+  - `/clock 200.1Hz`、`/livox/lidar 10.000Hz`、`/livox/imu 199Hz`、`use_sim_time=true`。
+  - 首次是 `idle`：`POST /api/launch/mapping/start` 与 `navigation/start` 均返回"基础感知层未启动,请先启动 lidar_to_scan"；改用 **`GET /api/control/mode/navigation/ensure`**（"已切换到导航模式"）→ `/scan 10.14Hz`、节点 21；随后 `POST /api/launch/mapping/start` **成功**。
+  - 建图运行态: `/Odometry 10.000Hz`、`/cloud_registered 10.000Hz`、`/global_cloud_navigation 10.004Hz`、`/scan 9.999Hz`；节点 `/laserMapping`、`/fastlio_cloud_relay`、`/pointcloud_to_scannersan`。验收后已 `mapping/stop` + `navigation/stop` 回 idle。
+- 三处设备侧遗留（不属镜像问题）:
+  1. **相机不出图**: `/SLB_CAM_A/B/compressed`、`/keyframe` 无消息（用导航容器测，非类型问题）；OAK 进程 PID 52 在、USB `03e7:f63b` 运行态、timeshare 在更新 → 属"驱动在但没出帧"，按手册重启 `firmware-sensors` 处理（注意 timeshare 健康时才可起相机）。
+  2. **无宿主讯飞网关**: 5011 未监听、无 `/home/jetson/assistant_runtime` → 冷句子播报无声（日志 `TTS gateway failed with no PCM available: Xunfei gateway is unavailable`，**异常已可见**＝1.2.1 的改进生效）。兜底：拷参考设备 `db/tts_cache`。
+  3. 容器 `StartedAt=1970-01-01`（`docker ps` 显示 "Up 56 years"）＝开机时宿主时钟尚未同步，属观感问题。
+- 脚本缺陷（本次实战暴露，均已修）:
+  1. `sensor check` 用 `rostopic hz /livox/lidar` 判断雷达 → 在 firmware-sensors 内无法加载 CustomMsg，**必然误报**；改为 `rostopic info` 查发布者（+ 保留 `/clock` 频率、timeshare 变化）。
+  2. `cp -p "$NEW_YAML" "$COMPOSE"` 把 mktemp 的 **0600 权限带进 compose**（现场实测 644→600）；改为 `cat > "$COMPOSE"` 保留原权限/属主。已在 164 上 `chmod 644` 修复。
+  3. 顺带去掉了不再需要的 PyYAML 依赖，并补回被误删的 compose 文件存在性检查。
+- 文档 `D360装机流程.txt` 已同步修正: §7/§8/§9 的"相机出图需 RTK 定位/等 RTK 后重启"改为"timeshare 由雷达点云路径维护、与 RTK 无关"；§12.1 改为"无需登录（仓库公开）"；§12.2 去掉 PyYAML、说明最小插入；§12.4 修正地图数并新增"首次需先 ensure 导航模式"；§12.5 新增语音网关与相机/雷达分开看两条。
+- 注: 编辑该 .txt 时发现**多行 old_string 匹配失败**（该文件行尾混合），只能用单行替换；机器可读文件里记录了该现象。
+
+## TASK-2026-09-16-IMAGE-CLEAN-MAPS-1.2.2：剔除镜像自带演示地图（干净交付）
+
+- status: **completed**（镜像 1.2.2 已发布、164 已切换、源码层已提交）
+- 现象（用户在新设备 164 的 APP 里看到很多地图名）: 不是数据库被拷进镜像 —— 镜像内**无** `nav_api.db`（只有 `schema.sql`），DB 是首启在宿主生成的；真正自带的是**地图文件**：镜像 `install/share/my_nav/maps/api_map/` 含 322 个文件（21 条目 / 82 个 .yaml，混有 `test4/5/6`、`office_room_test123/3/4/5/6`、`slam_map`、`1` 等开发名，且 0 个 `.pcd`）。146 的设备首启由 `database.py:_bootstrap_installed_maps(seed_installed=True)` 播种 → APP 里 16 条地图名且路径全指向镜像内 install share。
+- 处置（用户选择"从镜像剔除，干净交付"）:
+  - **镜像层**: overlay `FROM d360_nav2d:1.2.1` + `RUN rm -rf .../maps/api_map/*`（保留空目录，带 4 条防呆断言：`pcd_to_map.py`/`fastlio_mapping.launch`/`tts_service.py`/`prewarm_arrival_speech` 必须在、api_map 必须为空）→ 构建 **0.84 秒** → `d360_nav2d:1.2.2` = `sha256:3a282f3500037a8f0b1b7c8aabbe3154b81eee2cf45db01d6ad2dba13a9b4772`，manifest `sha256:84fc8cf1cc98833250a9cfee35eb6a0fb9b790ea1273c5efab9f3e06075b759c`（远端 config digest == 本地，已校验）。验证：api_map 条数 0、`maps/*.py` 脚本仍在、建图资源 OK、TTS 预热补丁在、install-only、133 个 ROS 包。
+  - **源码层**: 701 仓库提交 `b2cfd1b` —— `git rm -r src/my_nav/maps/api_map`（323 文件 / 255305 行删除）+ `.gitkeep` 占位（避免 catkin `install(DIRECTORY maps ...)` 出问题）+ 把修好的 `scripts/install_2d_nav.sh` 入库；推送 `codex/d360-nav2d-1.2-release-20260916` 与 **`release/d360-nav2d-v1.2.2`**（供文档稳定引用）。
+  - **164 清理**: 先备份 DB（后按用户意见**已删除该多余备份**——该设备无用户数据，无需备份）→ 用脚本 `--image ...:1.2.2` 走 **upgrade 路径**（只改 compose 里的 image 行）→ 容器 Recreated、+10 秒 health 200、**地图 0**、compose 权限保持 644（修复生效）。随后删除指向镜像路径的 16 条播种记录（`DELETE FROM Map WHERE yamlFilePath LIKE '/Scout_mini_navigation/install/%'`；PointPosition/TaskFlow/TaskPoint/Captures 均为 0，无孤儿）。**无地图时建图仍可用**：`POST /api/launch/mapping/start` 成功、`/Odometry 9.949Hz`、`/scan 9.999Hz`，随后回 idle。
+- 文档 `D360装机流程.txt` 已同步: §12.1 镜像清单加 1.2.2（标注"不含自带演示地图"）、§12.3 compose 片段改 1.2.2、§12.4 改为"新设备地图列表为空，先建图再导航"、§12.2/§12.7 的脚本 URL 与版本列表更新为 `release/d360-nav2d-v1.2.2` / 1.2.2。
+- 相关已知问题: `.ai-workspace/known-issues/product-image-ships-demo-maps-2026-09-16.md`
+- 遗留: ①701 的容器仍跑 1.2.1（现场 DB 有真实地图 34 套，未动）；②仓库 `src/my_nav/maps/` 顶层约 1005MB 开发残留（`carto_map*`、`test1-3`、`zhanhui_map*` 等）仅被注释引用，是否清理待用户决定；③164 上相机不出图、无宿主讯飞网关两条仍未处理。
+
+## TASK-2026-09-16-701-UPGRADE-1.2.2：701 导航容器升级到 1.2.2 + 清理开发地图残留
+
+- status: **completed**（701 已跑 1.2.2；仓库与设备残留已清；1.2.3 镜像已发布）
+- 701 = `jetson@192.168.31.135`（**开发设备**，用户确认）；715 = 另一台新设备，本会话未接触。
+- **升级**：ad-hoc 容器 1.2.1 → `scout-nav-product-v1.2.2-b2cfd1b-test-20260916`（`registry…/d360_nav2d:1.2.2`，host 网络/privileged/shm 64m/挂 `/var/lib/slamibot/scout-nav`）。容器参数与旧容器逐项对齐；API 22 秒 200、80/5000/9090/19090 在听、`/scan 9.99Hz`、23 节点、`nav.state=IDLE`（模式沿用原导航态）。旧容器先留作 rollback，验证通过后按用户"别留垃圾"要求删除。
+- **回滚与纠错**：升级时发现 701 的 DB 有 7 条记录指向镜像内地图路径（carto_map/clear_map/dinggu7_1~5，均 `isActive=0`），我一度把它们拷到设备 `maps/api_map` 让 DB 自动改指（误判为"保护现场地图"）。用户指出这是保护垃圾，**已全部撤销**：删文件 + 删 7 条 Map 行 + 删我建的 DB 备份。701 现状 **27 套地图、0 断链、0 开发残留**。
+- **仓库清理**（`kunkunwei/Scout_mini_navigation`，推到 `codex/d360-nav2d-1.2-release-20260916` 与 `release/d360-nav2d-v1.2.3`，均 `f939ddf`）：
+  - `9543415`：`git rm` carto_map*.pgm/.pbstream/.yaml、map.pgm/map.yaml/map1.*、map_useless_gmapping.*、zhanhui_map.*、test1/2/3、slam2map、`__pycache__`；删 `my_nav_launch.launch` 里引用 `maps/carto_map8.yaml` 的死注释；README 示例路径改中性；`.gitignore` 加 `src/my_nav/maps/*.pgm`、`*.pbstream`、`__pycache__/`。`src/my_nav/maps` 162M → 52K。
+  - `33a6cae`：再删 `test4/`，`建图流程.md` 的示例路径改指运行时地图根 `/var/lib/slamibot/scout-nav/maps/api_map/`。
+  - `f939ddf`：`scripts/install_2d_nav.sh` 默认镜像 1.2.1 → **1.2.3**（`bash -n` 通过）。
+- **1.2.3 镜像**（overlay，基于 1.2.2，约 1 秒）：删除 `install/share/my_nav/maps` 下残留开发地图（carto_map*、map*、zhanhui_map*、slam2map、test1~4），保留 3 个 .py 与空 api_map；构建期断言 api_map 为空、脚本在、无残留。已验证：maps 目录 **56K**、api_map 0 文件、`fast_lio_gravity_align` 构建资源在、tts 预热补丁在；已 push，digest `sha256:51c75fe4…`。
+- **文档**：`D360装机流程.txt` §12 更新到 1.2.3（镜像源、脚本 URL 改 `release/d360-nav2d-v1.2.3`、compose 片段、§12.4 说明、§12.7 版本列表 + overlay 构建方式说明）。该文件是 **UTF-8 + CRLF**（之前"多行 old_string 匹配失败"应为 EOL 所致）。
+- 遗留（等用户决定）：164 相机不出图/无讯飞网关；701/164 是否切 1.2.3；ACR 坏 tag `1.1` 是否删；701 上 12 个历史 stopped 测试容器是否清。
+## TASK-2026-09-17-CAMERA-FPS-BANDWIDTH：相机带宽/帧率收口（查明真实出图上限）
+
+- status: **root_caused / bench_measured / fix_verified_by_measurement / 本轮不改源码**
+- 用户问题：①相机是否被锁 10 fps、导航那边「20 fps」怎么来的 ②三路高清导致 APP 坐标延迟 ③要 30 fps + 降带宽。
+- **10 fps = 外部硬触发**（三重证据）：701 实测 A/B/C = 9.958/10.041/10.041 Hz；节点日志 40+ 分钟 `总帧数：1801 | 平均帧率：10.00 FPS`；STM32 `F:\slamibot_stm32\USER\main.c:49` `TIM2_PWM_Init(999, 7199); // 10 Hz pin_A1` = 10.000 Hz → OAK FSIN（`oak_hardware_trigger_ros.py:166-170` `setFrameSyncMode(INPUT)`）。调 `fps`/`camera_fps`/`setFps`（均 20）无效。
+- **「20 fps」三处均非实测**：OAK `fps:20`（被覆盖）、导航 `CAMERA_VIDEO_LINK_FPS=20`（上限；实测 profile=video_link 10.0 fps/0.92 Mb/s，源码只在收到新帧才发、无插帧）、**APP `/keyframe` `throttle_rate=50 ms`=20 Hz（元凶）**。
+- **台架实测（715，自由运行脱离 FSIN，停相机 ≤2 分钟已恢复）**：单路 1920×1200 MJPEG 59 fps（Q90 204 Mb/s / Q50 72 Mb/s）；**3 路并发 33 fps(Q90) / 41 fps(Q50)**；**H.264 单路 59 fps 仅 7.76 Mb/s**；raw 单路 52 fps(1.45 Gb/s，X-Link 饱和)。→ **30 fps 可行**，H.264 可做到"帧率×3、带宽约 1/3"。
+- **延迟根因**：视频与 pose 共用 9090 → TCP 队头阻塞（cwnd 2–99、Send-Q 189 KB、rcv_rtt 86 s）。用户在 APP 侧限制帧率并安装后，10:48–10:50 采集会话实测**所有 socket Send-Q = 0**、`DataCollection: mapping pose counts` 稳定 ~10 Hz → 现象消除（其构建含 `883dd0d`，此前"现场 APK 早于修复"的判断已更正）。
+- 取证：`evidence/oak-fps-ceiling-20260917/`（`SUMMARY.md` + `oak_probe_715.json` + 脚本）；`.ai-workspace/known-issues/mjpeg-bandwidth-teleop-latency-2026-08-27.md` 已更新为根因定位。
+- 新增发现：`/global_cloud_navigation` 单帧 0.56–0.75 MB、单客户端 18–25 Mb/s，是第四条高带宽负载（与 pose 同 socket）。
+- 未做：未改源码/参数、未构建镜像、未安装 APK、STM32 改 30 Hz 仅评估未执行。
+
+## TASK-2026-09-17-715-DEPLOY-1.0.16：715 容器化部署最新镜像
+
+- status: **deployed / verified**（等你人工确认 APP+WEB 点云）
+- 改动：compose 固定 tag（仅 4 行 image）：固件 `:latest` → **`:1.0.16`**（3 处）、导航 `1.2.2` → **`1.2.3`**；备份 `/etc/slamibot/system/docker-compose.yml.bak-20260917-110219`；perm 保持 644 root:root；sha256 `12b883a8…` → `4b8b664d…`。
+- 验收全 PASS：容器 config digest = `d5dd5f7e5c2b`（固件）/ `a3c22ceb3a0b`（导航）；三个 rosbridge 补丁哈希逐字节一致（`subscribe.py:120` = `if compression == "cbor-raw" and not msg_type:`）；日志三项 0/0/0；端口 80/5000/5001/9090/19090；`/health` 200 `rosbridgeConnected=true`；DB 行数不变；**并发回归**（cbor+type 与 cbor-raw 同时在线）双方 PASS；相机 10.0 Hz、**`/keyframe` 恢复 4.32 Hz**；restarts=0；已回 idle。
+- 回滚：`cp` 备份覆盖 + `docker compose up -d`（旧镜像仍在设备，未删未 prune）。
+- 遗留：715 无宿主讯飞网关→播报无声（非本次范围）。
+## TASK-2026-09-17-DEPLOY-REPO-BOX-UDEV：部署仓库新增「附加硬件串口别名」脚本（BOX 六麦阵列）
+
+- status: **已发布（Gitee `d360_deploy` master `3780b6b..5d4c18d`）/ 715 已实测生效**
+- 背景：715 的 `/dev/lg_speech_serial` 从未绑定；查清规则**不在镜像里**，而是宿主 `/etc/udev/rules.d/`，由公开仓库 `d360_deploy` 的 `udev_rules/setup_udev_rules.py` 写入（`setup_env.bash` 下载后 sudo 执行）。该脚本**没有 `lg_speech_serial`、也没有 `ttySBUS`**，探测失败时回落硬编码默认 `1-2.3.3/1-2.3.1/1-2.4.2`（715 现状正是默认值）。
+- 新增 `udev_rules/install_extra_serial_aliases.sh`（**与基础脚本严格区分**，用户要求）：
+  - 只在规则文件里维护 `BEGIN/END extra serial aliases` 标记区块，**不改写** `setup_udev_rules.py` 生成的 STM32/RTK/DOG/Gimbal 行；块外手工加过的同名行会被收敛进区块（连注释一起），保证幂等；
+  - BOX 控制串口按拓扑自动识别（ListenGo `2208:0001` 同级 CH340）；同级多颗 CH340 时**列出候选**并按基准位置 `1-2.4.4.4` 回落**并警告**，可用 `--box-kernel` 指定；`--dog-kernel` 可顺便修 DOG/SBUS 行；
+  - `--dry-run`、改前临时备份到 `/tmp`（重启即清）、`udevadm control --reload-rules` + `trigger --subsystem-match=tty`、装后逐个校验别名并给出退出码。
+- README：明确「**基础版本** = `setup_env.bash`」/「**导航进阶版本** = 基础 + `nav2d/install_2d_nav.sh`」/「**附加硬件（可选）** = 上面的脚本」三者边界与调用关系；基础版本资产**保持原样未动**。
+- 实测（715）：`--dry-run` 出 diff → 实跑写入 → 再跑显示"无需改动"（幂等）；`/dev/lg_speech_serial -> ttyUSB4`，DEVPATH 确认 `1-2.4.4.4`；`ttySTM32/ttyRTK` 不受影响。
+- 发布验收（匿名 raw，符合一键装机路径）：`https://gitee.com/electech6/d360_deploy/raw/master/udev_rules/install_extra_serial_aliases.sh` → **200、9534 B、0 个 CR、`bash -n` 通过**；README 同样 200 且含新章节。
+- 遗留：①仓库无 `.gitattributes`（Windows 检出会把 .sh 变 CRLF）→ 建议补 `*.sh text eol=lf`；②715 的 `ttyDOG`/`ttySBUS` 仍缺（规则指 `1-2.4.2`，那口是 USB 音频设备 `0d8c:0012`）→ 可用本脚本 `--dog-kernel 1-2.4.3`，但需先确认该口实际挂的是什么；③`77-mm-ignore-usb0.rules` 仍缺。
+
+## 附：固件健壮性两条**在镜像里**（用户问的就是这两条）
+
+- `SLAMIBOT_D360_Framework/src/device_service/src/SystemMonitor.py:177` → 串口打不开就 `rospy.signal_shutdown("Serial port error")`（**自杀**）；改成"记录 + 周期重试"即可（读线程本来就容忍 `ser` 未打开）。
+- `src/device_service/launch/core.launch:4` → `system_monitor` 等关键节点**无 respawn**。
+- 两者都在固件镜像内（`install/` + catkin install），只能靠**重建固件镜像（1.0.17）+ 设备拉取**下发；与 udev（宿主脚本）是两条不同通道。
+## TASK-2026-09-17-FIRMWARE-1.0.17：固件健壮性修复（串口异常不退出 + respawn）
+
+- status: **released / 715 已部署验收 / 已推云端**
+- 云端提交（`git@github.com:kunkunwei/SLAMIBOT_D360.git` `main`）：`bb4a4a5` fix(robustness) + `28a2cc7` chore: bump version to 1.0.17
+- 改动 3 个文件：
+  - `src/device_service/src/SystemMonitor.py`：`_init_serial()` 打不开串口**不再 `rospy.signal_shutdown`**（旧行为=整节点退出，状态页/电池/LED 一起消失），改为 logwarn + 每 3s 重试；读线程遇读错误**不再 `return`**（旧实现线程结束后永不恢复），改为丢句柄重连；`pause/resume` 用 Event 唤醒避免 IAP 期间抢串口。
+  - `src/device_service/src/ntrip_rtk_ros_service.py`：串口打不开不再直接放弃（旧实现 return 后线程不启动），改为后台重试 + 读异常重连。
+  - `src/device_service/launch/core.launch`：`system_monitor` / `ntrip_rtk_service` / `led_control` 加 `respawn="true" respawn_delay="3"`。
+- 镜像：`slamibot_d360_firmware:1.0.17`（本地 `c593264960a9`，manifest `sha256:f57b3d0b…`）；`latest` 已指向它；1.0.16 保留为 `rollback-1.0.16-20260917`。
+- 构建踩坑（**重要，下次照做**）：①`install/` 里上次容器构建留下的 **root 属主文件**会让 `compile.bash` 报 Permission denied → 先 `sudo chown -R jetson:jetson install build devel`；②首次失败会让 `project_control` 被 **Abandoned**，增量构建**不会**补编 → 必须 `rm -rf build/project_control && catkin build project_control`；③节点是 **Cython 编译的 ELF**，校验要用 `grep -a`（`strings` 只出 ASCII，中文标记会误判）。
+- 715 验收：`GIT_COMMIT=bb4a4a5`、日志出现 `STM32 串口已连接`、**杀节点 8 秒后自动 respawn 并重新连串口**、状态话题全有数据、5001 接口 200、传感器正常、restarts=0。
+- 取证：`evidence/firmware-1.0.17-20260917/SUMMARY.md`
+- **同步策略（用户新要求）**：禁止从本机复制文件到 Jetson，全部走云端。本次补丁在要求提出前已 scp 到 701，之后一律「云端提交 → 板子 pull」。
+- 未做：701 固件未升级（仍 8/31 本地构建 `76b95d1`）；`ttyDOG/ttySBUS`（宇树 Go2 专用）按要求暂不处理。
+
+## TASK-2026-09-17-002：H.264 低带宽实时视频链路（服务端 + APP 联调 + 715 部署）
+
+> ⛔ **本条已作废（2026-09-17 深夜）**：H.264 方案经用户否决并**全线移除**。实际落地路线是
+> **导航侧 MJPEG 压缩放宽到 50%** —— 见本文件末尾的 `TASK-2026-09-17-MJPEG-50PCT` 与
+> `.ai-workspace/handoff/MJPEG-VIDEO-LINK-TUNE-50PCT-HANDOFF-2026-09-17.md`。
+> 固件侧 `src/oak-camera_driver/**` 已 revert 回 1.0.17 状态（`kunkunwei/SLAMIBOT_D360` main `e799f1b`），
+> APP 侧 H.264 客户端已删除（`F:\SLAMIBotApp` `047d9d6`，未推送）。**下面内容仅作历史留档，不要再照它实现。**
+
+- status: **service_deployed_1.0.20 / app_verified_on_device / default_now_off_pending_1.0.21**
+- 交付文档：`.ai-workspace/handoff/APP-H264-VIDEO-LINK-HANDOFF-2026-09-17.md`（协议/MediaCodec 写法/要改的文件/验收/回退）
+- 仓库：`kunkunwei/SLAMIBOT_D360` main —— `054c0ee`（多档 H.264 硬编 + 内嵌 WebSocket 服务 + 自适应切档）、`08933f4`（修只降不升/码率统计/?tier 粘性/首帧 IDR）、`5e9c510`（加真实掉帧率判据）、`cc466e1`（**改默认关闭 + 编码器预算硬保护**）。仅改 `src/oak-camera_driver/**`，未碰 `sensors.launch` 与 `livox_ros_driver2/**`（另一个 AI 的地盘）。
+- 接口：`ws://<host>:5010/api/camera/stream.h264`（每条二进制消息 = 一个 Annex-B access unit，关键帧含 SPS+PPS+IDR）；诊断 `GET .../status`；调试 `?tier=N` / `?tier=auto`。
+- **已确认的硬事实**：相机被 STM32 `TIM2` PA1 硬触发锁在 **10.000 fps**（`F:\slamibot_stm32\USER\main.c:49`），代码里的 20 是配置值、被硬触发覆盖；`VideoEncoder.setBitrate()` 单位是 **bps**（必须用 `setBitrateKbps()`）；DepthAI 2.24 的 `VideoEncoder` **无 `inputConfig`**，运行中不能改码率。
+- **发现硬约束：OAK 同时最多 5 个视频编码器**。3 路 MJPEG + 3 档 H.264 = 6 个时**最后一路相机的 MJPEG 被饿死**（DepthAI 仍报该相机已连接、publisher 存在，但完全无帧；节点自报 `总帧数 1200/60s → 6.67 FPS` = 只有 2 路出图），连带 `/keyframe` 断流、建图不可用 → **H.264 最多 2 档**，且代码已加 `MAX_VIDEO_ENCODERS = 5` 兜底截断。
+- **相机按机型不同**：715（新机型）= `CAM_A` 前(中间) / `CAM_B` 左 / `CAM_C` 右；701（老机型）沿用 `CAM_B`。715 已按此配置。
+- **卡顿根因（不是 H.264 本身）**：tier 0 的 10 Mbps 超出办公 Wi-Fi → 服务端静默丢帧，关键帧间隔出现 **2.15 秒**（整帧丢 → P 帧无参考 → 冻结到下一个关键帧）。Wi-Fi 逐档实测：4 Mbps 档 10.17 fps、1.5 Mbps 档 10.05 fps 均满帧。加了掉帧判据后控制器会自动退到链路吃得住的档。
+- **用户判断与取舍**：用户认为该链路"没啥用、没明显效果提升、浪费编码器"，故已改**默认关闭**（按机型用 `/etc/slamibot/video_link.json` 显式开启）；用户决定 **715 先保留开启**（全分辨率 10 fps 优于回退 480px MJPEG）。用户明确**不能破坏空间重建**——全程未改 `/keyframe` 链路，并否决了"用 H.264 取代 MJPEG_A"的方案（会让重建输入从 2.47 降到 1.0 Mbit/帧）。
+- **运维铁律（踩过两次）**：
+  1. **重建 `core` 容器 = 重启整机 ROS master**（`rosmaster` 跑在 `core` 里）→ 之后必须 `docker restart scout-nav`，否则导航栈与底盘"看着在线、实际脱管"。
+  2. **开机后底盘不会自动激活**：`policy=AUTO` 只"采纳"已就绪的底盘、不启动驱动 → `activeBase: NONE` 是开机默认态，需显式 `POST /api/base_mode/switch?mode=scout`。
+  3. 这台设备上**跨容器的 `rostopic hz` 不可信**（`scout_msgs` 只在 `scout-nav`、`livox_ros_driver2/CustomMsg` 在 `core` 里加载不了）→ 权威视角是 `/topic_frequencies`。
+  4. 服务端 ROS 日志在 `/root/.ros/log/latest/oak_hardware_trigger_ros*.log`，**不在 `docker logs`**。
+- 一键装机：Gitee `electech6/d360_deploy` master **`f0da892`** 新增 `etc/install_video_link_config.sh`（`--camera` 必填、档数 >2 拒绝、幂等、`--dry-run`、`--disable`）+ README 机型映射与编码器预算说明。
+- 镜像：`slamibot_d360_firmware:1.0.20` digest `sha256:d51a717a…`（ACR 里的 `:1.0.19` 是错标孤儿 tag，勿引用）。
+- next: ①把"默认关闭"折进下一个构建批次（等另一 AI 的 livox 修复一起 → 1.0.21）；②若 APP 仍卡，取 `adb logcat -s H264Stream:V` 看 `H264 解码前帧率`（<10 = 链路丢帧）或 `H264 输入缓冲不足`（关键帧 328–391 KB 塞不进 MediaCodec 输入缓冲 = APP 侧）；③可选：把"开机自动激活底盘"做进导航栈（符合用户的一键化要求）。
+- tests: 服务端本地自测 `tmp/test_h264_server.py` **55 项 ALL PASS**（stub rospy/depthai/fcntl）；真机验收用独立标准库 `websocket-client` 直连 715 验证 10.02 fps / 10.02 Mbps 与协议合规；逐档实测与相机/编码器预算实验均在 715 真机完成。APP 侧由另一人实现并已出画。
+
+## TASK-2026-09-17-MJPEG-50PCT：video_link 压缩放宽到 50%（导航）+ 固件移除 H.264
+
+- status: **source_pushed / local_verified / manual_validation_pending**（设备关机，真机验收待用户上班后做）
+- 交付文档：`.ai-workspace/handoff/MJPEG-VIDEO-LINK-TUNE-50PCT-HANDOFF-2026-09-17.md`（§0.1 进度快照 + 文末「执行结果」段）
+- **导航侧**（`kunkunwei/Scout_mini_navigation`，分支 **`codex/mjpeg-video-link-50pct-20260917` @ `b6bec0d`**，**未合并 master**，2 文件）：
+  - `capture.py`（`b4a6dfe`，+41/−14）：新增 `CAMERA_VIDEO_LINK_TARGET_RATIO`（默认 0.5、clamp 0.2–1.0）取代写死的 `target_ratio = 0.18`；`MAX_WIDTH` 480→1280（clamp 160–1280 → **640–1920**）；`JPEG_QUALITY` 40→80（clamp 20–85 → **60–90**）；`FPS` 20→10（源流本就 10）。
+    - 降级阶梯加地板并**触底即停**：宽度 ≥ `max(960, 0.75*max_width)`、质量 ≥60；旧代码第二级写死 Q30、第三级 `encode(160, 20)`，已删。
+    - 未动：`_mjpeg_frames()` 的"只在收到新帧才发、不插帧"、非 video_link 档原图直通、`_STREAM_CACHE`/`_STREAM_ENCODE_LOCK`。
+  - `ros_client.py:461`（`b6bec0d`，1 行）：`CAMERA_TOPIC` 默认 `CAM_B` → **`CAM_A`**。**已裁决保留**（用户 2026-09-17 深夜）：新设备一键部署、交付客户后不能随意改 → 默认值按新机型取；701 是开发机，需要时用环境变量覆盖。副作用（用户已接受）：帧缓存同时供实时视频与**拍照取帧**，拍照来源一并变成前相机。
+- **基线核实（源码级，取代交接文档 §8 的「需上机核对」1/2/6）**：`kunkunwei/master`(1ad7809) 的 `capture.py` blob == 改前本地文件 == `bb2fe15`（部署镜像 1.2.3 由 1.2 全量构建 + 地图清理 overlay 而来，overlay 未碰该文件）；master 上**没有** `test_camera_stream_profile.py`（`5ad6000` 加过、未进 master），故本次无需改测试，也**不会留下红的测试**。
+- **本地验证**：`py_compile` + 离线真实 Pillow 复算（`tmp/mjpeg-verify/verify_video_link_ladder.py`，打桩 fastapi/pydantic/nav_api 依赖后按路径加载**真实** `capture.py`，不复制逻辑）：默认档 1280/Q80 输出 ≈ 源帧 **15.9%**、旧档 480/Q40 ≈ **2.1%**；高熵图强制超预算时降级**停在 1440（地板）而非 160**；编码耗时 **1.44x**（新旧同付全分辨率 JPEG 解码，增量只是 resize+encode）。真机带宽/帧率/CPU **未验证**。
+- **固件侧（做法 B 已执行）**：`kunkunwei/SLAMIBOT_D360` main **`e799f1b`**（revert 5 个提交，4 文件 +3/−994）。独立自证：`git diff 28a2cc7 origin/main -- src/oak-camera_driver` **为空**、OAK 包内再无 `ws_port`/`h264`（5010 消失）、整体只差 `device_basic_service.py` 版本号 3 行 → 代码精确回到 1.0.17，相机回 3 路 MJPEG。待出镜像 **1.0.21**。
+  - 背景：`28a2cc7→afe4155` 那 9 个提交只动 5 个文件、全在 OAK 驱动包（H.264 本身）→ 固件侧自 1.0.17 起唯一功能变更就是 H.264，故这是纯收敛动作。
+  - `5010` 原唯一实现（**已随 revert 删除**，留档）：`src/oak-camera_driver/scripts/oak_hardware_trigger_ros.py:426`（`H264_DEFAULTS["ws_port"]`）；探针 `oak_h264_probe.py`。
+  - **「开始作业的数据采集」与 5010 无关**：走 rosbridge `:9090` + `/keyframe` + `rosbridge_patch/`（`60560bb`，本地 1.0.17 已含，revert 未触碰），属空间重建红线，**不改**。
+  - **做法 A（设备侧改 `video_link.json` + 重启）已不再需要**（代码层已经没有 H.264 了）。
+- **出货模型（用户 2026-09-17 深夜确认）**：设备上的东西都靠脚本从**阿里云 ACR** 拉镜像；**推 Git 只是开发动作，交付物是 ACR 镜像**；Gitee 不在部署链路上，**暂不动 Gitee**（固件 Gitee 停在 1.0.15 已不算隐患）。
+- next: ①固件从 `e799f1b` 构建推 ACR 出 **1.0.21**（701：`git pull` + `DOCKER_BUILDKIT=0 bash docker_build.sh --push patch`；注意脚本里 `git push origin` 在 701 会静默跳过，版本号提交需事后手工 `git push cloud main`）；②导航从 `b6bec0d` 出 `d360_nav2d:<新 tag>`（勿覆盖 1.2.3）推 ACR，并同步改 `scripts/install_2d_nav.sh` 与 `d360_deploy/nav2d/install_2d_nav.sh` 里硬编码的 `IMAGE=1.2.3`；③715 上机先 `docker exec scout-nav env | grep -i CAMERA` 排除残留 `CAMERA_VIDEO_LINK_*` 覆盖默认值；④按交接文档 §5 验收，重点 CPU。
+- 另开（只报告未修）：`d360_deploy/nav2d/install_2d_nav.sh` 第 1 行是孤立文本 `205`（在 shebang 之前，bash 报 `command not found`，因 `set -e` 在其后故不致命），属另一仓库。

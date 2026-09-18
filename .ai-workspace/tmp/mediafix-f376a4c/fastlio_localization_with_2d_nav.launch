@@ -1,0 +1,113 @@
+<launch>
+<!--
+    FAST_LIO 3D定位 + 2D导航混合方案
+
+    架构：
+    1. 使用3D点云地图进行高精度定位（FAST_LIO）
+    2. 使用2D栅格地图进行路径规划（move_base）
+
+    优势：
+    - 定位精度高（±2-5cm）
+    - 自动初始化（无需手动设置初始位姿）
+    - 复用现有的2D导航配置
+-->
+
+    <arg name="map_3d" default="$(find my_nav)/maps/fastlio_3d_map.pcd" />
+    <arg name="map_2d" default="$(find my_nav)/maps/fastlio_2d_map.yaml" />
+    <arg name="rviz" default="true" />
+
+    <!-- 重要：使用/clock时间同步 -->
+    <param name="/use_sim_time" value="true"/>
+
+    <!-- 注意：Livox驱动由外部程序启动 -->
+    <!-- /livox/lidar、/livox/imu、/clock 应该已经在发布 -->
+
+    <!-- 1. FAST_LIO实时定位（使用3D地图）-->
+    <!--
+        如果有FAST_LIO_Localization包，使用：
+        <include file="$(find fast_lio_localization)/launch/localization.launch">
+            <arg name="map_path" value="$(arg map_3d)"/>
+        </include>
+
+        如果没有，使用FAST_LIO实时建图模式（也能提供准确里程计）
+    -->
+    <include file="$(find fast_lio_sam)/launch/mapping_mid360.launch">
+        <arg name="rviz" value="false"/>
+    </include>
+
+    <!-- 2. 点云转2D激光扫描（局部避障用） -->
+    <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node"
+          name="pointcloud_to_laserscan">
+        <remap from="cloud_in" to="/cloud_registered"/>
+        <remap from="scan" to="/scan"/>
+        <rosparam>
+            target_frame: base_link
+            transform_tolerance: 0.01
+            min_height: 0.0
+            max_height: 1.0
+            angle_min: -3.14159
+            angle_max: 3.14159
+            angle_increment: 0.006
+            scan_time: 0.1
+            range_min: 0.1
+            range_max: 40.0
+            use_inf: true
+            concurrency_level: 1
+        </rosparam>
+    </node>
+
+    <!-- 3. 加载2D栅格地图 -->
+    <node pkg="map_server" type="map_server" name="map_server"
+          args="$(arg map_2d)" />
+
+    <!-- 4. 可选：AMCL作为备份定位 -->
+    <!--
+        FAST_LIO已经提供了map→odom的TF，AMCL可以作为验证
+        如果不需要可以注释掉
+    -->
+    <node pkg="amcl" type="amcl" name="amcl" output="screen">
+        <!-- 坐标系 -->
+        <param name="odom_frame_id" value="camera_init"/>  <!-- FAST_LIO的odom frame -->
+        <param name="base_frame_id" value="base_link"/>
+        <param name="global_frame_id" value="map"/>
+        <param name="use_map_topic" value="true"/>
+
+        <!-- 因为有FAST_LIO的准确里程计，粒子数可以很少 -->
+        <param name="min_particles" value="100"/>
+        <param name="max_particles" value="500"/>
+
+        <!-- 激光雷达参数 -->
+        <param name="laser_max_beams" value="60"/>
+        <param name="laser_model_type" value="likelihood_field"/>
+        <param name="laser_z_hit" value="0.95"/>
+        <param name="laser_z_rand" value="0.05"/>
+
+        <!-- 里程计模型（FAST_LIO很准，噪声设小） -->
+        <param name="odom_model_type" value="diff-corrected"/>
+        <param name="odom_alpha1" value="0.01"/>
+        <param name="odom_alpha2" value="0.01"/>
+        <param name="odom_alpha3" value="0.01"/>
+        <param name="odom_alpha4" value="0.01"/>
+
+        <!-- 更新频率 -->
+        <param name="update_min_d" value="0.0"/>
+        <param name="update_min_a" value="0.0"/>
+        <param name="resample_interval" value="1"/>
+
+        <!-- TF容差 -->
+        <param name="transform_tolerance" value="0.3"/>
+        <param name="gui_publish_rate" value="20.0"/>
+    </node>
+
+    <!-- 5. move_base导航 -->
+    <include file="$(find my_nav)/launch/move_base_tuned2.launch">
+        <arg name="planner" value="teb"/>
+    </include>
+
+    <!-- 6. RViz可视化 -->
+    <group if="$(arg rviz)">
+        <node pkg="rviz" type="rviz" name="rviz"
+              args="-d $(find my_nav)/rviz/fastlio_2d_nav.rviz" />
+    </group>
+
+</launch>

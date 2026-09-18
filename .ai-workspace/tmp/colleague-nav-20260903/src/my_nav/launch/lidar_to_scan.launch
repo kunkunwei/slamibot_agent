@@ -1,0 +1,68 @@
+<launch>
+
+
+<!-- 启动 Scout Mini 底盘与雷达 scan 链路，为建图/导航提供 /scan 与 TF
+    1.加载小车模型,发布TF关系
+    2.把雷达话题/livox/lidar重映射为标准的/livox_pcl0
+    3.把/livox_pcl0转换为2D的/scan发布 -->
+
+
+  <!-- 使用仿真/回放时钟（需有节点发布 /clock） -->
+  <param name="/use_sim_time" value="true"/>
+
+<!-- 加载小车模型 -->
+  <include file="$(find my_nav)/launch/scout_mini_robot_base.launch">
+      <!-- <arg name="robot_namespace" value="/"/> -->
+      <arg name="pub_tf" value="true"/>
+
+  </include>
+
+
+<!-- 把雷达话题/livox/lidar重映射为标准的/livox_pcl0 -->
+  <node pkg="livox_repub" type="livox_repub" name="livox_repub" output="screen" >
+    <remap from="/livox/lidar" to="/livox/lidar" />
+    <param name="self_filter_enabled" value="true" />
+    <param name="self_filter_min_x" value="-0.41" />
+    <param name="self_filter_max_x" value="0.41" />
+    <param name="self_filter_min_y" value="-0.40" />
+    <param name="self_filter_max_y" value="0.40" />
+  </node>
+
+
+
+<!-- 把/livox_pcl0转换为2D的/scan发布 -->
+  <!-- run pointcloud_to_laserscan node -->
+  <node pkg="pointcloud_to_laserscan" type="pointcloud_to_laserscan_node" name="pointcloud_to_laserscan">
+      <remap from="cloud_in" to="/livox_pcl0"/>
+      <rosparam>
+          #target_frame: camera_link # Leave disabled to output scan in pointcloud frame
+          target_frame: base_link
+          transform_tolerance: 0.01
+          min_height: -0.1
+          max_height: 1.0
+
+          angle_min: -3.1415926 # -M_PI
+        <!--   angle_max: -2.9655556 # M_PI
+          angle_min: -2.7911111 # -M_PI
+          angle_max: 2.7911111 # M_PI
+          angle_min: 2.9655556 # -M_PI  -->
+          angle_max: 3.1415926 # M_PI
+
+
+          angle_increment: 0.006 # 0.17degree
+          scan_time: 0.1
+          range_min: 0.1
+          range_max: 40
+          use_inf: true
+
+          # Concurrency level, affects number of pointclouds queued for processing and number of threads used
+          # 0 : Detect number of cores
+          # 1 : Single threaded
+          # 2->inf : Parallelism level
+          concurrency_level: 1
+      </rosparam>
+  </node>
+
+
+  <node pkg="tf" type="static_transform_publisher" name="fastlio_body_to_base_link" args="-0.108 0 -0.188 0 -0.349 0 body base_link 100" />
+</launch>

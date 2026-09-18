@@ -11,6 +11,8 @@
 - 只能在任务 scope 内的路径修改（见 `change-policy.md`）。
 - 建议为任务创建专用分支或安全检查点（分支名如 `ai/<task-id>-<简述>`）。
 - 小步提交，每次提交信息写清楚”改了什么、为什么”。
+- 除 `git status` 外，必须建立目标文件级版本基线（mtime/size/SHA256）；写前乐观并发复核，任一外部变化或非预期 diff 即停止。
+- 改后确认未回退其他 Agent 修改；共享文件的 base/latest/desired 三方合并、modified-on-disk 与锁协议遵循 `change-policy.md` 和 `../agents/team-orchestration.md`。
 
 ### History Rewrite（filter-branch / rebase -i / replace）前置检查
 涉及改写历史（filter-branch、rebase -i、replace --graft、force-push 等）必须**全部满足**：

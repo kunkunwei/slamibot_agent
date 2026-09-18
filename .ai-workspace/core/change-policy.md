@@ -23,6 +23,13 @@
 - **越界即停**：发现改动会触碰 protected 范围时，停止并报告，请求扩权或新任务。
 - **迁移绝不隐式触发**：普通 ROS1 Bug 修复 / 功能开发不得触发 `migration`。
 
+## 共享文件并发写入协议
+- 共享文件编辑前必须读取最新内容，并记录 `stat` 的 mtime/size 与 SHA256；禁止依据旧视图写入。
+- 写入前再次比较版本；mtime、size 或 SHA256 任一变化即视为外部修改，必须停止旧视图 Edit。
+- 出现 `modified on disk` 或 Edit 的 `old_string` 失败时，重新读取并执行 base/latest/desired 三方合并；只有无歧义时才能继续，否则停止该文件并报告。
+- 共享文件禁止使用整文件 Write 覆盖；必须使用精确、可维护的 Edit。工作台规则文件同样受未提交修改保护。
+- 并发写锁、owner 与释放规则见 `../agents/team-orchestration.md`；Git 级复核见 `git-safety.md`。
+
 ## 技术栈生命周期（详见 system-lifecycle.md）
 - 默认所有导航优化 / Bug 修复 / 功能开发以 **CURRENT（ROS1 + Ubuntu 20.04）** 为目标。
 - 仅当任务显式 `migration: true` 且写清 `from` / `to` 时才进入 MIGRATION / TARGET。
