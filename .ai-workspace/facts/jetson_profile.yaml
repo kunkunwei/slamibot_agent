@@ -229,6 +229,16 @@ jetson:
       nav_side: "701 的 compose scout-nav 服务新增 environment: CAMERA_TOPIC=/SLB_CAM_B/compressed（此前用代码默认 CAM_A=左，看到的是侧面）；重建后容器日志 camera frame cache started on /SLB_CAM_B/compressed；/api/camera/stream.mjpeg?profile=video_link 取帧与 CAM_B 实拍一致"
       photo_capture: "拍照 /api/capture/photo 走同一 ros_client 缓存 → 同步变为前相机 B"
       stitcher_note: "固件 /keyframe 拼接顺序仍为 B,A,C=左,前,右（对 715 正确；对 701 呈现为 前,左,右）；未改（固件红线 + 镜像两款共用），待用户决策"
+    cloud_sync_2026_09_18:
+      nav2d: "Scout_mini_navigation(jetson/0826 @ 00aa4b1e) == origin/jetson/0826(kunkunwei/Scout_mini_navigation)，未推送=0 ✓；⚠ 但工作树仍有 19 个已跟踪文件被改 + 20 个未跟踪 + 211 个已跟踪文件被删（demo 地图）→ 这批不在云端，属他人 WIP，本任务未动"
+      voice_asr: "run_mic_sherpa(main @ a16fb79) 本地 F:\run_mic_sherpa 干净且 == origin/main ✓；701 的 voice-image-build/assets/src 与之同名文件一致；assets/xf_gateway = nav 仓 src/nav_api/host_services（云端有）；镜像 1.0.2 在 ACR"
+      firmware: "SLAMIBOT_D360_Framework HEAD 87c966f == cloud/main(kunkunwei/SLAMIBOT_D360) ✓；相对旧远端 origin(kunkunwei/SLAMIBOT_D360_Framework) 有 20 个提交差，非风险"
+      kn_nav: "kn_nav HEAD e3843f4 == cloud/master(kunkunwei/3d_nav) ✓；仅 9 个未提交改动是本地"
+    cleanup_2026_09_18:
+      deleted: "voice-old-source-20260918-161711(497M)、Scout_mini_navigation/.codex-stage(502M)、nav-diagnostics-{3d-,}web-deploy-20260831-*(10.4M)、assistant-deploy-20260828-133655(276K)、docker-entrypoint.sh.bak-20260825-audio(= HEAD 内容) → 约 1.0G；删前已做引用检查（/etc 与进程均无引用）"
+      rescued_orphans: "删前把旧语音树里“云端与镜像构建上下文都没有”的文件抢救到工作区 .ai-workspace/tmp/701-voice-orphans-rescued-20260918/（340K：xf_mic_chat_standalone.py、dog_run*.py、tests/、D360(1).pdf、assistant-overlay Dockerfile 等）"
+      kept_with_reason: "backup/(1.5G 固件镜像 tarball；ACR 有同名回滚 tag rollback-pre-keyframe-20260831-102133，但内含未被框架仓跟踪的 Dockerfile.keyframe-respawn)；docker_ws_backup(8.1G movebase_3d_web，master==cloud/master，含 build 产物)；kn_nav_backup(165M，src 与 kn_nav/src 差 68 处)；jetson0826-src-build(569M，与云端分支 src 差 11 处)；container-fixes(176M，848 文件 vs 仓内 install 794)；scout-nav-product-build(1.4G 发布构建克隆)；voice-image-build(341M 语音镜像构建上下文，含唯一 assets)；.codex-backup*(少量)"
+      side_effect: "宿主版语音回滚路径（需旧源码）自此不可用；回滚仅剩容器路径 + 从云端重拉"
     not_done: "唤醒词闭环已由用户实测通过；旧手工 nav 容器与 12 个历史 stopped scout-nav-* 保留未删；voice-old-source-20260918-161711 未清；/home/jetson/xf_chat_standalone/xf_config.yaml 仍是真实讯飞凭据（开发机，值未改）"
     status: CONFIRMED
   status: CONFIRMED

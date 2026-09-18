@@ -439,3 +439,15 @@
 - 验证：容器重建后日志 `camera frame cache started on /SLB_CAM_B/compressed`；`/api/camera/stream.mjpeg?profile=video_link` 取帧与 CAM_B 实拍同一画面；`/health` 200、`/api/launch/status` navigation。拍照 `/api/capture/photo` 走同一 ros_client 缓存 → 同步为前相机。
 - 未动（待决策）：固件 `/keyframe` 拼接顺序仍是 `B,A,C`（= 715 的 左,前,右；在 701 上呈现为 前,左,右）。改它需要动固件参数，属红线且镜像两款共用，故仅记录。
 - 备注：`install_2d_nav.sh` 升级路径只改 `image:` 行，不会覆盖这个 `environment`。
+
+
+## TASK-2026-09-18-701-CLOUD-SYNC-AND-CLEANUP：701 源码上云核对 + 冗余备份清理
+
+- 结论（2D 导航源码）：`Scout_mini_navigation` 分支 `jetson/0826` @ `00aa4b1e` == `origin/jetson/0826`（GitHub `kunkunwei/Scout_mini_navigation`），**未推送=0 ✓**；但工作树仍有 **19 个已跟踪文件被改 + 20 个未跟踪 + 211 个已跟踪文件被删**（demo 地图）→ 这批**不在云端**，属他人 WIP，未动、未提交。
+- 结论（语音识别源码）：`run_mic_sherpa`（`main` @ `a16fb79`）本地干净且 == `origin/main` ✓；701 的 `voice-image-build/assets/src` 与该仓同名文件一致；`assets/xf_gateway` = nav 仓 `src/nav_api/host_services/`（云端有）；交付镜像 1.0.2 在 ACR。
+- 顺带核实：框架仓 HEAD == `cloud/main`（`SLAMIBOT_D360`）✓（相对旧远端 `SLAMIBOT_D360_Framework` 的 20 提交差非风险）；`kn_nav` HEAD == `cloud/master`（`3d_nav`）✓。
+- 删前抢救：旧语音树里云端与镜像构建上下文都找不到的文件 → `.ai-workspace/tmp/701-voice-orphans-rescued-20260918/`（340K）。
+- 已删（约 1.0G，删前引用检查通过）：`voice-old-source-20260918-161711`(497M)、`Scout_mini_navigation/.codex-stage`(502M)、`nav-diagnostics-{3d-,}web-deploy-20260831-*`(10.4M)、`assistant-deploy-20260828-133655`(276K)、`docker-entrypoint.sh.bak-20260825-audio`（与 HEAD 同内容）。
+- 保留（证据不足或超出本次范围）：`backup/`(1.5G)、`docker_ws_backup`(8.1G)、`kn_nav_backup`(165M)、`jetson0826-src-build`(569M)、`container-fixes`(176M)、`scout-nav-product-build`(1.4G)、`voice-image-build`(341M)、`.codex-backup*` —— 逐项理由见 `facts/jetson_profile.yaml` 的 `cleanup_2026_09_18.kept_with_reason`。
+- 副作用：宿主版语音回滚路径不可用（旧源码已删），回滚仅剩容器路径 + 云端重拉。
+- 验证：删后 5 容器仍 Up、nav `/health` 200、5011 200、`slamibot-audio-node-sync` active、nav 仓 git 状态只少了未跟踪项。

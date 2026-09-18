@@ -1,0 +1,18 @@
+ARG BASE_IMAGE=scout-nav:jetson0826-src-timefix-20260827
+FROM ${BASE_IMAGE}
+
+LABEL org.opencontainers.image.title="Scout navigation assistant demo overlay"
+LABEL org.opencontainers.image.description="Adds deterministic voice assistant, Xunfei gateway client, and shared TTS playback"
+
+COPY src/nav_api/fastapi_service/app.py /Scout_mini_navigation/src/nav_api/fastapi_service/app.py
+COPY src/nav_api/fastapi_service/models.py /Scout_mini_navigation/src/nav_api/fastapi_service/models.py
+COPY src/nav_api/fastapi_service/assistant.py /Scout_mini_navigation/src/nav_api/fastapi_service/assistant.py
+COPY src/nav_api/fastapi_service/xf_gateway_client.py /Scout_mini_navigation/src/nav_api/fastapi_service/xf_gateway_client.py
+COPY src/nav_api/fastapi_service/voice.py /Scout_mini_navigation/src/nav_api/fastapi_service/voice.py
+COPY src/nav_api/fastapi_service/tts_service.py /Scout_mini_navigation/src/nav_api/fastapi_service/tts_service.py
+COPY src/nav_api/fastapi_service/speaker_output.py /Scout_mini_navigation/src/nav_api/fastapi_service/speaker_output.py
+COPY src/nav_api/fastapi_service/audio.py /Scout_mini_navigation/src/nav_api/fastapi_service/audio.py
+COPY src/nav_api/fastapi_service/control.py /Scout_mini_navigation/src/nav_api/fastapi_service/control.py
+COPY src/nav_api/fastapi_service/point_arrival.py /Scout_mini_navigation/src/nav_api/fastapi_service/point_arrival.py
+COPY src/nav_api/fastapi_service/dog.py /Scout_mini_navigation/src/nav_api/fastapi_service/dog.py
+COPY src/nav_api/scripts/launch_manager.py /Scout_mini_navigation/src/nav_api/scripts/launch_manager.py
