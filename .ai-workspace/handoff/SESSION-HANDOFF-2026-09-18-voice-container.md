@@ -198,7 +198,10 @@ sudo: 需要密码（另一个 AI 只给 715 配了免密）
 
 **这 6 个文件已于同日删除，本地不再有副本**（连根 `artifacts/scout-nav-d0b7b15{,-lf}.tar.gz` 一并删，合计释放约 6.7 GiB）。删除前已核对：这些包的**仓库内容**在 `F:\d360_nav2D` 本地克隆里是完整的（`4d0cb26` 141 提交 / 6251 对象、`445ffd7` 119 提交 / 6019 对象，祖先图都可走通；该克隆还留着远端已删的 `codex/video-link-stream-20260904@f281b8e`）。
 > ⚠️ **两点必读**：① 该克隆现在是这批内容的**唯一**本地副本 —— 不要顺手清理 `F:\d360_nav2D`；② tar 包里的 `install/` **预编译产物**不在这份副本里（只能 `catkin_make` 重建）。
-> 另注：`codex/teleop-pointcloud-low-latency-docs-old-1.9gb`（未推送的本地分支）仍持有约 1.23 GiB 对象，主要是 `pr1-deploy.tar` 1894.2 MB 与一份 501 MB 的 `d360-0cf1d78.bundle` —— 需要空间时可另行清理。
+> 另注（仓库里仍剩约 1.23 GiB pack，由两处引用持有，**不是**本次遗留）：
+> ① `pr1-deploy.tar`（1894.2 MB，**磁盘上已无此文件**，仅存 git blob）挂在 `refs/heads/main` 和备份分支 `codex/teleop-pointcloud-low-latency-docs-old-1.9gb` 上 —— 前者那个未推送的 `b77f6a5` 就是它，**push main 会重演同一次卡死**；
+> ② 501 MB 的 `d360-0cf1d78.bundle` 挂在工具引用 `refs/codex/turn-diffs/checkpoints/...` 上。
+> **只删备份分支省不了空间**（blob 仍被 main 引用）。来龙去脉见 `tasks/current.md` 的 `TASK-2026-08-27-002`（2026-08-27 处理过一起同样的 `pr1-deploy.tar` 误提交）。
 
 ### 9.2 更正：`D360装机流程.txt` 的行尾判据（**撤回旧告诫**）
 
