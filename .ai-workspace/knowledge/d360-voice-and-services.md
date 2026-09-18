@@ -16,11 +16,22 @@
 - 依赖：Python 3.7+、ROS1 rospy（控狗）、ALSA aplay、portaudio19-dev
 - 备注：控狗经 ROS1 `/voice_command`，需 `roscore`
 
-## 2. 离线语音识别：vosk
-- 位置：`/home/jetson/vosk`（模型 `vosk-model-small-cn-0.22`）
-- 功能：实时流式转写（打字机效果）、**拼音纠错**（同音字"见图"→"建图"）、识别结果 **HTTP 推送**
-- `myvosk.py`：主程序；`TARGET_PHRASES` 含 "开始建图" 等命令
-- 用途：建图/命令等场景的离线指令识别
+## 2. 离线语音识别：vosk —— **已于 2026-09-18 删除（废弃 demo）**
+
+- 原位置：`/home/jetson/vosk`（**只在 701 上**，715 从来没有）；模型 `vosk-model-small-cn-0.22`
+- 原功能：实时流式转写（打字机效果）、拼音纠错（同音字"见图"→"建图"）、识别结果 HTTP POST
+- `myvosk.py`：主程序；`TARGET_PHRASES` 13 条（开始建图/建图完毕/结束建图/保存地图/标记目标点/导航到/带我去/到我跟前/打招呼/蹲下/趴下/转圈/站起来），拼音滑窗相似度阈值 0.75
+
+**为什么删**（2026-09-18 用户确认）：
+1. **从未被任何东西启动** —— crontab 无、systemd 无、无进程、无脚本调用（删前逐项核查）
+2. git 状态是实验品：`origin` **未配 remote**、**只有 1 个提交**（`fa33312 直接预设词`）、工作树有未提交改动
+3. **功能与生产链路重叠**：那 13 个命令词现在由 `run_mic.py` + nav `/api/voice/intent` 处理
+4. **它不能解决"无网现场"** —— 它只做 ASR，而 ASR 本来就离线（本地 sherpa-onnx 模型）；真正缺的是**离线 TTS**（见下）
+
+**删除执行**：`rm -rf /home/jetson/vosk`（释放 191M）。因源码不可恢复（无 remote + 有未提交改动），删前留了**源码备份**
+`/home/jetson/vosk-source-backup-20260918.tar.gz`（**23K**，含 `myvosk.py`/README/.git，不含 venv 与模型）—— 确认无用后可一并删。
+
+> ⚠️ 若日后要**无网可用的语音能力**，方向不是 vosk，而是**离线 TTS**（`sherpa-onnx` 自带 TTS 模型，与现用识别引擎同源、可复用同一套依赖），外加 nav 侧 `tts_cache` 预热。详见 `tasks/voice-containerization-plan-2026-09-18.md`。
 
 ## 3. 2D 导航喊话回传（Scout_mini_navigation/nav_api）
 - `fastapi_service/voice.py`：**语音指令文本解析与派发**；APP 麦与环形麦识别成文本后统一调 **`POST /api/voice/intent`**；环形麦多带 `bearingDeg` 方位

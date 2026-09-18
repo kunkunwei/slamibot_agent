@@ -9,3 +9,18 @@ Thumbs.db
 .vscode/
 *.swp
 *~
+
+# ---- 凭据/密钥台账：本地保留，永不入库 ----
+# 用途：设备或仓库上清理凭据前，先在此留下可追溯记录（避免"清完找不回来"）。
+# 任意子路径都排除；如需在新位置放凭据，请沿用 .ai-workspace/secrets/。
+# ⚠ 不要对本目录使用 git add -f。
+.ai-workspace/secrets/
+secrets/
+*credential*.md
+*credentials*.md
+*.key.txt
+
+# ---- 语音资产包：不进 Git ----
+# 体积大（.venv 118M + models 341M），且历史上曾含明文讯飞凭据；
+# 资产一律走 ACR 镜像分发，不要提交。构建输入必须是 sanitize 后的版本。
+voice-assets*.tar.gz
