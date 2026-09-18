@@ -1,0 +1,9 @@
+# 自包含独立版语音对话依赖
+# Standalone (no ROS2) voice chat dependencies
+
+pyserial>=3.5          # 串口通信（唤醒/原始音频）serial_reader
+websocket-client>=1.0  # 讯飞 ASR/TTS/星火 WebSocket（spark_api）
+PyYAML>=5.4            # 读取 xf_config.yaml（spark_api）
+PyAudio>=0.2.11        # ALSA 声卡音频采集（audio_source=alsa 时需要；raw 串口模式可不装）
+pytest>=6.0            # 单元测试
+# rospy / std_msgs 来自系统 ROS1（需 source /opt/ros/<distro>/setup.bash），不通过 pip 安装
