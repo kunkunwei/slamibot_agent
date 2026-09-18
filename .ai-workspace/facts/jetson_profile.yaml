@@ -216,13 +216,20 @@ jetson:
     acceptance:
       in_place: "5 容器 Up；nav /health rosbridgeConnected=true、/api/launch/status navigation、地图 27；5011 /health 200；容器日志 [entrypoint] gate ready + [状态] WAIT_WAKE；/api/assistant/speak → COMPLETED / reply=我在 / speechPlayed=true"
       reboot: "16:20:26 sudo reboot → 66s 后 SSH 回（wlan0 仍 192.168.31.135）→ 5 容器自起（voice StartedAt 08:21:50Z）；16:22:12 gate ready → 16:22:17 [状态] WAIT_WAKE；crontab 0 条、旧宿主栈未回来、audio-node-sync active、scout-nav /dev/snd 52 节点；冷启动后 speak 复测 COMPLETED/played=true"
+      wake_loop_user_confirmed: "2026-09-18 晚：用户实测「小飞小飞」→「我在」通过（人耳确认）"
     rollback_points:
       compose_baseline: "/etc/slamibot/system/docker-compose.yml.bak-20260918-160358（改前 sha256 2cdf36ede23c5b83dd180029c9bce556b273785eee44eef43ae91373b5010783）"
       compose_after_nav: /etc/slamibot/system/docker-compose.yml.bak-20260918-161619
       compose_after_voice: /etc/slamibot/system/docker-compose.yml.bak-20260918-161711
       snapshot_dir: "/home/jetson/701-deploy-20260918-160358（nav-manual-spec.json / docker-ps-before*.txt / crontab.jetson.before）"
       deploy_source: "/tmp/d360_deploy-upload（本地 tmp/d360_deploy == Gitee master 0eb79b7；上传/远端/Gitee raw 三方 sha256 一致）；语音装日志 /tmp/voice-install-20260918-1617.log"
-    not_done: "唤醒词闭环未由人耳实测（唯一未验项）；旧手工 nav 容器与 12 个历史 stopped scout-nav-* 保留未删；voice-old-source-20260918-161711 未清；/home/jetson/xf_chat_standalone/xf_config.yaml 仍是真实讯飞凭据（开发机，值未改）"
+    camera_config_2026_09_18:
+      mapping_701: "A=左、B=前、C=右（用户确认 + 16:58 从 /SLB_CAM_x/compressed 各取一帧目视核实；帧存 tmp/701cam/）"
+      mapping_715: "A=前/中、B=左、C=右（nav 代码注释与 stitcher cam_topics=B,A,C 互证）"
+      nav_side: "701 的 compose scout-nav 服务新增 environment: CAMERA_TOPIC=/SLB_CAM_B/compressed（此前用代码默认 CAM_A=左，看到的是侧面）；重建后容器日志 camera frame cache started on /SLB_CAM_B/compressed；/api/camera/stream.mjpeg?profile=video_link 取帧与 CAM_B 实拍一致"
+      photo_capture: "拍照 /api/capture/photo 走同一 ros_client 缓存 → 同步变为前相机 B"
+      stitcher_note: "固件 /keyframe 拼接顺序仍为 B,A,C=左,前,右（对 715 正确；对 701 呈现为 前,左,右）；未改（固件红线 + 镜像两款共用），待用户决策"
+    not_done: "唤醒词闭环已由用户实测通过；旧手工 nav 容器与 12 个历史 stopped scout-nav-* 保留未删；voice-old-source-20260918-161711 未清；/home/jetson/xf_chat_standalone/xf_config.yaml 仍是真实讯飞凭据（开发机，值未改）"
     status: CONFIRMED
   status: CONFIRMED
   power_state: ON_USER_CONFIRMED
