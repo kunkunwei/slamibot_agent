@@ -9,7 +9,7 @@
 
 **语音助手已容器化并在 715 上部署验收通过（含唤醒闭环与重启自愈）；715 已完成交付前清理；4G 与图传两条链路已查清（图传已修复并写进装机流程，4G 是客户侧文档）。**
 
-**下一步要做的：** 701 的容器升级 + 701 上部署语音助手容器（**当前被 3 个阻塞挡住，见 §3**）。
+**下一步要做的：** ~~701 容器升级 + 语音容器部署~~ —— **已于 2026-09-18 晚会话完成，见文末 §8**；唯一遗留 = 唤醒词闭环需人在设备旁实测。
 
 ---
 
@@ -83,7 +83,12 @@ sudo: 需要密码（另一个 AI 只给 715 配了免密）
 
 ### 3.2 三个阻塞（必须先解决）
 
-1. **701 免密 sudo**（或用户自己跑）
+1. ~~**701 免密 sudo**~~ ✅ **已完成（2026-09-18 15:55）**
+   `/etc/sudoers.d/010-jetson-nopasswd`（`0440 root:root`，一行 `jetson ALL=(ALL) NOPASSWD: ALL`）已配好并验证：
+   `visudo -c -f <候选>` → 单独解析正确；`install -m 0440` 落盘；`visudo -c` → 四个文件全 `解析正确`；
+   **`sudo -n true` → 非TTY免密 OK**；`sudo -n -l` 已含 `(ALL) NOPASSWD: ALL`。
+   回滚一条命令：`sudo rm /etc/sudoers.d/010-jetson-nopasswd`
+   ⚠️ **出货前删除**（见 `docs/DELIVERY-CLEANUP-CHECKLIST.md`）
    安全顺序（照 715 那次的做法，**不要直接改 `/etc/sudoers`**）：写候选 drop-in → `visudo -c -f <候选>` 单独校验 → `install -m 0440 -o root -g root` → `visudo -c` 整体校验 → `sudo -n true` 验证。回滚：`sudo rm /etc/sudoers.d/<file>`
 2. **确认同事空出来**（且 701 的 BOX 是否接上、六麦/音箱是否在位）
 3. **确认 701 导航容器的目标形态**：现在那个 `scout-nav-product-v1.2.2-...-test-20260916` 是**手工测试容器**；要对齐成 715 那样的 compose 管理 `scout-nav`（服务名 `scout-nav`），还是继续手工容器？**这决定升级方式**
@@ -154,3 +159,13 @@ sudo: 需要密码（另一个 AI 只给 715 配了免密）
 - **701 的 sudo 要密码**；未拿到免密或用户代跑前，701 的容器升级做不了
 - **Jetson 默认只读**；BUILD/DEPLOY 需要用户在当前任务中明确授权
 - 删除、重启、改系统配置、清理磁盘等属 DANGEROUS，**逐次人工确认**
+
+
+## 8. 收尾（2026-09-18 晚，本会话）：§3 三个阻塞全部解除，任务已完成 ✅
+
+- 701 免密 sudo 已由用户配好（`/etc/sudoers.d/010-jetson-nopasswd`，0440，15:55）；同事没有在跑 `catkin_make`（实测 0 个）。
+- 已完成：固件三容器 **1.0.23**；导航 **手工容器 → compose 服务 `scout-nav` + `1.2.5`**（数据/27 张地图完整）；语音 **`voice-assistant` 1.0.2**（旧宿主栈已迁移，`crontab -u jetson` 0 条）。
+- **与 §3.1 记录不同的两点事实**：① **语音设备在总线**（`0d8c:0012` 音箱 + `2208:0001` 六麦 + `/dev/lg_speech_serial`）→ 门禁通、唤醒闭环可验（不是「整支不在」）；② compose 原本只管 3 个固件服务，nav 现已是第 4 个 compose 服务。
+- 验收：5 容器 Up；nav `/health` rosbridgeConnected=true、地图 27；5011 `/health` 200；`[状态] WAIT_WAKE`；`/api/assistant/speak` → `COMPLETED / reply=我在 / speechPlayed=true`；**重启自愈 PASS**（66s 回、5 容器自起、旧宿主栈未回来、16:22:17 `WAIT_WAKE`）。
+- ⚠️ **唯一未验**：唤醒词闭环要人在 701 旁说「小飞小飞」→ 听「我在」；日志侧证据（`WAIT_WAKE` + 播放 `played=true`）已齐。
+- 细节、回滚点、遗留清单见 `facts/jetson_profile.yaml` 的 `runtime_2026_09_18_701_upgrade` 与 `tasks/completed.md` 的 `TASK-2026-09-18-701-CONTAINER-VOICE`。

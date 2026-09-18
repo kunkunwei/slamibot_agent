@@ -416,3 +416,17 @@
 - shutdown: 5001/9090关闭、相关进程none、两锁free、三服务disabled/inactive、STM32 `STATE=READY`。
 - git: `fa6d22567f33102115a7b423dce3c73f1adbcfd7`，提交`fix(web): restore D360 device console`，已普通push并以`ls-remote`核对。
 - evidence: Jetson `/home/jetson/d360s-system-backups/web-fix-20260905-214103`与`web-fix-runtime-20260905-215621`。
+
+
+## TASK-2026-09-18-701-CONTAINER-VOICE：701 容器升级 + 语音助手容器部署
+
+- status: **completed / runtime_pass / reboot_self_heal_pass**；唯一未验 = 唤醒词人工实测。
+- scope（用户授权，按 `handoff/SESSION-HANDOFF-2026-09-18-voice-container.md` §3）：固件三容器 1.0.17→1.0.23；导航手工容器 → compose 服务 `scout-nav` + `d360_nav2d:1.2.5`；语音 `d360_voice_assistant:1.0.2`。
+- 关键顺序（真实陷阱）：**先停手工 nav 容器再跑 `install_2d_nav.sh`** —— 新旧容器都争 5000（host 网络），而安装器 health 探 `127.0.0.1:5000` 会被旧容器答 200 → 假成功。
+- 语音安装器自验 7/8 PASS；唯一 FAIL = 凭据文件 `0644≠0600` → 已 `chmod 0600`（容器 uid0，无功能影响）。
+- 旧宿主语音栈迁移：`crontab -u jetson` 0 条；`run_mic_sherpa` + `assistant_runtime` 移到 `/home/jetson/voice-old-source-20260918-161711`（移动非删除，凭据保留）。
+- 验收证据：5 容器 Up；nav `/health` rosbridgeConnected=true、`/api/launch/status` navigation、地图 27；5011 `/health` 200；`[entrypoint] gate ready` + `[状态] WAIT_WAKE`；`/api/assistant/speak` → `COMPLETED / reply=我在 / speechPlayed=true`；**重启自愈**：66s SSH 回、5 容器自起、旧栈未回来、16:22:17 `WAIT_WAKE`、冷启动后 speak 复测 played=true。
+- 部署源：`/tmp/d360_deploy-upload`（= Gitee master `0eb79b7`；本地/上传/远端/Gitee raw 三方 sha256 一致）；两个安装器均先 `--dry-run` 并逐行审过。
+- 回滚点：`/etc/slamibot/system/docker-compose.yml.bak-20260918-160358|161619|161711`；`/home/jetson/701-deploy-20260918-160358/`（nav 手工规格 JSON、crontab 备份）；旧 nav 容器 `docker start scout-nav-product-v1.2.2-b2cfd1b-test-20260916`。
+- 事实源：`facts/jetson_profile.yaml` 的 `runtime_2026_09_18_701_upgrade`（ssh/sudo/证据/回滚全在里面）。
+- 未清：旧 nav 容器与 12 个历史 stopped `scout-nav-*`、`voice-old-source-*` 保留；701 `xf_config.yaml` 仍是真实讯飞凭据（开发机）。

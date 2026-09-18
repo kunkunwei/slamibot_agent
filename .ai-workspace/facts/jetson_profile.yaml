@@ -193,6 +193,37 @@ jetson:
       runtime: { scan: MESSAGE_OK, amcl_pose: MESSAGE_OK, cloud_registered: MISSING, relocalization_3d_process: NONE }
       note: "当前镜像同时 COPY src/ 与 install/；Uvicorn 实际从 install/lib/python3/dist-packages 加载。旧 install-only 容器可写层约 542 MB，含大量 live patch。仓库 0cf1d78/73b84bb/a467ff8 的主 Dockerfile 均为 src+install，因此 install-only 是实际镜像构建/现场产物属性，不等同于对应 Git 提交的主 Dockerfile。"
     status: CONFIRMED_READ_ONLY
+
+  runtime_2026_09_18_701_upgrade:
+    verified_at: "2026-09-18 16:04-16:24 CST"
+    ssh_entry: "ssh -F /dev/null -i C:/Users/kun/.ssh/id_rsa -o IdentitiesOnly=yes -o BatchMode=yes jetson@192.168.31.135。Git Bash 下 -F NUL 报 Can't open user config file；把 -i 路径塞进 shell 变量会因引号字面化导致 key 未加载"
+    sudo_nopasswd:
+      drop_in: /etc/sudoers.d/010-jetson-nopasswd
+      mode: "0440 root:root / 31B / 一行 jetson ALL=(ALL) NOPASSWD: ALL"
+      installed_at: "2026-09-18 15:55（用户操作）"
+      verified: "sudo -n true OK（15:57:58）；sudo -n -l 含 (ALL) NOPASSWD: ALL"
+      note: "15:48/15:49 两次实测仍未生效（当时仅 4 月起的 date/reboot/pkill 免密）"
+      rollback: "sudo rm /etc/sudoers.d/010-jetson-nopasswd"
+    containers_after:
+      core: registry.cn-shanghai.aliyuncs.com/slamibot/slamibot_d360_firmware:1.0.23
+      firmware_sensors: registry.cn-shanghai.aliyuncs.com/slamibot/slamibot_d360_firmware:1.0.23
+      ota_web: registry.cn-shanghai.aliyuncs.com/slamibot/slamibot_d360_firmware:1.0.23
+      scout_nav: registry.cn-shanghai.aliyuncs.com/slamibot/d360_nav2d:1.2.5
+      voice_assistant: registry.cn-shanghai.aliyuncs.com/slamibot/d360_voice_assistant:1.0.2
+    nav_compose_migration: "原手工容器 scout-nav-product-v1.2.2-b2cfd1b-test-20260916(1.2.2) 已 stop 保留（Exited 0，回滚 docker start）；新 compose 服务 scout-nav（project=system，shm_size 64m 与手工容器 ShmSize 67108864 一致、镜像默认 entrypoint/cmd 与 1.2.2 一致）；数据 /var/lib/slamibot/scout-nav（db/fastlio/maps，27 张地图）完整"
+    voice_deploy: "voice/install_voice_assistant.sh 自验 7/8 PASS；唯一 FAIL = 凭据文件权限 0644≠0600 → 已 chmod 0600（容器 uid0，无功能影响）；旧宿主栈迁移完成：jetson crontab 0 条、run_mic_sherpa + assistant_runtime 移到 /home/jetson/voice-old-source-20260918-161711（移动非删除，凭据保留）"
+    voice_devices_present: "card0 C-Media USB Audio Device(0d8c:0012)、card2（重启后 card3）ListenGo Circular 6-Microphone(2208:0001)、/dev/lg_speech_serial→ttyUSB8（重启后 ttyUSB4）。与 handoff 3.1「BOX 整支不在总线」相反：设备在位，唤醒闭环可验"
+    acceptance:
+      in_place: "5 容器 Up；nav /health rosbridgeConnected=true、/api/launch/status navigation、地图 27；5011 /health 200；容器日志 [entrypoint] gate ready + [状态] WAIT_WAKE；/api/assistant/speak → COMPLETED / reply=我在 / speechPlayed=true"
+      reboot: "16:20:26 sudo reboot → 66s 后 SSH 回（wlan0 仍 192.168.31.135）→ 5 容器自起（voice StartedAt 08:21:50Z）；16:22:12 gate ready → 16:22:17 [状态] WAIT_WAKE；crontab 0 条、旧宿主栈未回来、audio-node-sync active、scout-nav /dev/snd 52 节点；冷启动后 speak 复测 COMPLETED/played=true"
+    rollback_points:
+      compose_baseline: "/etc/slamibot/system/docker-compose.yml.bak-20260918-160358（改前 sha256 2cdf36ede23c5b83dd180029c9bce556b273785eee44eef43ae91373b5010783）"
+      compose_after_nav: /etc/slamibot/system/docker-compose.yml.bak-20260918-161619
+      compose_after_voice: /etc/slamibot/system/docker-compose.yml.bak-20260918-161711
+      snapshot_dir: "/home/jetson/701-deploy-20260918-160358（nav-manual-spec.json / docker-ps-before*.txt / crontab.jetson.before）"
+      deploy_source: "/tmp/d360_deploy-upload（本地 tmp/d360_deploy == Gitee master 0eb79b7；上传/远端/Gitee raw 三方 sha256 一致）；语音装日志 /tmp/voice-install-20260918-1617.log"
+    not_done: "唤醒词闭环未由人耳实测（唯一未验项）；旧手工 nav 容器与 12 个历史 stopped scout-nav-* 保留未删；voice-old-source-20260918-161711 未清；/home/jetson/xf_chat_standalone/xf_config.yaml 仍是真实讯飞凭据（开发机，值未改）"
+    status: CONFIRMED
   status: CONFIRMED
   power_state: ON_USER_CONFIRMED
   power_state_updated_at: "2026-08-31"
