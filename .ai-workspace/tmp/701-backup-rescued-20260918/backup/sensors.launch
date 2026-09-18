@@ -1,0 +1,51 @@
+<launch>
+  <!-- 启动 Livox 激光雷达服务 -->
+  <arg name="lvx_file_path" default="livox_test.lvx"/>
+  <arg name="bd_list" default="100000000000000"/>
+  <arg name="xfer_format" default="1"/>
+  <arg name="multi_topic" default="0"/>
+  <arg name="data_src" default="0"/>
+  <arg name="publish_freq" default="10.0"/>
+  <arg name="output_type" default="0"/>
+  <arg name="rviz_enable" default="false"/>
+  <arg name="rosbag_enable" default="false"/>
+  <arg name="cmdline_arg" default="$(arg bd_list)"/>
+  <arg name="msg_frame_id" default="livox_frame"/>
+  <arg name="lidar_bag" default="true"/>
+  <arg name="imu_bag" default="true"/>
+
+  <param name="xfer_format" value="$(arg xfer_format)"/>
+  <param name="multi_topic" value="$(arg multi_topic)"/>
+  <param name="data_src" value="$(arg data_src)"/>
+  <param name="publish_freq" type="double" value="$(arg publish_freq)"/>
+  <param name="output_data_type" value="$(arg output_type)"/>
+  <param name="cmdline_str" type="string" value="$(arg bd_list)"/>
+  <param name="cmdline_file_path" type="string" value="$(arg lvx_file_path)"/>
+  <param name="user_config_path" type="string" value="/etc/slamibot/MID360_config.json"/>
+  <param name="frame_id" type="string" value="$(arg msg_frame_id)"/>
+  <param name="enable_lidar_bag" type="bool" value="$(arg lidar_bag)"/>
+  <param name="enable_imu_bag" type="bool" value="$(arg imu_bag)"/>
+
+  <node name="livox_lidar_publisher2" pkg="livox_ros_driver2"
+        type="livox_ros_driver2_node"
+        output="screen" args="$(arg cmdline_arg)"
+        launch-prefix="bash -c 'sleep 0.5; $0 $@'"
+/>
+
+  <!-- 启动 OAK 相机服务 -->
+  <arg name="camera_fps" default="20" doc="Frame rate for cameras"/>
+  <arg name="frame_id_prefix" default="oak_camera" doc="Prefix for frame_id in published messages"/>
+
+  <node name="oak_hardware_trigger_ros" pkg="ros1_oak_ffc_sync" type="oak_hardware_trigger_ros" output="screen">
+    <param name="fps" value="$(arg camera_fps)"/>
+    <param name="frame_id_prefix" value="$(arg frame_id_prefix)"/>
+  </node>
+
+  <!-- 启动 Keyframe 拼接节点：订阅所有相机图像，拼接后发布 /keyframe -->
+  <node name="oak_keyframe_stitcher" pkg="ros1_oak_ffc_sync" type="oak_keyframe_stitcher" output="screen" respawn="true" respawn_delay="3">
+    <param name="cam_topics" value="SLB_CAM_B/compressed,SLB_CAM_A/compressed,SLB_CAM_C/compressed"/>
+    <param name="keyframe_topic" value="/keyframe"/>
+    <param name="keyframe_hz" value="5.0"/>
+    <param name="jpeg_quality" value="50"/>
+  </node>
+</launch>

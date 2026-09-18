@@ -236,8 +236,10 @@ jetson:
       kn_nav: "kn_nav HEAD e3843f4 == cloud/master(kunkunwei/3d_nav) ✓；仅 9 个未提交改动是本地"
     cleanup_2026_09_18:
       deleted: "voice-old-source-20260918-161711(497M)、Scout_mini_navigation/.codex-stage(502M)、nav-diagnostics-{3d-,}web-deploy-20260831-*(10.4M)、assistant-deploy-20260828-133655(276K)、docker-entrypoint.sh.bak-20260825-audio(= HEAD 内容) → 约 1.0G；删前已做引用检查（/etc 与进程均无引用）"
+      deleted_r2: "第二批（用户 2026-09-18 授权）：jetson0826-src-build(569M，2D 导航重构前的备份产物) + backup/slamibot-firmware-sensors-20260831-105549(1.5G，固件镜像 tarball) 及空目录 backup/ → 约 2.07G；两批合计约 3.1G（df 已用 169G→167G）"
+      rescued_r2: "删前抢救 backup/ 里未被框架仓跟踪的小文件 → 工作区 .ai-workspace/tmp/701-backup-rescued-20260918/（Dockerfile.keyframe-respawn、sensors.launch、manifest.txt、sha256；backup 的 sensors.launch hash bed46871 与框架仓 tracked 版本 fecac8a8 不同）；⚠ jetson0826-src-build 里 10 个与云端分支不同的旧版本文件未抢救（diff 解析用了英文 Files 关键字、设备为中文 locale 未命中）随目录删除：nav_api 旧版 schema.sql/app.py/base_mode.py/control.py/database.py/models.py/process_manager.py/scripts/db.py/launch_manager.py/nav_multi_node.py，重构后版本在云端分支 ✓"
       rescued_orphans: "删前把旧语音树里“云端与镜像构建上下文都没有”的文件抢救到工作区 .ai-workspace/tmp/701-voice-orphans-rescued-20260918/（340K：xf_mic_chat_standalone.py、dog_run*.py、tests/、D360(1).pdf、assistant-overlay Dockerfile 等）"
-      kept_with_reason: "backup/(1.5G 固件镜像 tarball；ACR 有同名回滚 tag rollback-pre-keyframe-20260831-102133，但内含未被框架仓跟踪的 Dockerfile.keyframe-respawn)；docker_ws_backup(8.1G movebase_3d_web，master==cloud/master，含 build 产物)；kn_nav_backup(165M，src 与 kn_nav/src 差 68 处)；jetson0826-src-build(569M，与云端分支 src 差 11 处)；container-fixes(176M，848 文件 vs 仓内 install 794)；scout-nav-product-build(1.4G 发布构建克隆)；voice-image-build(341M 语音镜像构建上下文，含唯一 assets)；.codex-backup*(少量)"
+      kept_with_reason: "docker_ws_backup(8.1G movebase_3d_web，master==cloud/master，含 build 产物)；kn_nav_backup(165M，src 与 kn_nav/src 差 68 处)；container-fixes(176M，848 文件 vs 仓内 install 794)；scout-nav-product-build(1.4G 发布构建克隆)；voice-image-build(341M 语音镜像构建上下文，含唯一 assets)；.codex-backup*(少量)"
       side_effect: "宿主版语音回滚路径（需旧源码）自此不可用；回滚仅剩容器路径 + 从云端重拉"
     not_done: "唤醒词闭环已由用户实测通过；旧手工 nav 容器与 12 个历史 stopped scout-nav-* 保留未删；voice-old-source-20260918-161711 未清；/home/jetson/xf_chat_standalone/xf_config.yaml 仍是真实讯飞凭据（开发机，值未改）"
     status: CONFIRMED
