@@ -1,5 +1,7 @@
 # 当前任务（current）
 
+## TASK-2026-09-19-D360-FOXGLOVE-LINK（见 tasks/d360-foxglove-link-2026-09-19.md）：D360 前后端链路换 Foxglove 二进制（ROS1，代码已推送，未部署）
+
 ## TASK-2026-09-18-ROS2-FOXGLOVE-CBOR：D360S ROS2 本地改造（foxglove_bridge + CDR 替换 rosbridge JSON；清理 SCAN/云台）
 
 - status: **pushed_to_gitee / hardware_unverified**

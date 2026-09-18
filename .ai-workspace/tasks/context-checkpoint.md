@@ -1,35 +1,31 @@
-# Context Checkpoint — 2026-09-18 夜：D360S ROS2 本地改造（foxglove+CBOR 替换 rosbridge JSON；清理 SCAN/云台）
+# Context Checkpoint — 2026-09-19 凌晨：D360 前后端链路换 Foxglove 二进制（代码已改完并推云端，未部署）
 
-> 任务记录：`tasks/current.md` 顶部 `TASK-2026-09-18-ROS2-FOXGLOVE-CBOR`
+> 任务记录：`tasks/d360-foxglove-link-2026-09-19.md`（完整）；`tasks/current.md` 顶部有指针
 > ⚠️ 本文件曾被两个 AI 并发写过；改动前先重读全文，别只追加。
 
-## 刚完成（2026-09-18 22:53 起，纯本地，未碰任何设备）
-- ✅ 分支判定：ROS2 迁移源码 = Gitee `electech6/SLAMIBOT_D360_Framework` 的 **`codex/d360s-ros2-product-runtime`**（HEAD `8a81fe8`，**不是 main**）→ 克隆到 `F:\SLAMIBOT_D360_Framework_ros2`；开发分支 `codex/d360s-foxglove-cbor`，提交 **`8e83f1c`**；`F:\SLAMIBOT_D360_Framework`（GitHub ROS1 镜像）未动。
-- ✅ **已推送 Gitee**：`codex/d360s-foxglove-cbor`（远端 = 本地 `8e83f1c`）；`main`（`2924202`）与 `codex/d360s-ros2-product-runtime`（`8a81fe8`）未被触碰；origin 推送地址改 SSH，拉取仍 HTTPS。
-- ✅ 服务端：改装 `ros-humble-foxglove-bridge`；新增 `autostart_scripts/foxglove.service`（`ros2 launch foxglove_bridge foxglove_bridge_launch.xml port:=9090`，沿用 9090）；`runtime.bash` 的 SERVICES/探活/进程白名单切换；`rosbridge.service` 留作回滚入口。
-- ✅ 前端：新增 `tools/foxglove-shim`（roslib 兼容层，Foxglove WS + CDR 解码）+ 产物 `ota_server/web_page/static/modules/foxglove-roslib.js`（95.4 KB，入库）；`/SLB_CAM_*/compressed` 改 Blob 直显；删 `roslib.min.js`。
-- ✅ 清理：删 SCAN 页 `web_page/` 与云台整包 `src/gimbal_control/`；清 `enable_gimbal`、`ttyGimbal` udev 规则、`svc_survey` 处理、`#pryPublished`、README 表述。
-- ✅ 验证：`npm test` 对 mock Foxglove 桥 **8/8 PASS**（订阅/CDR 解码/服务往返/参数读取/节流/重连）；`py_compile`、`bash -n`、`node --check`、`git diff --check` 全 PASS。
+## 刚完成（纯本地改码 + 推云端；未碰任何设备）
+- **固件仓** `F:\SLAMIBOT_D360_Framework`：本地已 ff 到云端 `87c966f`(1.0.23)；新分支 `codex/d360-foxglove-link-20260919`（`a7037a7` + 收尾 `5b22847`），已推 github `kunkunwei/SLAMIBOT_D360`；`main` 未动。
+  - `core.launch`：rosbridge include → `foxglove_bridge.launch port:=9090`（**同端口，无第二端口/无开关**）；`Dockerfile` 加 `ros-noetic-foxglove-bridge` 层、删补丁层；删 `rosbridge_patch/`（3 文件 449 行）。
+  - 新增 `tools/foxglove-shim/`（ROS1 版，源自 D360S 的 551 行 shim，**只改 3 处**：`MessageReader` 换 `@foxglove/rosmsg-serialization`、通道判定 `encoding==="ros1"`、`parse(schema,{ros2:false})`）；产物 `ota_server/web_page/static/modules/foxglove-roslib.js`(78,887 B) 入库；删 `roslib.min.js`。
+  - `main.js`：`/keyframe` 改二进制 Blob（不再 base64 data-URL）；`/project_image` 只留字节路径。收尾提交：`.gitignore` 放行 shim 的 `package.json`/lock、`.dockerignore` 排除 `tools/`、AGENTS/CLAUDE/OTA.md/setting_server 注释同步 Foxglove。
+  - 验证（主代理亲跑）：shim `npm test` **8/8 PASS**；`node --check`、`git diff --check` PASS。
+- **导航仓** `F:\d360_nav2D`（权威基线 `4e13055`＝用户指定的「最新提交」）：新 worktree `F:\d360_nav2D-foxglove`，分支 `codex/foxglove-link-20260919`（`720a5fc`），已推 github `kunkunwei/Scout_mini_navigation`；`master`(4e13055) 与两个既有 worktree（`F:\d360_nav2D` 的 f281b8e + 2 个地图改动、`tmp/nav-50pct`）均未动。
+  - `frontend/vendor/foxglove-roslib/index.js`＝vendored 单文件 shim（源 `SLAMIBOT_D360@5b22847`）。**曾走 submodule 已废弃**：整仓 72MB 进前端目录，且会让 `publish-navigation-ui` CI 与镜像构建（未开 submodules）直接失败。
+  - `rosClient.ts` 换 shim（删无调用方的 `publish`）；连接直连 `ws://<host>:9090`；删 nginx `/rosbridge` 与 dev 代理；`package.json` 加 3 个 `@foxglove/*`、移除 `roslib`/`@types/roslib`。
+  - 验证（主代理亲跑）：`npm run build` ✓、`npm run build:package` exit 0、`vitest` 3 failed/45 passed 文件、7 failed/153 passed 用例；7 个失败全在 `normalizeMaps`/`DashboardPage`/`ModePanel`，与本次 diff 无关（既有失败）。
 
 ## 关键技术事实（别再重摸）
-- ROS2 侧**原本完全没有 CBOR**；CBOR 仅在 ROS1 侧（固件 `60560bb` 的 rosbridge cbor-raw 补丁 + APP 点云/栅格图 `compression=cbor-raw`）。
-- ROS2 的 foxglove_bridge 已迁到 **`foxglove/foxglove-sdk`**（`ros-foxglove-bridge` 只剩 ROS1）；apt 包 `ros-$ROS_DISTRO-foxglove-bridge` 可用。
-- **CDR schema 坑**：foxglove_bridge 用 `====` 分隔定义，前导分隔行会被 `@foxglove/rosmsg` 解成空根定义 → 必须剥前导分隔行并过滤空定义，否则每帧解成 `{}`。
-- **`@foxglove/ws-protocol@0.8.0` 自带 server 不派发 `serviceCallRequest`**（客户端按规范的 35 字节帧它收到了却不 emit）→ 测试 fixture 改为按协议规范手写 mock 桥。
-- Foxglove 协议的**服务调用仍是 JSON**（低频可接受）；高频面（图像/状态）走二进制 CDR。
-- 页面仍有两处 `JSON.parse(message.data)`：`/topic_frequencies`、`/system_monitor_history` 是 `std_msgs/String` 内嵌 JSON（发布端选择，非协议 JSON）。
+- ROS1 foxglove_bridge：通道编码 **`ros1`（原生 ROS1 二进制）**、schema 是 ROS1 `.msg` 全文、**服务调用仍 JSON**、客户端发布只收 `ros1`；**ROS1 侧不存在「foxglove+CBOR」**，CBOR 只活在这次删掉的 rosbridge 补丁里。noetic 有二进制包 0.8.4-1（上游建议 ROS1 从源码构建 0.8.5）。
+- 视频早就不在 WS 上：固件 1.0.21~1.0.23 把 HTTP MJPEG 内置进相机节点（默认 `~preview_port=5010`、`/api/camera/preview.mjpeg`、无客户端不合成）；APP `RobotEndpoint.kt:36` 已用它。**用户明确禁止本次使用 5010**，故 5001 控制台仍订阅 `/keyframe`（现在是二进制，不再 base64）。
+- 产品分层：基础款＝固件仓（core/firmware-sensors/ota_web，3D 重建由 base 自己 `roslaunch faster_lio`）；2D 导航＝外挂容器；**固件仓对导航引用 0 处**，依赖方向只有 nav→base，桥只落 base。
+- 残留风险：`src/device_service/launch/project_control.launch` 仍 include rosbridge（用户要求保留、上机测试后再定），而 `.codex/AGENTS.md`/`.claude/CLAUDE.md` 仍写它是「生产环境入口」；若真按它启动，rosbridge 会占 9090 且与页面协议不兼容。
 
 ## 未完成 / 下一步
-1. ⏳ **真机未验证**：colcon、foxglove_bridge 启停、浏览器真实画面（重点确认 `/SLB_*` 是否被 foxglove 转码成视频、`/device_type` 参数可否读）；`--show-args` 核参数后可加白名单加固。
-2. ⏳ 部署副作用：删云台 udev 规则后，真机 `provision.bash` 会重写 `/etc/udev/rules.d/99-serial-aliases.rules` 并 reload。
-3. ⏳ 发现未动：`oak-camera_driver`、`oak_cam_ros2` 的 `package.xml` 声明了代码中**从未使用**的 `<depend>foxglove_msgs</depend>`（疑似早期试验残留）。
-4. ⏳ 701 遗留：nav 仓 19 改+20 未跟踪改动未上云；`/keyframe` 三格面板顺序待决策；`docker_ws_backup` 8.1G 等大件未清。
-5. ⏳ 小缺陷：`d360_deploy/nav2d/install_2d_nav.sh` 首行孤立 `205`；语音脚本 `crontab` 自验少 `-u`；挂起项 `mttcan` 冷启动 `can0` 缺失、4G PPP-vs-ECM 未确证。
-
-## 新规则（2026-09-18，必须遵守）
-- 「单一云端源同步规则」已写入 `core/change-policy.md`：禁止 copy / scp / 复制粘贴跨设备传源码或版本化配置——一律「改完推云端 → 其他设备 pull」；**D360/D360S 设备上禁止随意开分支、禁止另做源码备份**。同步修订 `core/git-safety.md`（分支建议限定开发机 + 设备侧规则）与 `AGENTS.md`（偏好清单加条目）。
+1. ⏳ **未部署、未真机验证**：等用户上班在 701 编译/部署测试；Docker 未构建（`ros-noetic-foxglove-bridge` 在 runtime-base 上的可装性未实测）。
+2. ⏳ APP 未改（用户明确后续单独改）；导航 SPA 已改但未真机联调。
+3. ⏳ 切到 Foxglove 后，旧 APP/旧 SPA 在 D360 上不可用属**预期**，不算验收失败。
+4. ⏳ 未决：两条 MJPEG（base 5010 vs 导航 5000）是否以 5010 收口；shim 单一来源的最终形态（vendored vs 独立仓+npm 依赖）。
 
 ## 验证状态 / 禁止
-- 本次 **colcon / 真机 NOT RUN**；不得把「已提交」「已推送」「本地 mock PASS」当成「功能已验证」。
-- 仓内容为 LF（`git ls-files --eol` → `i/lf`）；Windows 工作树因 `core.autocrlf=true` 呈 CRLF，**从工作树直接拷脚本到 Linux 仍会中毒**，一律经 git 取文件。
-- 工作台主分支 3.3GiB 大文件问题仍由另一 AI 处理。
+- 本次 **colcon/colcon 无关、Docker/真机 NOT RUN**；不得把「已提交」「已推送」「mock/单测 PASS」「构建 PASS」当成「功能已验证」。
+- 未合并任何分支、未 force push、未改历史、未动设备。
