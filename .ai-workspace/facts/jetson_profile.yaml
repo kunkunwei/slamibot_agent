@@ -68,9 +68,27 @@ jetson:
   network:                            # 来自同事文档 + 用户实时确认
     jetson_lan_ip: 192.168.31.135     # 用户 2026-08-17 确认（DHCP，可能再变；此前曾为 192.168.31.132）
     jetson_hotspot_ip: 192.168.117.6  # Jetson 开启热点时的固定使用地址
-    current_network: company_wifi_and_video_link
+    current_network: company_wifi_video_link_and_cat4_backup
     current_reachable_ip: 192.168.31.135
-    current_network_updated_at: "2026-08-25"
+    current_network_updated_at: "2026-09-01"
+    cat4:
+      usb_id: "2c7c:0125"
+      modem_reported_model: "Quectel EC20F"
+      firmware: "EC20CEFILGR08A04M1G"
+      operator: "CHINA MOBILE (46000)"
+      apn: cmnet
+      usbnet_mode: 0
+      qnetdevctl_supported: false
+      connection: China-Mobile-4G
+      device: ttyUSB7
+      data_interface: ppp0
+      ipv4_at_verification: 10.8.72.41/32
+      route_metric_at_verification: 20900
+      autoconnect: true
+      status: CONFIRMED
+      verified_at: "2026-09-01"
+      verification: "ppp0绑定ping 223.5.5.5 3/3 PASS；绑定HTTPS返回204；Wi-Fi metric600主用，CAT4备用。"
+      note: "模块实际EC20F且QNETDEVCTL返回ERROR；使用ModemManager/NetworkManager PPP，禁止硬编码usb1或套用EC800K ECM流程。"
     video_link_ip: 192.168.144.87
     video_link_peer: 192.168.144.11
     video_link_interface: eth2
@@ -140,10 +158,205 @@ jetson:
       scout_nav: 46.35_percent
       note: "单次 docker stats 快照；core 内 SystemMonitor 单进程约 56% CPU，需与遥控延迟分组复测，不可直接判为根因。"
     status: CONFIRMED
+  runtime_2026_08_31:
+    verified_at: "2026-08-31 09:25-09:28 CST"
+    ssh_result: "LAN 192.168.31.135 成功；host=ubuntu user=jetson"
+    uptime_at_probe: "14 minutes"
+    firmware_sensors:
+      container_id: f354470998dcc0ee09f73f6ba2e26d6f75a69b4a36af922327b27da77ef3189d
+      image: registry.cn-shanghai.aliyuncs.com/slamibot/slamibot_d360_firmware:latest
+      image_id: sha256:76b95d1efd5fcd5bb2f1dc5632d5310ccc81b32f4f31f86339a6c8e84250e892
+      rollback_tag: registry.cn-shanghai.aliyuncs.com/slamibot/slamibot_d360_firmware:rollback-pre-keyframe-20260831-102133
+      rollback_image_id: sha256:71ff42d71284ec2d08066c6d6824097e4610f7d5c1f9055db4a208a9d34d919f
+      compose_sha256: 71be6a37d69424e34a002c6d7448a7492653270a5815df9a5779ce5a8fcd266a
+      compose_modified: false
+      running: true
+      restart_count: 0
+      oak_raw_topics_hz: { SLB_CAM_A: 10.00, SLB_CAM_B: 10.00, SLB_CAM_C: 10.09 }
+      keyframe_publisher: /oak_keyframe_stitcher
+      keyframe_requested_hz: 5.0
+      keyframe_observed_hz: 3.89
+      livox_lidar_hz: 10.00
+      timeshare_updating: true
+      stitcher_result: "原 launch 启动后约 3.7s interrupted；热修复 launch 已启用 respawn=true, respawn_delay=3"
+      persistent_recovery: { deployed_at: "2026-08-31 10:21:33 CST", pid: 54, stable_observed_seconds: 266, respawn_count_observed: 0, registry_pushed: false }
+      ros_log_clock_note: "当前 run-id 日志时间落在 1970-01-01，绝对墙钟时间不可信"
+    scout_nav_verified_at: "2026-08-31 09:31-09:34 CST"
+    scout_nav:
+      running_container: scout-nav-timefix-20260827
+      running_image: scout-nav:jetson0826-src-timefix-20260827
+      running_image_id: sha256:d6ca5df6bd8d30a764755085ac90399e9f6e27e22d88bd9495eb059c1f499d00
+      stopped_installonly_container: scout-nav
+      stopped_installonly_image: scout-nav:0cf1d78-installonly-lf-20260826
+      stopped_installonly_image_id: sha256:43316a6994ace2c3b6dcae4e4f596ca91768a336db86e7cc38abbcf2a79731ba
+      host_repo: { branch: "jetson/0826", head: "00aa4b1e15141e1188a3f292b124ecf674fff484", dirty: true }
+      runtime: { scan: MESSAGE_OK, amcl_pose: MESSAGE_OK, cloud_registered: MISSING, relocalization_3d_process: NONE }
+      note: "当前镜像同时 COPY src/ 与 install/；Uvicorn 实际从 install/lib/python3/dist-packages 加载。旧 install-only 容器可写层约 542 MB，含大量 live patch。仓库 0cf1d78/73b84bb/a467ff8 的主 Dockerfile 均为 src+install，因此 install-only 是实际镜像构建/现场产物属性，不等同于对应 Git 提交的主 Dockerfile。"
+    status: CONFIRMED_READ_ONLY
+
+  runtime_2026_09_18_701_upgrade:
+    verified_at: "2026-09-18 16:04-16:24 CST"
+    ssh_entry: "ssh -F /dev/null -i C:/Users/kun/.ssh/id_rsa -o IdentitiesOnly=yes -o BatchMode=yes jetson@192.168.31.135。Git Bash 下 -F NUL 报 Can't open user config file；把 -i 路径塞进 shell 变量会因引号字面化导致 key 未加载"
+    sudo_nopasswd:
+      drop_in: /etc/sudoers.d/010-jetson-nopasswd
+      mode: "0440 root:root / 31B / 一行 jetson ALL=(ALL) NOPASSWD: ALL"
+      installed_at: "2026-09-18 15:55（用户操作）"
+      verified: "sudo -n true OK（15:57:58）；sudo -n -l 含 (ALL) NOPASSWD: ALL"
+      note: "15:48/15:49 两次实测仍未生效（当时仅 4 月起的 date/reboot/pkill 免密）"
+      rollback: "sudo rm /etc/sudoers.d/010-jetson-nopasswd"
+    containers_after:
+      core: registry.cn-shanghai.aliyuncs.com/slamibot/slamibot_d360_firmware:1.0.23
+      firmware_sensors: registry.cn-shanghai.aliyuncs.com/slamibot/slamibot_d360_firmware:1.0.23
+      ota_web: registry.cn-shanghai.aliyuncs.com/slamibot/slamibot_d360_firmware:1.0.23
+      scout_nav: registry.cn-shanghai.aliyuncs.com/slamibot/d360_nav2d:1.2.5
+      voice_assistant: registry.cn-shanghai.aliyuncs.com/slamibot/d360_voice_assistant:1.0.2
+    nav_compose_migration: "原手工容器 scout-nav-product-v1.2.2-b2cfd1b-test-20260916(1.2.2) 已 stop 保留（Exited 0，回滚 docker start）；新 compose 服务 scout-nav（project=system，shm_size 64m 与手工容器 ShmSize 67108864 一致、镜像默认 entrypoint/cmd 与 1.2.2 一致）；数据 /var/lib/slamibot/scout-nav（db/fastlio/maps，27 张地图）完整"
+    voice_deploy: "voice/install_voice_assistant.sh 自验 7/8 PASS；唯一 FAIL = 凭据文件权限 0644≠0600 → 已 chmod 0600（容器 uid0，无功能影响）；旧宿主栈迁移完成：jetson crontab 0 条、run_mic_sherpa + assistant_runtime 移到 /home/jetson/voice-old-source-20260918-161711（移动非删除，凭据保留）"
+    voice_devices_present: "card0 C-Media USB Audio Device(0d8c:0012)、card2（重启后 card3）ListenGo Circular 6-Microphone(2208:0001)、/dev/lg_speech_serial→ttyUSB8（重启后 ttyUSB4）。与 handoff 3.1「BOX 整支不在总线」相反：设备在位，唤醒闭环可验"
+    acceptance:
+      in_place: "5 容器 Up；nav /health rosbridgeConnected=true、/api/launch/status navigation、地图 27；5011 /health 200；容器日志 [entrypoint] gate ready + [状态] WAIT_WAKE；/api/assistant/speak → COMPLETED / reply=我在 / speechPlayed=true"
+      reboot: "16:20:26 sudo reboot → 66s 后 SSH 回（wlan0 仍 192.168.31.135）→ 5 容器自起（voice StartedAt 08:21:50Z）；16:22:12 gate ready → 16:22:17 [状态] WAIT_WAKE；crontab 0 条、旧宿主栈未回来、audio-node-sync active、scout-nav /dev/snd 52 节点；冷启动后 speak 复测 COMPLETED/played=true"
+    rollback_points:
+      compose_baseline: "/etc/slamibot/system/docker-compose.yml.bak-20260918-160358（改前 sha256 2cdf36ede23c5b83dd180029c9bce556b273785eee44eef43ae91373b5010783）"
+      compose_after_nav: /etc/slamibot/system/docker-compose.yml.bak-20260918-161619
+      compose_after_voice: /etc/slamibot/system/docker-compose.yml.bak-20260918-161711
+      snapshot_dir: "/home/jetson/701-deploy-20260918-160358（nav-manual-spec.json / docker-ps-before*.txt / crontab.jetson.before）"
+      deploy_source: "/tmp/d360_deploy-upload（本地 tmp/d360_deploy == Gitee master 0eb79b7；上传/远端/Gitee raw 三方 sha256 一致）；语音装日志 /tmp/voice-install-20260918-1617.log"
+    not_done: "唤醒词闭环未由人耳实测（唯一未验项）；旧手工 nav 容器与 12 个历史 stopped scout-nav-* 保留未删；voice-old-source-20260918-161711 未清；/home/jetson/xf_chat_standalone/xf_config.yaml 仍是真实讯飞凭据（开发机，值未改）"
+    status: CONFIRMED
   status: CONFIRMED
   power_state: ON_USER_CONFIRMED
-  power_state_updated_at: "2026-08-25"
+  power_state_updated_at: "2026-08-31"
   note: "Jetson 只作为远程开发/编译/测试/运行目标，禁止向其新增 Agent/RAG/向量库/AI 服务/后台进程。"
 
+jetson_ros2_candidate:
+  product: D360S
+  role: "干净 Ubuntu 22.04 / 原生 ROS2 Humble 部署测试板；不覆盖 ROS1 CURRENT 旧板事实"
+  board: NVIDIA Jetson Orin NX Engineering Reference Developer Kit
+  platform: { arch: arm64, l4t: "R36.5", kernel: "5.15.185-tegra" }
+  ssh_host: 192.168.31.35
+  ssh_port: 22
+  ssh_user: jetson
+  ssh_auth: "现有 id_rsa 公钥；密码仅由用户在本机终端使用且不得落盘"
+  ssh_status: CONFIRMED
+  ssh_verified_at: "2026-09-03"
+  os: Ubuntu 22.04.5 LTS
+  initial_os_state: "用户确认除本任务安装的ROS2/依赖/unit外无旧ROS1业务环境"
+  docker: { present: true, version: "29.7.2" }
+  ros2_distro: humble
+  ros2_tools: { ros2: PRESENT, colcon: PRESENT, rosdep: INITIALIZED, rmw: rmw_fastrtps_cpp }
+  ros1_tools: { roscore: MISSING, roslaunch: MISSING }
+  mirrors:
+    ros_apt: https://mirrors.ustc.edu.cn/ros2/ubuntu/
+    rosdistro_index: https://mirrors.ustc.edu.cn/rosdistro/index-v4.yaml
+    rosdep_source: USTC_CONFIRMED
+  framework:
+    path: /home/jetson/SLAMIBOT_D360_Framework
+    branch: codex/d360s-ros2-product-runtime
+    base_head: fa6d22567f33102115a7b423dce3c73f1adbcfd7
+    head: 8a81fe89b6e59170f2a4081e4f85dc8356a70c28
+    remote: git@gitee.com:electech6/SLAMIBOT_D360_Framework.git
+    tracking: origin/codex/d360s-ros2-product-runtime
+    dirty: false
+    commit_push: WIP_SAVED_2026_09_05_HASH_VERIFIED_NOT_FINAL
+    web_console: "5001默认ota_server/web_page；根web_page为SCAN不可引用；WIP含三画面/频率/OAK温度/frpp状态改动，尚未完成最终build/E2E"
+    build: "稳定基线四包联合PASS；HEAD 8a81fe8为下班保存WIP，新增Web监控改动尚未最终构建验收"
+    installer: "install.bash仅doctor/deps/build/install；不得管理硬件或systemd；含Faster-LIO source/build/install-only检查"
+    provisioner: "provision.bash独立doctor/apply；CH341/brltty/udev/MID360S网卡幂等固化；默认doctor"
+    runtime_manager: "runtime.bash默认status；暂停时临时systemcontrol/rosbridge/OTA已停止，5001/9090关闭，两锁free"
+    hardware_lock: /home/jetson/SLAMIBOT_D360_Framework/.runtime/systemcontrol.lock
+  runtime_2026_09_04:
+    install_result: SUCCESS
+    install_prefix: /home/jetson/SLAMIBOT_D360_Framework/install
+    venv_depthai: "2.30.0.0 compatible with 2.30.0 series"
+    services: { ota: disabled_inactive, rosbridge: disabled_inactive, systemcontrol: disabled_inactive }
+    related_processes: NONE
+    lock: FREE
+    serial:
+      module: /lib/modules/5.15.185-tegra/updates/slamibot/ch341.ko
+      module_sha256: 89056d8f3663f5ead823ebab6f881ea50be91ffdb9d0e52e36312976a5e0e5a5
+      brltty: REMOVED
+      tty_rtk: /dev/ttyUSB0
+      tty_stm32: /dev/ttyUSB1
+      firmware: USER_CONFIRMED_FLASHED_VERSION_UNKNOWN
+    network:
+      interface: enx00e09a538ce2
+      driver: cdc_ether
+      host: 192.168.1.55/24
+      sensor: 192.168.1.63
+      sensor_mac: 8c:58:23:eb:a6:39
+      never_default: true
+      backup: /home/jetson/d360s-system-backups/network-20260904-214946
+    sdk:
+      previous: Livox-SDK2-v1.2.5
+      current: Livox-SDK2-v1.3.1
+      mid360s_device_type: 35
+      archive_sha256: 2e0f158cb1f473fe26bdacb9e292fbd31a2fba7f0177951818f95852a8920582
+      source_backup: /home/jetson/d360s-system-backups/sdk131-20260904-223120
+    hardware:
+      lidar: "PASS；MID360S .63；/livox/lidar 9.999Hz、/livox/imu 200.078Hz，真实消息；timeshare变化"
+      oak: "PASS；f63c bootloader可切f63b运行态；三颗AR0234；CAM_A/B/C=10.083/10.080/10.078Hz并有真实消息"
+      stm32_fsin: "PASS；最初停Bootloader；正式runapp后APP GPRMC约1Hz、COG=206，PA1 10Hz FSIN恢复"
+      rtk: "仅天线REMOVED；内部串口链保留"
+    evidence_local: [F:/slamibot_agent/evidence/d360s-ros2-20260904, F:/slamibot_agent/evidence/d360s-ros2-20260905]
+    status: D360S_SENSOR_RUNTIME_PASS
+  runtime_2026_09_05_faster_lio:
+    algorithm_baseline: 29242022982652045f142e550fccfc989add15a7
+    package: "faster_lio ROS2 Humble ament；libfaster_lio + run_mapping_online + Pose6D + install-only PASS"
+    default_gate: "enable_faster_lio=false；SLAMIBOT_ENABLE_FAST_LIO默认0"
+    build: "Livox→Faster-LIO→OAK→project_control隔离及四包联合PASS；doctor/check-only PASS"
+    runtime: "默认关闭30秒probe PASS；opt-in 90秒probe两次PASS；/Odometry与/cloud_registered约4.93Hz；camera_init→body TF PASS"
+    resources: "CPU 243-267%；RSS约89-93MiB；无bad_alloc/崩溃"
+    sensors: "Livox约10Hz、IMU约200Hz、CAM_A/B/C约10Hz；STM32 READY"
+    services: { ota: disabled_inactive, rosbridge: disabled_inactive, systemcontrol: disabled_inactive }
+    related_processes: NONE
+    lock: FREE
+    evidence_local: F:/slamibot_agent/evidence/d360s-faster-lio-ros2-20260905
+    status: FASTER_LIO_RUNTIME_PASS_CLEAN_SHUTDOWN
+  access_level: DEPLOY_AND_BUILD_USER_AUTHORIZED_FOR_THIS_TASK
+  migration: true
+  migration_scope: "原生Humble安装器、独立运行管理、MID360S SDK/网络/串口、Faster-LIO ROS2；云台/点云着色仍未迁移"
+  status: D360S_FASTER_LIO_RUNTIME_PASS_PROVISIONED
 
 
+
+jetson_715:
+  note: "715 = 用户编号 715 的新设备（IP 以 .164 结尾）；701 = 192.168.31.135 见上文 jetson 段"
+  ssh_host: 192.168.31.164
+  ssh_port: 22
+  ssh_user: jetson
+  sudo_password: "同 701（jetson）"
+  os: Ubuntu 20.04.6 LTS (aarch64)
+  docker_compose: "v2.35.1"
+  compose_project: system
+  compose_file: /etc/slamibot/system/docker-compose.yml
+  runtime_2026_09_17:
+    verified_at: "2026-09-17 11:05-11:15 CST"
+    deployed_images:
+      core: registry.cn-shanghai.aliyuncs.com/slamibot/slamibot_d360_firmware:1.0.16
+      firmware_sensors: registry.cn-shanghai.aliyuncs.com/slamibot/slamibot_d360_firmware:1.0.16
+      ota_web: registry.cn-shanghai.aliyuncs.com/slamibot/slamibot_d360_firmware:1.0.16
+      scout_nav: registry.cn-shanghai.aliyuncs.com/slamibot/d360_nav2d:1.2.3
+    config_digests:
+      firmware: "sha256:d5dd5f7e5c2b54a9239d201321770d9b3327dd577d61fb5b566ac59d80be87dd"
+      nav2d: "sha256:a3c22ceb3a0bc586f6387a5e1b5158f50b66ebab14cfe04f4a7dd42f6a07de79"
+    rosbridge_patches:
+      subscribe.py: ec3e4acc4b31d33b
+      cbor_conversion.py: d0da12023c20f6ed
+      outgoing_message.py: 8c2a79a5ca488710
+    acceptance: "cbor 与 cbor-raw 并发订阅双方 PASS；already established with type */AnyMsg/is not a valid type string 三项各 0；/health 200 rosbridgeConnected=true；相机 A/B/C 10.0Hz；/keyframe 4.32Hz；restarts=0 oom=false"
+    compose_sha256: 4b8b664dffae4e78c89d0a0efc3d6dfdf91e969ec751508bfb4a334731c24b46
+    compose_backup: /etc/slamibot/system/docker-compose.yml.bak-20260917-110219
+    rollback: "用上述备份覆盖 compose 后 docker compose up -d（旧固件 51cbe563dd74 与 nav2d 1.2.2 仍留在设备上）"
+    maps_in_db: 0
+    known_leftover: "语音链路已于 2026-09-17 部署（run_mic_sherpa + 讯飞网关 5011 均在宿主、crontab 自启）；未含讯飞凭据，客户自配后才有「我在」与到点播报"
+    verified_ports: [80, 5000, 5001, 9090, 19090]
+    status: CONFIRMED
+  voice_2026_09_17:
+    deployed: "run_mic_sherpa(458M = .venv 118M + models 341M) + assistant_runtime + xf_chat_standalone；宿主 crontab 两条 @reboot"
+    deps_added: [libportaudio2, websocket-client-1.8.0]
+    supervisor_fix: "resolve_container 兼容 715 的 scout-nav（原 ^/scout-nav-product- 过滤器认不出）"
+    acceptance: "5011 health 200；TTS 合成 27306B PCM；星火 chat 正常；唤醒→/api/assistant/turn→播放 2 次 COMPLETED；用户确认听到「我在」"
+    credentials: "701 凭据已清除，值级复扫 0 命中；客户自参见 d360_deploy/voice/CUSTOMER-XUNFEI-SETUP.md"
+    firmware_now: "715 固件线已由视频线继续推进（2026-09-17 当天：1.0.17 → 1.0.18 → 构建 1.0.19）；上方 runtime_2026_09_17 块保留 1.0.16 历史验收记录。语音线部署时实测为 1.0.17。"
+    status: CONFIRMED
