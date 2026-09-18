@@ -9,7 +9,7 @@
 - ✅ 固件三容器 1.0.17 → **1.0.23**；导航 **手工容器 → compose 服务 `scout-nav` + `d360_nav2d:1.2.5`**；语音 **`voice-assistant` 1.0.2**（旧宿主栈已迁移，jetson crontab 0 条）。
 - ✅ 验收：5 容器 Up；nav/5011 health 200；门禁通 `[状态] WAIT_WAKE`；`/api/assistant/speak` → `COMPLETED / reply=我在 / speechPlayed=true`；**唤醒词「小飞小飞」→「我在」用户人耳实测通过**；**重启自愈 PASS**（66s 回、5 容器自起、旧宿主栈未回来）。
 - ✅ **相机映射修正**：701 实测 A=左/B=前/C=右 → compose 的 `scout-nav` 加 `CAMERA_TOPIC=/SLB_CAM_B/compressed`，nav 实时帧与 CAM_B 实拍一致。
-- ✅ **源码上云核对**：nav 仓 `jetson/0826` == `origin/jetson/0826` ✓；语音 `run_mic_sherpa` main == origin/main ✓；框架仓 == `cloud/main` ✓；`kn_nav` == `cloud/master` ✓。
+- ✅ **源码上云核对（含更正）**：语音 `run_mic_sherpa` main == origin/main ✓；框架仓 == `cloud/main` ✓；`kn_nav` == `cloud/master` ✓；⚠ nav 设备分支 `jetson/0826` **不在任何云端仓**（先前「== origin/jetson/0826」是过时缓存误判，已 prune 暴露）。已处理：GitHub `master` **快进到 `4e130558`**（含今天视频链路 5 提交，纯 FF 无 force）；设备独有分支备份为 `codex/jetson-0826-backup-20260918`。
 - ✅ **冗余备份清理（两批约 3.1G）**：`voice-old-source-20260918-161711`、`.codex-stage`、`nav-diagnostics-web-deploy-*`、`assistant-deploy-20260828-*`、`docker-entrypoint.sh.bak-*`；第二批（用户授权）`jetson0826-src-build` 569M + `backup/` 1.5G → 共约 3.1G；抢救件在 `.ai-workspace/tmp/701-{voice-orphans,backup}-rescued-20260918/`。
 
 ## 有效事实源 / 红线

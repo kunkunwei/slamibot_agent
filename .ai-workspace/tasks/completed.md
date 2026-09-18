@@ -460,3 +460,15 @@
 - 抢救：`backup/` 中未被框架仓跟踪的 `Dockerfile.keyframe-respawn`（内含 `sensors.launch` 热修复、base image digest `c38b1526…`）、`sensors.launch`（hash `bed46871` ≠ 框架仓 tracked 的 `fecac8a8`）、`manifest.txt`、镜像 sha256 → `.ai-workspace/tmp/701-backup-rescued-20260918/`（11K）。
 - ⚠️ 未抢救：`jetson0826-src-build` 内 10 个与云端分支不同的旧版 nav_api 文件（diff 解析用英文 `Files` 关键字、设备为中文 locale 未命中）→ 随目录删除；均为重构前旧版本，重构后版本在云端分支 ✓。
 - 仍未删的大件见 `facts/jetson_profile.yaml` 的 `cleanup_2026_09_18.kept_with_reason`。
+
+
+## TASK-2026-09-18-NAV-MERGE-AND-BRANCH-AUDIT：nav 仓分支核对 + master 合并 + 设备独有分支备份
+
+- ⚠️ **更正上一条结论**：`TASK-2026-09-18-701-CLOUD-SYNC-AND-CLEANUP` 里“nav 仓 `jetson/0826` == `origin/jetson/0826`，未推送=0 ✓”是**错的**。本地 `origin/jetson/0826` 是**过时缓存**（`git fetch --prune` 把它删掉了）→ 实际远端从来没有/已没有该分支。
+- 真实远端 refs（`ls-remote` 实测）：
+  - GitHub `kunkunwei/Scout_mini_navigation`：`master` `1ad7809`、`codex/mjpeg-video-link-50pct-20260917` `4e13055`
+  - Gitee `electech6/d360_nav2D`：`master` `698be432`、`voice` `dc34af2c`、`codex/video-link-stream-20260904` `190ecc12`、`release/d360-scout-nav-v1.0.0-20260904` `140f0496`
+  - 设备分支 `jetson/0826`（`00aa4b1e`）在**任何云端分支都不可达**；独有提交 4 个：`00aa4b1e` 持久化后端 API 补全+timefix、`0d8eee44` get_scout_detection_snapshot+心跳（修底盘模式 NONE）、`9af4b720` 手动标点/重定位后 /robot_map_pose 持续发布 10s、`eefce8e2` chore sync。
+- 合并（用户授权，条件“分支已含今天视频链路”成立）：`master` `1ad7809 → 4e130558` **快进推送**（master 是分支祖先，纯 FF、无 force、无冲突），master 现含今天测试的视频链路 5 提交（`b4a6dfea` 50% 压缩 / `b6bec0d8` CAM_A 默认 / `bf0f8165` overlay Dockerfile / `c5b89337` 帧节奏修复 / `4e130558` 装机脚本指向 1.2.5）；master→branch 差异仅 4 文件 +75/−18（不会把大文件/map 带回来）。
+- 设备独有分支已备份：`jetson/0826` → **`codex/jetson-0826-backup-20260918`**（add-only，pack 209MiB，无 >100MiB 文件；未 force、未删原分支）。
+- 仍未上云：nav 仓工作树的 19 个已改 + 20 个未跟踪 + 211 个删除（他人 WIP，未动）；`d360_deploy` 用的 `nav2d/install_2d_nav.sh` 默认镜像 n/a（该文件在 d360_deploy 仓）。

@@ -230,7 +230,8 @@ jetson:
       photo_capture: "拍照 /api/capture/photo 走同一 ros_client 缓存 → 同步变为前相机 B"
       stitcher_note: "固件 /keyframe 拼接顺序仍为 B,A,C=左,前,右（对 715 正确；对 701 呈现为 前,左,右）；未改（固件红线 + 镜像两款共用），待用户决策"
     cloud_sync_2026_09_18:
-      nav2d: "Scout_mini_navigation(jetson/0826 @ 00aa4b1e) == origin/jetson/0826(kunkunwei/Scout_mini_navigation)，未推送=0 ✓；⚠ 但工作树仍有 19 个已跟踪文件被改 + 20 个未跟踪 + 211 个已跟踪文件被删（demo 地图）→ 这批不在云端，属他人 WIP，本任务未动"
+      nav2d: "【2026-09-18 更正】先前“jetson/0826 == origin/jetson/0826，未推送=0 ✓”的结论是错的：本地 origin/jetson/0826 是过时缓存（fetch --prune 已删除，说明远端早已没有该分支）。真实情况：GitHub kunkunwei/Scout_mini_navigation 只有 master 与 codex/mjpeg-video-link-50pct-20260917；Gitee electech6/d360_nav2D 只有 master / voice / codex-video-link-stream-20260904 / release-d360-scout-nav-v1.0.0-20260904；jetson/0826(00aa4b1e) 在任何云端分支都不可达（vs d360/master 独有 4 个提交，vs GitHub master 103 个）。工作树另有 19 个已改 + 20 个未跟踪 + 211 个已删（demo 地图）未提交，属他人 WIP"
+      nav2d_merge_2026_09_18: "用户授权后执行：① GitHub master 从 1ad7809 快进到 4e130558（master 是分支祖先 → 纯 FF、无 force、无冲突），master 现含今天测试的视频链路 5 个提交：b4a6dfea(50% 压缩) / b6bec0d8(CAMERA_TOPIC 默认 CAM_A) / bf0f8165(overlay Dockerfile) / c5b89337(帧节奏修复) / 4e130558(装机脚本指向 d360_nav2d:1.2.5)；master→branch 差异仅 4 文件 +75/−18。② 设备独有分支 jetson/0826(00aa4b1e) 备份为 codex/jetson-0826-backup-20260918（add-only 安全分支，pack 209MiB，无 >100MiB 文件）"
       voice_asr: "run_mic_sherpa(main @ a16fb79) 本地 F:\run_mic_sherpa 干净且 == origin/main ✓；701 的 voice-image-build/assets/src 与之同名文件一致；assets/xf_gateway = nav 仓 src/nav_api/host_services（云端有）；镜像 1.0.2 在 ACR"
       firmware: "SLAMIBOT_D360_Framework HEAD 87c966f == cloud/main(kunkunwei/SLAMIBOT_D360) ✓；相对旧远端 origin(kunkunwei/SLAMIBOT_D360_Framework) 有 20 个提交差，非风险"
       kn_nav: "kn_nav HEAD e3843f4 == cloud/master(kunkunwei/3d_nav) ✓；仅 9 个未提交改动是本地"
