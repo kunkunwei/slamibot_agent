@@ -169,3 +169,43 @@ sudo: 需要密码（另一个 AI 只给 715 配了免密）
 - 验收：5 容器 Up；nav `/health` rosbridgeConnected=true、地图 27；5011 `/health` 200；`[状态] WAIT_WAKE`；`/api/assistant/speak` → `COMPLETED / reply=我在 / speechPlayed=true`；**重启自愈 PASS**（66s 回、5 容器自起、旧宿主栈未回来、16:22:17 `WAIT_WAKE`）。
 - ⚠️ **唯一未验**：唤醒词闭环要人在 701 旁说「小飞小飞」→ 听「我在」；日志侧证据（`WAIT_WAKE` + 播放 `played=true`）已齐。
 - 细节、回滚点、遗留清单见 `facts/jetson_profile.yaml` 的 `runtime_2026_09_18_701_upgrade` 与 `tasks/completed.md` 的 `TASK-2026-09-18-701-CONTAINER-VOICE`。
+
+## 9. 更正与补记（2026-09-18 晚·新会话）：工作区推送卡死的真因
+
+### 9.1 真因：提交里混进了 GB 级二进制产物（**不是网络问题**）
+
+`b26dbcf` 之后的 7 个本地提交里含 6 个 ≥20 MB 的 blob，合计 **3316.9 MB（3.24 GiB）**：
+
+| 大小 | 路径 |
+|---|---|
+| 760.9 MB | `.ai-workspace/product-4d0cb26.tar.gz` |
+| 760.9 MB | `.ai-workspace/artifacts/d360_nav2D-4d6a01c.tar.gz` |
+| 760.9 MB | `.ai-workspace/artifacts/d360_nav2D-190ecc1.tar.gz` |
+| 501.2 MB | `.ai-workspace/product-4d0cb26.bundle` |
+| 501.1 MB | `.ai-workspace/tmp/d360-0cf1d78.bundle` |
+| 31.9 MB | `.ai-workspace/tmp/app-pose-latency-20260905/app-pose-latency.pftrace` |
+
+- **更正数字**：此前小结写的「合计 ≈ 5.3 GB」把 `artifacts/` 那份重复计入了一次，实际 **3.24 GiB**。
+- **更正性质**：不是「按 1 MB/s 要传一个半小时」—— **GitHub 单文件硬上限 100 MB**，那三个 760 MB 的 `tar.gz` 无论传多久都会被拒。这条推送**根本不可能成功**，与网络、认证、超时都无关。
+- **根因**：`71068cf` 用了 `git add .ai-workspace/`（范围过宽，把工作区产物一并扫入）；`e522469` 也带入了部分产物。
+  → **规矩：只按显式路径 `git add`，绝不 add 整个工作区目录**；提交前用 `git ls-files | grep -E '\.(tar|tar\.gz|bundle|pftrace)$'` 自检。
+- **对比**：其余 **292 个文件合计只有 3.81 MB**。文档负载本身极轻，卡死完全由那 6 个文件造成。
+
+**处置（2026-09-18 新会话已完成）**：用 `git commit-tree` + 临时索引**原地重建**这 7 个提交（不改工作区、不删磁盘文件），新链 291 个 blob / **3.81 MB**，仍以 `b26dbcf` 为父 → 普通 fast-forward 推送即可。
+旧链完整保留在备份引用 `refs/backup/session-20260918/codex-teleop-docs-codex`（= `cf70b3f`），需要回滚时 `git update-ref refs/heads/<分支> cf70b3f`。
+
+### 9.2 更正：`D360装机流程.txt` 的行尾判据（**撤回旧告诫**）
+
+- **撤回**：此前写的「该 .txt 是混合行尾、只能单行替换」**是错的**。
+- **实测**：该文件改前改后都是**纯 CRLF**（618 行 / 618 个 CR）。
+- **错因**：`grep -c $'\r' <file>` 在本环境对纯 CRLF 文件返回 **0**（假阴性），据此误判成混合行尾。
+- **正确判据**（任选其一）：
+  - `wc -l <file>` 与 `tr -cd '\r' <file> | wc -c` 对比 —— 两者相等即纯 CRLF；
+  - `git ls-files --eol <file>` —— `w/crlf` = 工作副本纯 CRLF，`i/lf` = 仓库内为 LF。
+- **根本原因**：本仓库 `core.autocrlf=true` → **工作副本是 CRLF、仓库内 blob 是 LF**。所以「编辑器里看到 CRLF、`git show` 看到 LF」是**正常现象**，不是文件被改坏。
+- 注意本文件自己就是 `i/lf w/mixed`：§1–§7 为 LF、§8 起为 CRLF。追加时不必纠结，`autocrlf` 会在入库时统一归一化。
+
+### 9.3 防复发
+
+`.gitignore` 已新增：`*.tar` `*.tar.gz` `*.tgz` `*.zip` `*.bundle` `*.pftrace` `*.bag` `*.pcap` `*.img` `*.deb`，以及 `.ssh-known-hosts-temp` / `.ssh-empty-config`。
+（**不**整目录忽略 `artifacts/`：根 `artifacts/firmware-rosbridge-cbor-patch-20260819/` 是 24 KB 的补丁文本，应可入库；按扩展名拦才精准。）

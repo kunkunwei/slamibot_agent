@@ -24,3 +24,22 @@ secrets/
 # 体积大（.venv 118M + models 341M），且历史上曾含明文讯飞凭据；
 # 资产一律走 ACR 镜像分发，不要提交。构建输入必须是 sanitize 后的版本。
 voice-assets*.tar.gz
+
+# ---- 大体积二进制产物：不入库 ----
+# 背景（2026-09-18）：一次 `git add .ai-workspace/` 把 3.24 GiB 产物写进了 7 个本地提交，
+# 推送被 GitHub 100 MB 单文件硬上限拦死（表现是「认证秒回、上传卡死」）。
+# 产物一律走 ACR / Gitee 分发，不要提交；只按显式路径 add，绝不 add 整个工作区目录。
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+*.bundle
+*.pftrace
+*.bag
+*.pcap
+*.img
+*.deb
+
+# ---- SSH 会话临时文件：不入库 ----
+.ssh-known-hosts-temp
+.ssh-empty-config
