@@ -198,10 +198,12 @@ sudo: 需要密码（另一个 AI 只给 715 配了免密）
 
 **这 6 个文件已于同日删除，本地不再有副本**（连根 `artifacts/scout-nav-d0b7b15{,-lf}.tar.gz` 一并删，合计释放约 6.7 GiB）。删除前已核对：这些包的**仓库内容**在 `F:\d360_nav2D` 本地克隆里是完整的（`4d0cb26` 141 提交 / 6251 对象、`445ffd7` 119 提交 / 6019 对象，祖先图都可走通；该克隆还留着远端已删的 `codex/video-link-stream-20260904@f281b8e`）。
 > ⚠️ **两点必读**：① 该克隆现在是这批内容的**唯一**本地副本 —— 不要顺手清理 `F:\d360_nav2D`；② tar 包里的 `install/` **预编译产物**不在这份副本里（只能 `catkin_make` 重建）。
-> 另注（仓库里仍剩约 1.23 GiB pack，由两处引用持有，**不是**本次遗留）：
-> ① `pr1-deploy.tar`（1894.2 MB，**磁盘上已无此文件**，仅存 git blob）挂在 `refs/heads/main` 和备份分支 `codex/teleop-pointcloud-low-latency-docs-old-1.9gb` 上 —— 前者那个未推送的 `b77f6a5` 就是它，**push main 会重演同一次卡死**；
-> ② 501 MB 的 `d360-0cf1d78.bundle` 挂在工具引用 `refs/codex/turn-diffs/checkpoints/...` 上。
-> **只删备份分支省不了空间**（blob 仍被 main 引用）。来龙去脉见 `tasks/current.md` 的 `TASK-2026-08-27-002`（2026-08-27 处理过一起同样的 `pr1-deploy.tar` 误提交）。
+> 另注：仓库里最后剩的 **1.23 GiB pack 也已在同日回收**（`size-pack` 1.23 GiB → **1.65 MiB**），它是 2026-08-27 那次 `pr1-deploy.tar` 事故的残余，由三处引用持有，逐项处理如下：
+> ① **`refs/heads/main`**：旧的 `b77f6a5` 是那个带 1.9 GB tar 的提交（所以 main 一直推不上去）→ 已重建为 **`945086f`**（只少 `pr1-deploy.tar`，作者/时间/消息/父提交不变，且与 08-27 那次**早已在远端的干净版本 `e6de27e` 逐字节一致**）。**main 现在可以正常推送**（仍领先 `origin/main` 1 个提交）。
+> ② **备份分支 `codex/teleop-pointcloud-low-latency-docs-old-1.9gb`**（tip `15de77b`）→ 已删除。
+> ③ **工具 checkpoint** `refs/codex/turn-diffs/checkpoints/…/1787793209420/…`（另一个工具 2026-08-27 09:13 拍的整工作区快照）→ **没删引用**，只把它的树从 197 项重写为 195 项（摘掉那两个大文件），引用仍可解析、其余 195 个文件保持可用。
+> 删除前验证过内容可重建：`pr1-deploy.tar` 是 `git archive` 出的**未压缩** PAX tar（头部 `comment=35a8def5…`），与 `git -C F:/d360_nav2D archive 35a8def5fd3382ae50892343aec95c25ba7757f8` 的 **sha256 逐字节一致**（`75b5db73…`）；那 501 MB 的 `d360-0cf1d78.bundle` 的导航历史也在同一克隆里。
+> ⚠️ **额外必读**：`35a8def` 在那个克隆里**不在任何分支上**（游离提交，比 master 多 3 个提交）—— 该克隆现已是这批内容的唯一副本，**别清理 `F:\d360_nav2D`**。来龙去脉见 `tasks/current.md` 的 `TASK-2026-08-27-002`。
 
 ### 9.2 更正：`D360装机流程.txt` 的行尾判据（**撤回旧告诫**）
 
