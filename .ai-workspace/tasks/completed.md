@@ -430,3 +430,12 @@
 - 回滚点：`/etc/slamibot/system/docker-compose.yml.bak-20260918-160358|161619|161711`；`/home/jetson/701-deploy-20260918-160358/`（nav 手工规格 JSON、crontab 备份）；旧 nav 容器 `docker start scout-nav-product-v1.2.2-b2cfd1b-test-20260916`。
 - 事实源：`facts/jetson_profile.yaml` 的 `runtime_2026_09_18_701_upgrade`（ssh/sudo/证据/回滚全在里面）。
 - 未清：旧 nav 容器与 12 个历史 stopped `scout-nav-*`、`voice-old-source-*` 保留；701 `xf_config.yaml` 仍是真实讯飞凭据（开发机）。
+
+## TASK-2026-09-18-701-CAMERA-TOPIC：701 相机映射确认 + nav 侧切到前相机
+
+- 起因（用户）：**701 的左侧摄像头是相机 A**，而 nav 代码默认 `CAMERA_TOPIC=/SLB_CAM_A/compressed`（新机型 715 的 A=前/中）→ 701 的 APP 实时视频与拍照取帧拿到的是**左侧**画面。
+- 实测确认映射：从 `/SLB_CAM_A|B|C/compressed` 各取一帧（`tmp/camprobe_701.py`，帧存 `tmp/701cam/`）→ **701：A=左（近距遮挡的侧向）、B=前（正对门/纸箱/纵深）、C=右**；715：A=前/B=左/C=右（代码注释与 stitcher `cam_topics=B,A,C` 互证）。
+- 改动：701 compose 的 `scout-nav` 服务新增 `environment: - CAMERA_TOPIC=/SLB_CAM_B/compressed`（compose 校验通过、diff 仅 2 行；回滚点 `/etc/slamibot/system/docker-compose.yml.bak-20260918-165906`）。
+- 验证：容器重建后日志 `camera frame cache started on /SLB_CAM_B/compressed`；`/api/camera/stream.mjpeg?profile=video_link` 取帧与 CAM_B 实拍同一画面；`/health` 200、`/api/launch/status` navigation。拍照 `/api/capture/photo` 走同一 ros_client 缓存 → 同步为前相机。
+- 未动（待决策）：固件 `/keyframe` 拼接顺序仍是 `B,A,C`（= 715 的 左,前,右；在 701 上呈现为 前,左,右）。改它需要动固件参数，属红线且镜像两款共用，故仅记录。
+- 备注：`install_2d_nav.sh` 升级路径只改 `image:` 行，不会覆盖这个 `environment`。
