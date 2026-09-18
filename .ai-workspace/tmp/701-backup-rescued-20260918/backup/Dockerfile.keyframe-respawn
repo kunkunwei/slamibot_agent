@@ -1,0 +1,3 @@
+ARG BASE_IMAGE=registry.cn-shanghai.aliyuncs.com/slamibot/slamibot_d360_firmware@sha256:c38b1526f2b135dc28c0589668bd1fe8d612851345881b5a2b990b8ef0e41bae
+FROM ${BASE_IMAGE}
+COPY src/device_service/launch/sensors.launch /root/SLAMIBOT_D360_Framework/install/share/project_control/launch/sensors.launch

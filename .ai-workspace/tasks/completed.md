@@ -451,3 +451,12 @@
 - 保留（证据不足或超出本次范围）：`backup/`(1.5G)、`docker_ws_backup`(8.1G)、`kn_nav_backup`(165M)、`jetson0826-src-build`(569M)、`container-fixes`(176M)、`scout-nav-product-build`(1.4G)、`voice-image-build`(341M)、`.codex-backup*` —— 逐项理由见 `facts/jetson_profile.yaml` 的 `cleanup_2026_09_18.kept_with_reason`。
 - 副作用：宿主版语音回滚路径不可用（旧源码已删），回滚仅剩容器路径 + 云端重拉。
 - 验证：删后 5 容器仍 Up、nav `/health` 200、5011 200、`slamibot-audio-node-sync` active、nav 仓 git 状态只少了未跟踪项。
+
+
+## TASK-2026-09-18-701-CLEANUP-R2：701 第二批备份清理（用户授权）
+
+- 用户确认可删：`jetson0826-src-build`（569M，2D 导航重构前的备份产物）、`backup/slamibot-firmware-sensors-20260831-105549`（1.5G，固件镜像 tarball）→ 已删（含空目录 `backup/`），释放约 **2.07G**；两批合计约 **3.1G**（df 已用 169G→167G）。
+- 删前引用检查通过（/etc 与进程无引用）；删后 5 容器仍 Up、nav `/health` 200、5011 200、`slamibot-audio-node-sync` active、nav 仓状态不变。
+- 抢救：`backup/` 中未被框架仓跟踪的 `Dockerfile.keyframe-respawn`（内含 `sensors.launch` 热修复、base image digest `c38b1526…`）、`sensors.launch`（hash `bed46871` ≠ 框架仓 tracked 的 `fecac8a8`）、`manifest.txt`、镜像 sha256 → `.ai-workspace/tmp/701-backup-rescued-20260918/`（11K）。
+- ⚠️ 未抢救：`jetson0826-src-build` 内 10 个与云端分支不同的旧版 nav_api 文件（diff 解析用英文 `Files` 关键字、设备为中文 locale 未命中）→ 随目录删除；均为重构前旧版本，重构后版本在云端分支 ✓。
+- 仍未删的大件见 `facts/jetson_profile.yaml` 的 `cleanup_2026_09_18.kept_with_reason`。

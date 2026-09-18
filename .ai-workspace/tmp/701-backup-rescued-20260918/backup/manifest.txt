@@ -1,0 +1,4 @@
+created=2026-08-31T10:57:12+08:00
+container=f354470998dcc0ee09f73f6ba2e26d6f75a69b4a36af922327b27da77ef3189d image=sha256:76b95d1efd5fcd5bb2f1dc5632d5310ccc81b32f4f31f86339a6c8e84250e892
+commit=slamibot/firmware-sensors-container-backup:20260831-103407 latest=registry.cn-shanghai.aliyuncs.com/slamibot/slamibot_d360_firmware:latest hotfix=registry.cn-shanghai.aliyuncs.com/slamibot/slamibot_d360_firmware:keyframe-respawn-20260831-101432 rollback=registry.cn-shanghai.aliyuncs.com/slamibot/slamibot_d360_firmware:rollback-pre-keyframe-20260831-102133
+compose_sha=71be6a37d69424e34a002c6d7448a7492653270a5815df9a5779ce5a8fcd266a
