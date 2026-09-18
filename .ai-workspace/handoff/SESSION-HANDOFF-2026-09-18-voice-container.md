@@ -220,3 +220,22 @@ sudo: 需要密码（另一个 AI 只给 715 配了免密）
 
 `.gitignore` 已新增：`*.tar` `*.tar.gz` `*.tgz` `*.zip` `*.bundle` `*.pftrace` `*.bag` `*.pcap` `*.img` `*.deb`，以及 `.ssh-known-hosts-temp` / `.ssh-empty-config`。
 （**不**整目录忽略 `artifacts/`：根 `artifacts/firmware-rosbridge-cbor-patch-20260819/` 是 24 KB 的补丁文本，应可入库；按扩展名拦才精准。）
+
+### 9.4 磁盘清理记录（2026-09-18 同日晚）
+
+本次会话合计释放约 **10 GB**（`df` 已用 92.0 GB → 82.0 GB）：
+
+| 已删 | 体积 |
+|---|---|
+| 对象库里 6 个 GB 级产物的 blob（`gc --prune=now`） | 3.24 GiB |
+| `pr1-deploy.tar` 残余（main 重建 + 备份分支删除 + 工具 checkpoint 摘除大文件） | 1.23 GiB |
+| 根 `artifacts/scout-nav-d0b7b15{,-lf}.tar.gz` | 1.49 GiB |
+| `.venv-pr1-test/`（PR1 点到达拍照测试 venv；`python -m venv` 可重建） | 146 MB |
+| `tmp/` 下 112 项**未被任何被跟踪文档引用**的会话产物（清单按“路径或文件名出现在 `git grep` 结果里则保留”筛出） | 622 MB |
+| `F:\d360_nav2D\.git\objects\pack\tmp_pack_HssbZr`（2026-08-19 中断 repack 的残留） | 37 MB |
+
+**刻意保留**（被文档引用，故未删）：`tmp/nav-50pct` 894 MB、`tmp/voice-715-deploy` 348 MB、`tmp/mjpeg-verify` 16 MB、`tmp/701cam` 1.2 MB、`tmp/wheelhouse` 824 KB、`tmp/d360_deploy` 762 KB、`tmp/d360s-provisioning` 128 KB，加 8 个探针脚本（`subscribe_70{1,5}.py`、`test_h264_server.py`、`mjpeg_measure.py`、`ws_probe2.py`、`boot_timeline_probe.sh` 等）。
+另保留 `tmp/other-ai-result.md`（另一个 AI 的产出报告，不属于会话垃圾）。
+`tmp/` 现为 1.3 GB；若日后确认 `nav-50pct` / `voice-715-deploy` 也无用，可再释放约 **1.24 GB**（需另行确认）。
+
+**main 已推送**：`61c6767..945086f`（fast-forward）。两条分支现均与远端一致，工作区仓库 `.git` 仅 **2.0 MB**。
