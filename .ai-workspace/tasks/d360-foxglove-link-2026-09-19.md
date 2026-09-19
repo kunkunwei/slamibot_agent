@@ -104,4 +104,43 @@
 - **3D 重建不受影响**（证据）：SLAM 用 `faster_lio`（只吃 `/livox/lidar`+IMU）；重建着色 `lidar_add_rgb` 的 `config/mono.yaml:38` 直接订阅 `/SLB_CAM_A/compressed`；项目预览 `/project_image` 是 `device_basic_service.py:144` 读落盘图片；相机节点注释自己写明「`/keyframe` 只是显示用派生图」。
 - **APP 侧影响（本轮未改，APP 轮处理）**：`NativeDataCollectionSession.kt:175-177` 有一条 `/keyframe`（`sensor_msgs/CompressedImage`）fallback，「仅在 HTTP 预览不可用时订阅」→ 现在该 fallback 永久失效（预览流异常时 APP 再无兜底画面），APP 轮应把这套 `subscribeKeyframeFallback/removeKeyframeFallback` 机制一并删掉；`/topic_frequencies` 键名变化后，APP 若仍按 `/keyframe` 取值会得到 `undefined`（显示 `-- Hz`，不报错）。
 - 用户决定（本轮同时确认）：①「同一时刻只有一个 APP」的互斥功能**暂不做**（客户不会多 APP 同时连同一台设备）；②浏览器能抢控制权的**根因是 WEB 导航页没做手动/自动切换**（待补 WEB，不动 nav_api 语义）；③视频展示**不允许裁剪**（已落实在控制台）。
-- 待定：视频路线（先把三条并成一条 MJPEG 再换 x264＋fMP4 vs 直接 x264）、WEB 手动/自动切换是否立即补、导航侧 `:5000/api/camera/stream.mjpeg` 的收口时机。
+- 待定：视频路线（先把三条并成一条 MJPEG 再换 x264＋fMP4 vs 直接 x264）、WEB 手动/自动切换是否立即补、导航侧 `:5000/api/camera/stream.mjpeg` 的收口时机。## 11. 视频第二轮：设计就绪 + 上机核对清单（2026-09-19，待用户选路线后开工）
+
+### 11.1 现状（已核实）
+- 唯一视频端点＝相机节点内嵌 HTTP MJPEG：`http://<host>:5010/api/camera/preview.mjpeg`（三路拼接 B,A,C、`~preview_scale=4`、`~preview_quality=70`、10fps；无客户端不合成；`/api/camera/preview.status` 报 clients/fps）。
+- 控制台（5001 页面）与 APP 都走这一条；`/keyframe` 与 `oak_keyframe_stitcher` 已删除；导航侧 `:5000/api/camera/stream.mjpeg`（单相机 + `?profile=video_link` 重编码）待删（APP 改用 5010 之后）。
+- 带宽/CPU 量级：MJPEG 现状 ≈ 35KB/帧 × 10fps ≈ **2.8Mbps**，合成 ≈ 0.25 核；x264（ultrafast+zerolatency，1440x300@10fps）≈ **0.8Mbps**、约 0.3–0.5 核。
+- **D360S 侧没有等价端点**：其控制台是订阅 `/SLB_CAM_A|B|C/compressed`（每路 10Hz CompressedImage）走 WS 显示 → 大图仍在 WS 上（即 D360 刚消掉的队头阻塞形态）。D360S 未发布，可直接按工程规范改。
+
+### 11.2 两条候选路线
+- **A. 保留 MJPEG、只调参数**（`~preview_scale` 4→6/8、`~preview_quality` 70→60）：零客户端改动，带宽可降到约 1–1.5Mbps；仍是逐帧全 JPEG，画质最差。
+- **B. 换 H.264（用户倾向）**：合成后一次软编 x264 → 单一 H.264 流，带宽约 0.8Mbps、画质更好。需要决定**容器与播放端**：
+  - B1：H.264 → **MPEG-TS over HTTP**（`Content-Type: video/mp2t`）。浏览器用 `mpegts.js`（需 vendor 一个约 100KB 的库 + MSE）；Android `ExoPlayer` 原生支持 TS；VLC/ffplay 直接可播。
+  - B2：H.264 → **fMP4 over HTTP + MSE**：浏览器需自己写/引 muxer，工程量大于 B1。
+  - B3：裸 H.264 + WebSocket + WebCodecs：只 Chrome 好，不采用。
+- 编码实现位置：相机节点合成线程之后。**必须先确认容器内有无 ffmpeg/libx264**（现有 `oak_rtsp_pusher.py` 是宿主 tmux 里跑 ffmpeg，容器内是否有未验证）。
+
+### 11.3 上机（701/715）核对清单 —— 跑完再决定 A/B
+```bash
+# 1) 容器内有没有 ffmpeg / libx264（决定 B 是否可行）
+docker exec firmware-sensors bash -lc 'which ffmpeg; ffmpeg -hide_banner -encoders 2>/dev/null | grep -i 264'
+docker exec firmware-sensors bash -lc 'python3 -c "import cv2;print(cv2.__version__)"'
+
+# 2) 现有预览的真实码率与 CPU 基线（先量再改）
+curl -s http://127.0.0.1:5010/api/camera/preview.status
+# 另开一端拉流 30s，统计字节数：
+timeout 30 curl -s http://127.0.0.1:5010/api/camera/preview.mjpeg | wc -c
+docker stats --no-stream firmware-sensors
+
+# 3) 单路 x264 软编的 CPU 实测（不接 UI，只测编码器本身）
+#    用同样尺寸的合成帧喂 ffmpeg 10fps，观察 top 里的 ffmpeg CPU
+
+# 4) 浏览器端：Chrome 打开 5010 的 <img>（现方案）与候选 mpegts 播放页各 5 分钟，记录
+#    首帧时间、卡顿次数、是否有画面裁切（必须完整三路、等比缩放）
+```
+
+### 11.4 与其它决定的联动
+- 视频**不允许裁剪**（只等比缩放）；网页与 APP 的容器宽高比要跟随流本身。
+- 若选 B，则同轮改：相机节点（编码+容器+端点）、5001 控制台（`<img>` → `<video>`+MSE）、导航 SPA（若显示视频）、**APP（ExoPlayer）**——即"一次换编码"而不是两条并存。
+- 若选 A，则本轮只做参数调整 + 删导航侧 `:5000`；x264 另立一轮。
+- 无论哪条：**D360S 要对齐一个同样的 5010 端点**，否则 APP 得为 D360S 保留第二条视频路径（回到冗余）。
