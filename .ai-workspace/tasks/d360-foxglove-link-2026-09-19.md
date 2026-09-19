@@ -79,4 +79,20 @@
   - 删掉 rosbridge 专有死参数 `compression` / `queueLength`（`rosClient.ts`、`Viewer3D.tsx`、`PointCloudLayer.tsx`、`usePointCloud.ts`）并同步 2 个测试断言；只保留仍生效的 `throttleRate`（点云 4Hz）。
   - 验证：`npm run build` exit 0、`npm run build:package` exit 0、`vitest` 回到基线失败集合（3 文件 / 7 用例）。
 - 陈旧测试取证（回答「为什么单测本来就是红的」）：3 个失败测试文件最后改动均为 `6dfbbbc`（2026-08-09「实现音频播放」），其被测实现分别推进到 `e2e71bc`(08-19)、`bff106c`(08-25)、`f382a5b`(09-04)；在基线 `4e13055` 上单独跑同样 3 个文件，失败集合与报错逐条一致 → 属测试未跟随实现的漂移，不是运行缺陷（与「实机正常」不矛盾）。
-- 仍未决：视频链路方向（现状为 HTTP MJPEG：二进制、无 JSON/base64，但逐帧全 JPEG）与两条 MJPEG（base `:5010` / 导航 `:5000/api/camera/stream.mjpeg`）的收口，等用户选定后单开一轮。
+- 仍未决：视频链路方向（现状为 HTTP MJPEG：二进制、无 JSON/base64，但逐帧全 JPEG）与两条 MJPEG（base `:5010` / 导航 `:5000/api/camera/stream.mjpeg`）的收口，等用户选定后单开一轮。## 9. 链路规划核查记录（2026-09-19，为「HTTP/JSON 与视频链路规划」取证；本轮未改代码）
+
+### 9.1 两条 MJPEG 并非同内容（纠正前文说法）
+- base（固件相机节点，`:5010/api/camera/preview.mjpeg`）：订阅三路相机 → **三路拼接 B,A,C**（`~preview_cam_order`），scale 4、Q70、10fps；一次合成 + 每客户端一线程只发最新帧，`PREVIEW_MAX_CLIENTS = 8`（超限拒绝）→ **CPU 不随客户端数增长，带宽 N 倍**。
+- 导航（`d360_nav2D/src/nav_api/fastapi_service/capture.py:419`，`:5000/api/camera/stream.mjpeg`）：订阅**单相机** `CAMERA_TOPIC`（默认 `/SLB_CAM_A/compressed`），`?profile=video_link` 时按目标比例（默认源帧 50%）重编码；`_STREAM_CACHE` 以 `(received_at, width:quality)` 为键缓存 → **重编码每源帧只做一次，跨客户端共享，CPU 也不随 N 增长**。
+- 结论：两条是「同一目的、两套实现、内容不同（拼接 vs 单相机）」，仍应收敛为一条，但不是简单删掉其一。
+
+### 9.2 多客户端并发现状（代码证据）
+- **遥控**：APP 直连 `:9090` 发 `/cmd_vel_web`（约 10–25Hz），nav_api 的 `teleop.py` 转发到 `/cmd_vel`；转发由**全局开关** `/api/teleop_key/enable` 控制，内部只缓存「最近一次有效 Twist」→ **多台 APP 同时驱动 = 谁最后发谁赢；任何一台都能全局 disarm 触发急停**。
+- **模式互斥**：`control_ownership.py` 是**进程内**闩锁（`AUTO/MANUAL_PENDING/MANUAL/MAPPING_PENDING/MAPPING`），只对 HTTP 触发的模式切换 fail-closed；其文件头明确写「does not replace ROS process state」，**管不到 ROS 层的 /cmd_vel_web**。
+- **客户端计数**：全仓无人引用 `/client_count`、`/connected_clients`（那是 rosbridge 插件发布的，随 rosbridge 一起消失）；Foxglove 桥不提供等价主题 → 若产品要显示「谁在看/谁在控」，需自己发一个 owner/客户端状态主题。
+- **带宽量级**：`/global_cloud_navigation` 0.56–0.75MB/帧 @4–5Hz ≈ **18–25Mbps/客户端**；视频现状 ≈ 2.8Mbps/客户端（base 5010）或按 `video_link` 目标比例；`/keyframe` ≈ 0.39MB×4.3Hz ≈ **13Mbps**（WS 上，已改二进制但仍是大图）。
+- **Foxglove 桥多客户端**：每客户端独立连接与发送缓冲（`send_buffer_limit` 默认 10MB，超限丢旧消息）→ 慢客户端不拖累他人。
+
+### 9.3 两个解码库都是二进制
+- `@foxglove/rosmsg-serialization` = **ROS1 线序**（按 `.msg` 顺序、小端、字符串/数组带 4 字节长度）；`@foxglove/rosmsg2-serialization` = **CDR**（OMG CDR，4 字节封装头 + 对齐填充）。二者都吃 `@foxglove/rosmsg` 解析出的定义（ROS1 用 `ros2:false`），差别是线序而非 JSON/二进制。
+- ROS1 桥只通告 `ros1` 一种编码；ROS2 桥通告 `cdr`（JSON 仅用于客户端发布侧）。topic 载荷在两个产品上都是二进制；JSON 只剩：服务调用（协议规定）+ 发布者塞进 `std_msgs/String` 的 `/topic_frequencies`、`/system_monitor_history`。
