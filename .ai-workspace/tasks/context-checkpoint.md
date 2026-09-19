@@ -42,7 +42,7 @@
 - WEB：`ModePanel` 加「手动接管/回到自动」+ 状态标签；删掉失效的浏览器键盘遥控（`/api/teleop_key/send` 从未存在，一直 404）。
 - 导航仓删 `:5000/api/camera/stream.mjpeg` + `video_link` 重编码 + `Dockerfile.video-link-overlay`；拍照链路完好。
 - 验证：py_compile OK、前端 build exit 0、vitest 仍是基线那 7 条失败（无新增）、零残留；`master` 未动。
-- 仍未做：① 视频换编码——**用户已选方案 B1（x264 软编 + MPEG-TS over HTTP）**，固件侧实施中（镜像显式加装 ffmpeg，消掉"容器内有没有 ffmpeg"这个门禁）；④ 真机验收（等设备）；D360S 的 5010 等价端点。
+- ① 视频换编码：**B1 已实施完成**（固件仓 `cdb189a`，已推送）——x264 软编 + MPEG-TS over HTTP，端点 `/api/camera/preview.ts`，一个 ffmpeg 只编一次多客户端扇出；Dockerfile 显式加装 ffmpeg；控制台改 `<video>` + vendored mpegts.js(1.8.2)。**需重建镜像并上机验证**（ffmpeg 在镜像内、码率/CPU、播放与不裁剪）。
 
 ## 验证状态 / 禁止
 - 本次 **colcon/colcon 无关、Docker/真机 NOT RUN**；不得把「已提交」「已推送」「mock/单测 PASS」「构建 PASS」当成「功能已验证」。

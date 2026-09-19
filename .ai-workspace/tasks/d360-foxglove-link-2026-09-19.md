@@ -104,11 +104,27 @@
 - **3D 重建不受影响**（证据）：SLAM 用 `faster_lio`（只吃 `/livox/lidar`+IMU）；重建着色 `lidar_add_rgb` 的 `config/mono.yaml:38` 直接订阅 `/SLB_CAM_A/compressed`；项目预览 `/project_image` 是 `device_basic_service.py:144` 读落盘图片；相机节点注释自己写明「`/keyframe` 只是显示用派生图」。
 - **APP 侧影响（本轮未改，APP 轮处理）**：`NativeDataCollectionSession.kt:175-177` 有一条 `/keyframe`（`sensor_msgs/CompressedImage`）fallback，「仅在 HTTP 预览不可用时订阅」→ 现在该 fallback 永久失效（预览流异常时 APP 再无兜底画面），APP 轮应把这套 `subscribeKeyframeFallback/removeKeyframeFallback` 机制一并删掉；`/topic_frequencies` 键名变化后，APP 若仍按 `/keyframe` 取值会得到 `undefined`（显示 `-- Hz`，不报错）。
 - 用户决定（本轮同时确认）：①「同一时刻只有一个 APP」的互斥功能**暂不做**（客户不会多 APP 同时连同一台设备）；②浏览器能抢控制权的**根因是 WEB 导航页没做手动/自动切换**（待补 WEB，不动 nav_api 语义）；③视频展示**不允许裁剪**（已落实在控制台）。
-- 待定：视频路线（先把三条并成一条 MJPEG 再换 x264＋fMP4 vs 直接 x264）、WEB 手动/自动切换是否立即补、导航侧 `:5000/api/camera/stream.mjpeg` 的收口时机。## 11. 视频第二轮：**已选 B1（x264 软编 + MPEG-TS over HTTP）**，固件侧实施中（2026-09-19）
+- 待定：视频路线（先把三条并成一条 MJPEG 再换 x264＋fMP4 vs 直接 x264）、WEB 手动/自动切换是否立即补、导航侧 `:5000/api/camera/stream.mjpeg` 的收口时机。## 11. 视频第二轮：**B1 已实施完成**（x264 软编 + MPEG-TS over HTTP，2026-09-19）
 
-> 决定：**不用 MJPEG 调参（A），改 x264**；播放端为 `mpegts.js`（浏览器 MSE）+ ExoPlayer（Android，`MimeTypes.VIDEO_MP2T`）。
-> 端点：`http://<host>:5010/api/camera/preview.ts`（`Content-Type: video/mp2t`），状态在 `…/preview.ts/status`。
-> "容器内有没有 ffmpeg"这个门禁已用"镜像里显式 apt 装 ffmpeg"消掉；本机无 ffmpeg，编码管线只能上机验证。
+> 固件仓 commit **`cdb189a`**（已推 `codex/d360-foxglove-link-20260919`）：相机节点 +293/-75、控制台 main.js +32/-8、vendored `mpegts.min.js`(1.8.2, 275767 B, sha256 `270dd3b1…6337`)、index.html、Dockerfile、两份架构文档。
+> 端点：`http://<host>:5010/api/camera/preview.ts`（`Content-Type: video/mp2t`），状态 `…/preview.ts/status`（clients/fps/kbps/bytes/ffmpeg_alive/codec）。
+> 关键设计：**一个常驻 ffmpeg 只编一次**，多客户端共享同一条 TS 流扇出；每客户端 1MB 有界队列（满则丢最旧块）；无客户端不喂帧且进程不存在（空闲零 CPU）；0→1 客户端时重建进程（≤1s 出关键帧，`-g = fps`）；ffmpeg 意外退出先记 stderr 尾、重启一次，再退则本会话放弃（等下个客户端）。`~preview_quality` 作为死参数删除。
+> ffmpeg 参数：`-f rawvideo -pix_fmt bgr24 -s WxH -r fps -i - -an -c:v libx264 -preset ultrafast -tune zerolatency -g fps -pix_fmt yuv420p -b:v 800k -maxrate 1M -bufsize 500k -loglevel error -f mpegts -`（与 715 上已验证的 RTSP 推流同套编码参数；有意去掉 `-re`，未加 `-threads 4`）。
+> **Dockerfile 显式加装 `ffmpeg`** → "容器里有没有 ffmpeg"不再是未知数（但**必须重建镜像**才生效）。
+
+### 11.1 主代理独立复核（非转述）
+- `py_compile` OK；`node --check main.js` OK、`node --check mpegts.min.js` OK；`diff --check` 无输出。
+- 源码零残留（`preview.mjpeg`/`multipart`/`_mjpeg_part`/`preview_quality`/`liveImage`/`LIVE_IMAGE_URL` 均为 0；早先出现的 3 个"命中"只在 `.git/COMMIT_EDITMSG` 的提交信息文本里）。
+- 复核了代码：`PreviewTsEncoder.cmd/start/alive/stop`、`PreviewTsClient.offer/_stream`（有界队列、`video/mp2t` 头、`Connection: close`、注册后才发头避免漏开头画面）、`_accept_loop` 仍限 8 客户端、`status()` 字段齐全、`_ensure_encoder` 的重启逻辑只有一条路径。风格与仓内既有代码一致，未见多余状态机。
+
+### 11.2 未验证（必须上机，按顺序）
+1. **重建镜像**（新 Dockerfile 层会装 ffmpeg）→ `docker exec firmware-sensors ffmpeg -encoders | grep 264` 确认 libx264。
+2. 起节点看日志与 `curl -s http://127.0.0.1:5010/api/camera/preview.ts/status`（`ffmpeg_alive=true`）。
+3. `curl -N -o /tmp/x.ts …/preview.ts` 拉 5s → `ffprobe` 应报 `h264 / 1440x300 / 10 fps`；记录 `kbps`（预期 ≈800）与 ffmpeg 线程 CPU。
+4. 断开后 `pgrep ffmpeg` 应无残留、CPU 掉回 0。
+5. 浏览器开 5001 控制台：**≤1s 出画、完整三格不裁剪**；再开第二个标签页验证 `clients=2` 与扇出。
+6. `rostopic hz /SLB_CAM_A/compressed` 确认导航侧拍照链路未受影响。
+7. 未验证风险点：Jetson 上 x264 实际 CPU（估计 0.3–0.5 核，若抢 FAST-LIO 就加 `-threads 4`）；慢客户端丢块后的花屏恢复；Safari/iOS 的 MSE 兼容性（Chrome/Edge 预期正常）；奇数尺寸会让 yuv420p 报错（当前默认尺寸为偶数，已够用）。
 
 ### 11.1 现状（已核实）
 - 唯一视频端点＝相机节点内嵌 HTTP MJPEG：`http://<host>:5010/api/camera/preview.mjpeg`（三路拼接 B,A,C、`~preview_scale=4`、`~preview_quality=70`、10fps；无客户端不合成；`/api/camera/preview.status` 报 clients/fps）。
