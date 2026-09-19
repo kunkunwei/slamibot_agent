@@ -143,4 +143,32 @@ docker stats --no-stream firmware-sensors
 - 视频**不允许裁剪**（只等比缩放）；网页与 APP 的容器宽高比要跟随流本身。
 - 若选 B，则同轮改：相机节点（编码+容器+端点）、5001 控制台（`<img>` → `<video>`+MSE）、导航 SPA（若显示视频）、**APP（ExoPlayer）**——即"一次换编码"而不是两条并存。
 - 若选 A，则本轮只做参数调整 + 删导航侧 `:5000`；x264 另立一轮。
-- 无论哪条：**D360S 要对齐一个同样的 5010 端点**，否则 APP 得为 D360S 保留第二条视频路径（回到冗余）。
+- 无论哪条：**D360S 要对齐一个同样的 5010 端点**，否则 APP 得为 D360S 保留第二条视频路径（回到冗余）。## 12. 第四轮：WEB 手动/自动切换 + 删除导航侧视频端点（2026-09-19，均已推云）
+
+固件仓无改动；导航仓 `kunkunwei/codex/foxglove-link-20260919` 三个新提交：
+
+| 提交 | 内容 |
+|---|---|
+| `a5f9c45` | **② WEB 手动/自动切换**：`ModePanel` 新增「手动接管」（`POST /api/control/mode/manual/force`）与「回到自动」（先 `enableWebTeleop(false)` 再 `GET /api/control/mode/navigation`）+ 每 2s 轮询的手动/自动标签；删掉失效且有害的浏览器键盘遥控（`TeleopPad`/`useTeleop`/`sendTeleopKey`） |
+| `1a5aaed` | **③ 删导航侧 `:5000/api/camera/stream.mjpeg`** 单相机 MJPEG + `?profile=video_link` 重编码（`capture.py` −177 行、`app.py` −2）+ 删除随之失效的 `Dockerfile.video-link-overlay` |
+| `da775f1` | 删掉随视频端点一起失去调用的 `_bounded_env_float` |
+
+### 关键事实（本轮核实）
+- **`GET /api/teleop_key/send` 在本仓现状与历史都不存在**（`git log -S "teleop_key/send"` 为空）→ WEB 的键盘遥控一直在打 404；后端只暴露 `/api/teleop_key/enable` 与 `/status`。
+- 手动接管的后端流程很完整：`POST /api/control/mode/manual/force` 一次完成「claim MANUAL_PENDING → 取消自动导航 → 发零速 → `teleop_force_enable` → claim MANUAL」，返回 `ownership/teleopEnabled/navigationCancelled/warnings`。
+- 「回到自动」顺序经核实正确：`enable=false` → `teleop.disable(claim_auto=True)` 发零速+恢复被暂停任务+claim AUTO；随后 `GET /api/control/mode/navigation` 成功再 claim 一次 AUTO。
+- 拍照链路完好：`take_photo` / `/photo` / `/list` / `get_latest_frame_snapshot` / `CAMERA_FRAME_MAX_AGE_S`（内联读环境变量）全部保留，`CAMERA_TOPIC`（默认 `/SLB_CAM_A/compressed`）订阅未动。
+- 删除后全仓零残留：`stream.mjpeg`、`_mjpeg`、`video_link`、`camera_router`、`CAMERA_STREAM_FPS`、`CAMERA_VIDEO_LINK_*` 均无命中；`Dockerfile.video-link-overlay` 无任何脚本/CI 引用。
+
+### 验证（主代理亲自复核）
+- `python -m py_compile capture.py app.py` OK；`npm run build` exit 0；`npx vitest run` = **3 文件 / 7 用例失败，与基线 `4e13055` 同一批、无新增**（`normalizeMaps` 2、`DashboardPage` 4、`ModePanel` 1，均为陈旧断言）。
+- 全仓 grep 无残留；`git -c core.whitespace=cr-at-eol diff --check` 无输出；`master`(4e13055) 未动。
+
+### APP 侧连带影响（预期，已在交接文档登记）
+- `RobotEndpoint.cameraStreamUrl`(5000) 与 `videoLinkCameraStreamUrl` 从此 **404**；APP 改造后只用 5010。
+- 交接文档：`.ai-workspace/handoff/APP-FOXGLOVE-LINK-HANDOFF-2026-09-19.md`（含 §9 跨产品缺口：D360S 侧没有 5010 等价端点，其控制台仍从 WS 拉三路 CompressedImage）。
+
+### 剩余
+1. **① 视频换编码**：设计就绪见 §11，**卡在路线决策（A 调参 MJPEG / B x264 + MPEG-TS）+ 上机核对容器内有无 ffmpeg/libx264**。
+2. **④ 真机编译/部署/验收**：等设备与用户在岗。
+3. **D360S 侧 5010 等价端点**：服务端任务，决定 APP 是否要保留两条视频路径。

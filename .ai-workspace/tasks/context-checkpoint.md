@@ -38,6 +38,12 @@
 - APP 侧 `/keyframe` fallback（`NativeDataCollectionSession.kt:175-177`）随之为死代码，APP 轮删。
 - 用户决定：单 APP 互斥暂不做；WEB 缺手动/自动切换是双写 `/cmd_vel` 的根因（待补 WEB）；视频不裁剪。
 
+## 第四轮（2026-09-19）：② WEB 手动/自动切换 + ③ 删导航侧视频端点（导航仓 `a5f9c45`/`1a5aaed`/`da775f1`，已推送）
+- WEB：`ModePanel` 加「手动接管/回到自动」+ 状态标签；删掉失效的浏览器键盘遥控（`/api/teleop_key/send` 从未存在，一直 404）。
+- 导航仓删 `:5000/api/camera/stream.mjpeg` + `video_link` 重编码 + `Dockerfile.video-link-overlay`；拍照链路完好。
+- 验证：py_compile OK、前端 build exit 0、vitest 仍是基线那 7 条失败（无新增）、零残留；`master` 未动。
+- 仍未做：① 视频换编码（等路线决策 + 上机确认 ffmpeg/libx264）、④ 真机验收（等设备）、D360S 的 5010 等价端点。
+
 ## 验证状态 / 禁止
 - 本次 **colcon/colcon 无关、Docker/真机 NOT RUN**；不得把「已提交」「已推送」「mock/单测 PASS」「构建 PASS」当成「功能已验证」。
 - 未合并任何分支、未 force push、未改历史、未动设备。
