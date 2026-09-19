@@ -120,4 +120,31 @@
   `install.bash` 的 `APT_PACKAGES` 已加 `ffmpeg`；`runtime.bash` 进程白名单已放行 `ffmpeg`。
 - D360S 控制台（`ota_server/web_page`）已从"订阅三路 `/SLB_CAM_*/compressed` 画 canvas"改成"`<video>` 播这一条流"（vendored `mpegts.min.js` 与 D360 是**同一个 git blob** `8870135…`）；三路 `CompressedImage` 的**发布仍在**（`lidar_add_rgb` 点云着色与 `SystemMonitor` 的 Hz 上报还在用）。
 - **因此 APP 只需保留一条视频路径**：两个产品都是 `:5010/api/camera/preview.ts`。不要为 D360S 加任何回退/第二条路径。
-- 未验证：5010 在 D360S 上是否与其它进程冲突（离线不可判）；`preview_cam_order` 默认 `CAM_B,CAM_A,CAM_C` 是否与 D360S 物理装法一致（真机看画面，必要时用 `--ros-args -p preview_cam_order:=…` 临时改）；x264 在 D360S 上的 CPU。
+- 未验证：5010 在 D360S 上是否与其它进程冲突（离线不可判）；`preview_cam_order` 默认 `CAM_B,CAM_A,CAM_C` 是否与 D360S 物理装法一致（真机看画面，必要时用 `--ros-args -p preview_cam_order:=…` 临时改）；x264 在 D360S 上的 CPU。---
+
+## 12. 给批次 3/4/5 的服务端补充（2026-09-19，主代理复核批次 2 后新核实）
+
+### 12.1 ⚠️ RTK 停止服务名：设备是 `rtk/stop`，不是 `/rtk_stop`
+- 设备侧（D360 ROS1 `src/device_service/src/ntrip_rtk_ros_service.py`）：`rospy.Service('rtk/login', …)`（:272）与 `rospy.Service('rtk/stop', …)`（:273）。**全仓没有 `rtk_stop`**。
+- APP 当前 `RtkService.kt:447` 处理的是 `"/rtk_stop"` → 批次 5 必须改成 `rtk/stop`（否则停止指令永远打不中服务）。
+
+### 12.2 ⚠️ D360S 上没有 2D 导航话题，也没有底盘运动链路（产品分档，不是 bug）
+- 在 D360S 仓（`SLAMIBOT_D360_Framework_ros2`）全仓 grep：`/map`、`/global_cloud_navigation`、`/robot_map_pose` **零命中**；`cmd_vel`/`scout`/`ugv`/`CAN` 运动链路 **零命中**。
+- 结论：D360S（基础款＝3D 空间重建）不发布 2D 地图/导航点云/AMCL 位姿，也没有 `/cmd_vel` 消费者；`/cmd_vel_web` 的真正终点在 D360 的**导航加装包**（nav_api teleop → `/cmd_vel` → scout_base）。
+- 因此 APP 侧必须**按能力门控**（"存在才用"）：D360S 上隐藏/禁用导航与摇杆相关 UI，**不要**写回退或兼容分支。这不是兼容层要求，是产品分层要求。
+
+### 12.3 点云话题名：不要写死 `/point_cloud`
+- D360S 的点云来自 Faster-LIO 与其着色链；本轮我没能在 `src/faster-lio` 里定位到话题常量（目录布局与预期不同），**以设备 `ros2 topic list` 为准**。工作台既有观测记录里 D360S 看到 `/Odometry` 与 `/cloud_registered`（约 4.93Hz）。
+- 建议批次 3 落地时：把"采集款点云话题"按设备实际 advertise 的通道做**存在性选择**，而不是硬编码 `/point_cloud`；真机联调第一步就是 `ros2 topic list | grep -i cloud`。
+
+### 12.4 批次 4（ExoPlayer）的关键参数
+- URL 两产品一致：`http://<host>:5010/api/camera/preview.ts`；响应头是 `Content-Type: video/mp2t`、**无 Content-Length、`Connection: close`**、`Cache-Control: no-store`。
+- 服务端 `-g = fps`（1 秒一个 IDR）+ 周期 PAT/PMT → **从 GOP 中途接入 ≤1s 出画**。
+- ExoPlayer：`MediaItem` + `MimeTypes.VIDEO_MP2T`（URL 以 `.ts` 结尾也会被推断为 TS）+ `setLiveConfiguration`（把 target offset 压到 1–3s 降延迟）+ `setVideoTextureView`（保持现有自绘布局，不用 media3-ui 的 PlayerView）。
+- **不要**给 D360S 加第二条视频路径：D360S 已于 `f732eb4` 补上同一端点（见本文档 §11）。
+
+### 12.5 批次 5 的命名问题
+- 设备 `/health` 返回的 `rosbridgeConnected` 是**服务端字段名**（nav_api 内部 19090 roslibpy 的连接状态），**不要改**；但 UI 上那个 "ROSBridge" 文案应改成用户能懂的（如"导航后端"）——文案属 APP 侧。
+
+### 12.6 关于既有失败用例（G20）
+- 该失败在干净 HEAD 上可复现，是**陈旧断言**（历史记录：全量单测 63/64，唯一失败即 G20 摇杆旧期望）。**不要**在本链路批次里顺手改它（会把"链路回归"和"测试对齐"混在一起）；单独开一个小任务对齐即可。
