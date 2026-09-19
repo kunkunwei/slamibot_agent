@@ -69,3 +69,14 @@
 
 - 未合并任何分支、未 force push、未改历史、未动设备与其它 worktree。
 - 回滚：固件仓 compose 换回旧 tag（`…firmware:1.0.23` 与 `rollback-1.0.16-20260917` 均在 ACR）；代码侧 revert 任务分支提交即可（无运行时开关需要还原）。
+## 8. 第二轮追加（2026-09-19 深夜，用户追问后）
+
+- 固件仓 `d29014b`（已推送 `codex/d360-foxglove-link-20260919`）：
+  - **删除** `src/device_service/launch/project_control.launch`（历史一体化 launch：服务＋livox＋OAK＋rosbridge 一把起）。产品真实入口是 compose：`core`（core.launch）＋ `firmware-sensors`（sensors.launch）＋ `ota_web`（setting_server）。
+  - 文档同步：`.codex/AGENTS.md`、`.claude/CLAUDE.md`（启动命令改 compose；启动流程改成三容器；补「已删除，别再用」提示）、`docs/debug_guide.md`（原 `roslaunch --verify project_control project_control.launch` 换成对 `core.launch` / `sensors.launch` 的 XML 解析校验）。
+  - 复核：全仓除上述说明文字与 `.git` 内部外，已无 `project_control.launch` 引用。
+- 导航仓 `29b7482`（已推送 `kunkunwei/codex/foxglove-link-20260919`）：
+  - 删掉 rosbridge 专有死参数 `compression` / `queueLength`（`rosClient.ts`、`Viewer3D.tsx`、`PointCloudLayer.tsx`、`usePointCloud.ts`）并同步 2 个测试断言；只保留仍生效的 `throttleRate`（点云 4Hz）。
+  - 验证：`npm run build` exit 0、`npm run build:package` exit 0、`vitest` 回到基线失败集合（3 文件 / 7 用例）。
+- 陈旧测试取证（回答「为什么单测本来就是红的」）：3 个失败测试文件最后改动均为 `6dfbbbc`（2026-08-09「实现音频播放」），其被测实现分别推进到 `e2e71bc`(08-19)、`bff106c`(08-25)、`f382a5b`(09-04)；在基线 `4e13055` 上单独跑同样 3 个文件，失败集合与报错逐条一致 → 属测试未跟随实现的漂移，不是运行缺陷（与「实机正常」不矛盾）。
+- 仍未决：视频链路方向（现状为 HTTP MJPEG：二进制、无 JSON/base64，但逐帧全 JPEG）与两条 MJPEG（base `:5010` / 导航 `:5000/api/camera/stream.mjpeg`）的收口，等用户选定后单开一轮。

@@ -26,6 +26,12 @@
 3. ⏳ 切到 Foxglove 后，旧 APP/旧 SPA 在 D360 上不可用属**预期**，不算验收失败。
 4. ⏳ 未决：两条 MJPEG（base 5010 vs 导航 5000）是否以 5010 收口；shim 单一来源的最终形态（vendored vs 独立仓+npm 依赖）。
 
+## 第二轮追加（2026-09-19，用户追问后）
+- 固件仓 `d29014b`（已推送）：删 `project_control.launch` + `.codex/AGENTS.md`/`.claude/CLAUDE.md`/`docs/debug_guide.md` 同步 compose 真实入口。
+- 导航仓 `29b7482`（已推送）：删 `compression`/`queueLength` 死参数（rosbridge 专有），只留仍生效的 `throttleRate`。
+- 陈旧测试证据：3 个失败测试文件停在 `6dfbbbc`(08-09)，对应实现已推进到 08-19/08-25/09-04；在基线 `4e13055` 上跑同样 3 个文件 → 同样 7 条失败、同样报错。
+- 仍未决：视频链路方向（HTTP MJPEG vs H.264）与两条 MJPEG 收口（base `:5010` / 导航 `:5000`）。
+
 ## 验证状态 / 禁止
 - 本次 **colcon/colcon 无关、Docker/真机 NOT RUN**；不得把「已提交」「已推送」「mock/单测 PASS」「构建 PASS」当成「功能已验证」。
 - 未合并任何分支、未 force push、未改历史、未动设备。
