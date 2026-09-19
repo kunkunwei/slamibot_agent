@@ -95,4 +95,13 @@
 
 ### 9.3 两个解码库都是二进制
 - `@foxglove/rosmsg-serialization` = **ROS1 线序**（按 `.msg` 顺序、小端、字符串/数组带 4 字节长度）；`@foxglove/rosmsg2-serialization` = **CDR**（OMG CDR，4 字节封装头 + 对齐填充）。二者都吃 `@foxglove/rosmsg` 解析出的定义（ROS1 用 `ros2:false`），差别是线序而非 JSON/二进制。
-- ROS1 桥只通告 `ros1` 一种编码；ROS2 桥通告 `cdr`（JSON 仅用于客户端发布侧）。topic 载荷在两个产品上都是二进制；JSON 只剩：服务调用（协议规定）+ 发布者塞进 `std_msgs/String` 的 `/topic_frequencies`、`/system_monitor_history`。
+- ROS1 桥只通告 `ros1` 一种编码；ROS2 桥通告 `cdr`（JSON 仅用于客户端发布侧）。topic 载荷在两个产品上都是二进制；JSON 只剩：服务调用（协议规定）+ 发布者塞进 `std_msgs/String` 的 `/topic_frequencies`、`/system_monitor_history`。## 10. 第三轮：删除 `/keyframe` + `oak_keyframe_stitcher`，控制台视频改用通用 MJPEG 端点（2026-09-19）
+
+- commit **`11d0e98`**（固件仓 `codex/d360-foxglove-link-20260919`，已推送）：12 文件、+24/-159。
+- 删除清单：`sensors.launch:44-50`、`oak-camera_driver/launch/oak_hardware_trigger_ros.launch:13-19`、`scripts/oak_keyframe_stitcher.py`（整文件）、`CMakeLists.txt`（CYTHON_EXECS + DEPENDS 各 1 行）、`setup.py`（scripts 项）、`SystemMonitor.py`（keyframe_hz_monitor + `/topic_frequencies` 键）、控制台 `templates/index.html` / `static/main.js`、`docs/debug_guide.md:144`、`.codex/AGENTS.md:95`、`.claude/CLAUDE.md:99`。
+- 控制台实时画面：改用相机节点**既有**端点 `http://<host>:5010/api/camera/preview.mjpeg`，元素改为 `<img id="liveImage" style="width:100%;height:auto;display:block">`；WS 连接时设 src、error/close 时清空 src（相机节点随即回到空闲、停止合成）。`/topic_frequencies` 里的 keyframe 项换成 `/SLB_CAM_A/compressed`（`SystemMonitor` 新增 `camera_hz_monitor`），控制台 Hz 标签 `Keyframe:` → `Camera:`。
+- **裁剪根因（用户关心）**：旧控制台把 1440×300 的三路拼接图用 `ctx.drawImage(img,0,0)` 硬画进 `640×512` 的 canvas → 左右被裁掉。编码链路本身（scale 4 + hstack；导航侧等比 resize）一直**只缩放不裁剪**。现在 `<img width:100% height:auto>` 完整显示、保持宽高比。
+- **3D 重建不受影响**（证据）：SLAM 用 `faster_lio`（只吃 `/livox/lidar`+IMU）；重建着色 `lidar_add_rgb` 的 `config/mono.yaml:38` 直接订阅 `/SLB_CAM_A/compressed`；项目预览 `/project_image` 是 `device_basic_service.py:144` 读落盘图片；相机节点注释自己写明「`/keyframe` 只是显示用派生图」。
+- **APP 侧影响（本轮未改，APP 轮处理）**：`NativeDataCollectionSession.kt:175-177` 有一条 `/keyframe`（`sensor_msgs/CompressedImage`）fallback，「仅在 HTTP 预览不可用时订阅」→ 现在该 fallback 永久失效（预览流异常时 APP 再无兜底画面），APP 轮应把这套 `subscribeKeyframeFallback/removeKeyframeFallback` 机制一并删掉；`/topic_frequencies` 键名变化后，APP 若仍按 `/keyframe` 取值会得到 `undefined`（显示 `-- Hz`，不报错）。
+- 用户决定（本轮同时确认）：①「同一时刻只有一个 APP」的互斥功能**暂不做**（客户不会多 APP 同时连同一台设备）；②浏览器能抢控制权的**根因是 WEB 导航页没做手动/自动切换**（待补 WEB，不动 nav_api 语义）；③视频展示**不允许裁剪**（已落实在控制台）。
+- 待定：视频路线（先把三条并成一条 MJPEG 再换 x264＋fMP4 vs 直接 x264）、WEB 手动/自动切换是否立即补、导航侧 `:5000/api/camera/stream.mjpeg` 的收口时机。

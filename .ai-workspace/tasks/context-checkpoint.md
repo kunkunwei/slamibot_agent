@@ -32,6 +32,12 @@
 - 陈旧测试证据：3 个失败测试文件停在 `6dfbbbc`(08-09)，对应实现已推进到 08-19/08-25/09-04；在基线 `4e13055` 上跑同样 3 个文件 → 同样 7 条失败、同样报错。
 - 仍未决：视频链路方向（HTTP MJPEG vs H.264）与两条 MJPEG 收口（base `:5010` / 导航 `:5000`）。
 
+## 第三轮（2026-09-19）：删 /keyframe + stitcher（固件仓 `11d0e98`，已推送）
+- 一并清理 stitcher 的编译注册（CMakeLists/setup.py）；控制台实时画面改相机节点既有 MJPEG 端点（`<img width:100%>`, 不裁剪）；`/topic_frequencies` 的 keyframe 键换成 `/SLB_CAM_A/compressed`。
+- 裁剪根因＝旧控制台把 1440×300 拼接图硬画进 640×512 canvas；编码链路只缩放不裁剪。
+- APP 侧 `/keyframe` fallback（`NativeDataCollectionSession.kt:175-177`）随之为死代码，APP 轮删。
+- 用户决定：单 APP 互斥暂不做；WEB 缺手动/自动切换是双写 `/cmd_vel` 的根因（待补 WEB）；视频不裁剪。
+
 ## 验证状态 / 禁止
 - 本次 **colcon/colcon 无关、Docker/真机 NOT RUN**；不得把「已提交」「已推送」「mock/单测 PASS」「构建 PASS」当成「功能已验证」。
 - 未合并任何分支、未 force push、未改历史、未动设备。
