@@ -104,7 +104,11 @@
 - **3D 重建不受影响**（证据）：SLAM 用 `faster_lio`（只吃 `/livox/lidar`+IMU）；重建着色 `lidar_add_rgb` 的 `config/mono.yaml:38` 直接订阅 `/SLB_CAM_A/compressed`；项目预览 `/project_image` 是 `device_basic_service.py:144` 读落盘图片；相机节点注释自己写明「`/keyframe` 只是显示用派生图」。
 - **APP 侧影响（本轮未改，APP 轮处理）**：`NativeDataCollectionSession.kt:175-177` 有一条 `/keyframe`（`sensor_msgs/CompressedImage`）fallback，「仅在 HTTP 预览不可用时订阅」→ 现在该 fallback 永久失效（预览流异常时 APP 再无兜底画面），APP 轮应把这套 `subscribeKeyframeFallback/removeKeyframeFallback` 机制一并删掉；`/topic_frequencies` 键名变化后，APP 若仍按 `/keyframe` 取值会得到 `undefined`（显示 `-- Hz`，不报错）。
 - 用户决定（本轮同时确认）：①「同一时刻只有一个 APP」的互斥功能**暂不做**（客户不会多 APP 同时连同一台设备）；②浏览器能抢控制权的**根因是 WEB 导航页没做手动/自动切换**（待补 WEB，不动 nav_api 语义）；③视频展示**不允许裁剪**（已落实在控制台）。
-- 待定：视频路线（先把三条并成一条 MJPEG 再换 x264＋fMP4 vs 直接 x264）、WEB 手动/自动切换是否立即补、导航侧 `:5000/api/camera/stream.mjpeg` 的收口时机。## 11. 视频第二轮：设计就绪 + 上机核对清单（2026-09-19，待用户选路线后开工）
+- 待定：视频路线（先把三条并成一条 MJPEG 再换 x264＋fMP4 vs 直接 x264）、WEB 手动/自动切换是否立即补、导航侧 `:5000/api/camera/stream.mjpeg` 的收口时机。## 11. 视频第二轮：**已选 B1（x264 软编 + MPEG-TS over HTTP）**，固件侧实施中（2026-09-19）
+
+> 决定：**不用 MJPEG 调参（A），改 x264**；播放端为 `mpegts.js`（浏览器 MSE）+ ExoPlayer（Android，`MimeTypes.VIDEO_MP2T`）。
+> 端点：`http://<host>:5010/api/camera/preview.ts`（`Content-Type: video/mp2t`），状态在 `…/preview.ts/status`。
+> "容器内有没有 ffmpeg"这个门禁已用"镜像里显式 apt 装 ffmpeg"消掉；本机无 ffmpeg，编码管线只能上机验证。
 
 ### 11.1 现状（已核实）
 - 唯一视频端点＝相机节点内嵌 HTTP MJPEG：`http://<host>:5010/api/camera/preview.mjpeg`（三路拼接 B,A,C、`~preview_scale=4`、`~preview_quality=70`、10fps；无客户端不合成；`/api/camera/preview.status` 报 clients/fps）。
