@@ -191,4 +191,40 @@ docker stats --no-stream firmware-sensors
 ### 剩余
 1. **① 视频换编码**：设计就绪见 §11，**卡在路线决策（A 调参 MJPEG / B x264 + MPEG-TS）+ 上机核对容器内有无 ffmpeg/libx264**。
 2. **④ 真机编译/部署/验收**：等设备与用户在岗。
-3. **D360S 侧 5010 等价端点**：服务端任务，决定 APP 是否要保留两条视频路径。
+3. **D360S 侧 5010 等价端点**：服务端任务，决定 APP 是否要保留两条视频路径。## 13. D360S 侧补齐同一视频端点（2026-09-19，已推 gitee）
+
+> 目的：让 APP 只保留**一条**视频路径（两产品都是 `:5010/api/camera/preview.ts`），不造兼容层。
+> D360S 仓 `electech6/SLAMIBOT_D360_Framework`，分支 `codex/d360s-foxglove-cbor`，commit **`f732eb4`**（起点 `8e83f1c`）：7 文件 +837/-91。
+
+| 文件 | 内容 |
+|---|---|
+| `src/oak_cam_ros2/scripts/oak_hardware_trigger_ros2.py` | +771：内嵌 HTTP MPEG-TS 预览（ffmpeg/x264）。**逐字照搬 D360 设计**（`PreviewTsEncoder`/`PreviewTsClient`/server/`status()`/`_ensure_encoder`），只做 rospy→rclpy 适配（`declare_parameter`/`get_parameter`、`node.get_logger()`、`finally` 里 `stop()`）。参数与 D360 同名同默认值（`preview_port=5010`、`preview_path=/api/camera/preview.ts`、`fps=10`、`scale=4`、`cam_order=CAM_B,CAM_A,CAM_C`）。**三路 `/SLB_CAM_*/compressed` 发布逻辑未动**（`lidar_add_rgb` 着色 + `SystemMonitor` Hz 仍依赖） |
+| `install.bash` | `APT_PACKAGES` 加 `ffmpeg`（该数组同时是安装后校验清单） |
+| `runtime.bash` | `matching_processes()` awk 白名单加 `ffmpeg`（审计能看到子进程） |
+| `ota_server/web_page/static/modules/mpegts.min.js` | 新增——与 D360 **同一个 git blob**（`887013547cc03df9f3668d2018364efd1ec5cee9`，版本 1.8.2） |
+| `templates/index.html` | 三格相机面板 → 一个 `<video id="liveVideo" muted playsinline style="width:100%;height:auto;display:block">`（不裁剪）；引入 `mpegts.min.js`；Hz 行保留 |
+| `static/main.js` | 删 `setupCameraSubscribers`/`cameraSubscribers`/`cameraFrameSequences`/`jpegObjectUrl` 与相关 CSS；加 `TS_URL` + `startLiveVideo/stopLiveVideo`（与 D360 同形状） |
+| `README.md` | 端口/链路描述同步 |
+
+### 主代理独立复核（非转述）
+- `py_compile` OK；`bash -n install.bash runtime.bash` OK；`node --check main.js` 与 `mpegts.min.js` OK。
+- `mpegts.min.js` 两仓 `ls-files -s` 同为 `88701354…`（同一 blob）。
+- 零残留：`setupCameraSubscribers`/`cameraSubscribers`/`cameraFrameSequences`/`cameraAImage`/`jpegObjectUrl` 均 0；三路发布逻辑的 diff 里只有一条新增注释。
+- 抽查接线：`push_frame` 在主循环收帧处调用（`1200`）、`_start_preview_server` 在启动处（`1163`）、退出时 `preview_server.stop()`（`1263`）、ffmpeg `cmd()` 与 D360 逐字一致。
+- 未真机验证（本机无 ROS2/ffmpeg/DepthAI/OpenCV）；子代理另做了一份 stub 注入的 40 项断言（已删除 harness），属桩验证。
+
+### 上机第一步（D360S，`jetson@192.168.31.35`）
+```bash
+ffmpeg -version                                    # install.bash deps 之后应存在
+ss -ltnp | grep -E ':5010|:9090|:5001'             # 5010 应归 oak_hardware_trigger_ros2
+curl -s http://127.0.0.1:5010/api/camera/preview.ts/status
+curl -s -D - -o /dev/null --max-time 3 http://127.0.0.1:5010/api/camera/preview.ts | head -8
+ps -eo pid,args | grep -E 'ffmpeg|oak_hardware'    # 无客户端时不应有 ffmpeg
+ros2 topic hz /SLB_CAM_A/compressed                # 三路发布不受影响
+```
+然后开 `http://<IP>:5001` 看 `<video>` 出画、三格顺序是否与物理装法一致（不裁剪）。
+
+### 未验证/风险
+1. D360S 上 5010 是否与其它进程冲突（离线不可判；冲突时预览停用、相机照常出图）。
+2. `preview_cam_order` 默认 `CAM_B,CAM_A,CAM_C` 是否与 D360S 物理装法一致（真机看画面；临时改：`--ros-args -p preview_cam_order:=CAM_A,CAM_B,CAM_C`）。
+3. x264 在 D360S 上的 CPU 与三路 JPEG 发布叠加后的占用（预览只在有客户端时跑）。

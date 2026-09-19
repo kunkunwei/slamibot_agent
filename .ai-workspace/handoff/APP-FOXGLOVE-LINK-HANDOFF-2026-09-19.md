@@ -109,3 +109,15 @@
 
 ### 10.5 `setGimbalAngles` 的 `/gimbal/pry_cmd` 是死发布
 - D360 固件仓 `src/` 下**没有任何云台节点**（只有 device_service / faster-lio / lidar_add_rgb / livox_ros_driver2 / oak-camera_driver），全仓对 `gimbal`/`pry_cmd` 零命中 → 该发布没有任何订阅者。建议在 APP 侧直接删除（与"不留死代码"一致）。
+
+---
+
+## 11. §9 的跨产品缺口：**2026-09-19 已解决**（服务端补齐，APP 保持单一路径）
+
+- D360S 仓（gitee `electech6/SLAMIBOT_D360_Framework`，分支 `codex/d360s-foxglove-cbor`，commit **`f732eb4`**）已补上与 D360 **完全等价**的端点：
+  `http://<host>:5010/api/camera/preview.ts`（`Content-Type: video/mp2t`）、状态 `…/preview.ts/status`；
+  相机节点（`src/oak_cam_ros2/scripts/oak_hardware_trigger_ros2.py`）内嵌 ffmpeg/x264，参数与 D360 一致（`preview_enable/preview_port/preview_path/preview_fps/preview_scale/preview_cam_order`），HHTP 头、8 客户端上限、1MB 有界队列、空闲不编码、0→1 重建进程、退出重启一次——全部与 D360 同款。
+  `install.bash` 的 `APT_PACKAGES` 已加 `ffmpeg`；`runtime.bash` 进程白名单已放行 `ffmpeg`。
+- D360S 控制台（`ota_server/web_page`）已从"订阅三路 `/SLB_CAM_*/compressed` 画 canvas"改成"`<video>` 播这一条流"（vendored `mpegts.min.js` 与 D360 是**同一个 git blob** `8870135…`）；三路 `CompressedImage` 的**发布仍在**（`lidar_add_rgb` 点云着色与 `SystemMonitor` 的 Hz 上报还在用）。
+- **因此 APP 只需保留一条视频路径**：两个产品都是 `:5010/api/camera/preview.ts`。不要为 D360S 加任何回退/第二条路径。
+- 未验证：5010 在 D360S 上是否与其它进程冲突（离线不可判）；`preview_cam_order` 默认 `CAM_B,CAM_A,CAM_C` 是否与 D360S 物理装法一致（真机看画面，必要时用 `--ros-args -p preview_cam_order:=…` 临时改）；x264 在 D360S 上的 CPU。

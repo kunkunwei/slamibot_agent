@@ -43,6 +43,8 @@
 - 导航仓删 `:5000/api/camera/stream.mjpeg` + `video_link` 重编码 + `Dockerfile.video-link-overlay`；拍照链路完好。
 - 验证：py_compile OK、前端 build exit 0、vitest 仍是基线那 7 条失败（无新增）、零残留；`master` 未动。
 - ① 视频换编码：**B1 已实施完成**（固件仓 `cdb189a`，已推送）——x264 软编 + MPEG-TS over HTTP，端点 `/api/camera/preview.ts`，一个 ffmpeg 只编一次多客户端扇出；Dockerfile 显式加装 ffmpeg；控制台改 `<video>` + vendored mpegts.js(1.8.2)。**需重建镜像并上机验证**（ffmpeg 在镜像内、码率/CPU、播放与不裁剪）。
+- **D360S 侧同一端点已补齐**（gitee `codex/d360s-foxglove-cbor` @ `f732eb4`，已推送）：相机节点内嵌同款 MPEG-TS 预览（rclpy 适配）、`install.bash` 加 ffmpeg、`runtime.bash` 白名单放行、控制台改 `<video>`（mpegts.min.js 两仓同一 blob）；三路 CompressedImage 发布未动。→ **APP 只需一条视频路径**，交接文档 §9 缺口已闭环。
+- 仍待：④ 两台设备上机验收；APP 侧由另一 AI 按交接文档改造（其计划已复核，契约级问题已答）。
 
 ## 验证状态 / 禁止
 - 本次 **colcon/colcon 无关、Docker/真机 NOT RUN**；不得把「已提交」「已推送」「mock/单测 PASS」「构建 PASS」当成「功能已验证」。
