@@ -84,3 +84,28 @@
 - **D360S 侧目前没有 5010 这种独立视频端点**：它的控制台是通过 Foxglove 订阅 `/SLB_CAM_A|B|C/compressed`（每路 10Hz 的 CompressedImage）并用 Blob 显示的——也就是**D360S 的视频仍在大图走 WS**，正是我们在 D360 上刚消掉的队头阻塞形态。
 - 所以"APP 只用一个视频端点"这条对 D360S **暂不成立**。要让两个产品共用同一份视频契约、并让 APP 只保留一条视频路径，需要给 D360S 也做一个等价端点（相机节点内嵌 H.264/MPEG-TS，端口与路径与 D360 对齐：同样 5010 + `/api/camera/preview.ts`），并把 D360S 控制台的三路订阅删掉。D360S 尚未发布，可以按工程规范直接改。
 - 该项属于服务端任务，不在本 APP 交接范围内，但**它决定 APP 是否需要保留两条视频路径**，请优先决策。
+
+---
+
+## 10. 服务端补充与勘误（2026-09-19，复核 APP 侧 AI 的计划后追加）
+
+### 10.1 交接文档的两处遗漏（我认账，本文档为准）
+- **`RtkService.kt` 是第 4 个 rosbridge 客户端**（§3 表里漏了）：它自带一套 rosbridge JSON 实现（`connectRosbridge`、订阅 `/rtk/gga`、`advertise` + 发布 `/rtk/rtcm`、`call_service /rtk/login` 与 `/rtk_stop`）。切到 Foxglove 后整套替换，且 `/rtk/rtcm` 属**客户端发布**，必须按 `ros1` 编码序列化 `std_msgs/UInt8MultiArray`。
+  - 服务端方向已核实（`src/device_service/src/ntrip_rtk_ros_service.py`）：设备**发布** `rtk/gga`（`std_msgs/String`，NMEA）、**订阅** `/rtk/rtcm`（`std_msgs/UInt8MultiArray`）；设备模式时设备自己也会发布 `/rtk/rtcm`。→ APP 手机模式推 RTCM 到 `/rtk/rtcm` 是对的。
+- §6/§7 里"删除按 `/keyframe` 取值的代码""验收 `/topic_frequencies`"这两条**只针对 5001 控制台，不针对 APP**（APP 全仓没有消费 `/topic_frequencies`）。APP 侧按自己的实际代码判断。
+
+### 10.2 客户端发布（`/cmd_vel_web`、`/rtk/rtcm`、`/gimbal/pry_cmd`）的精确契约
+- 已读 ROS1 桥源码（`ros1_foxglove_bridge_nodelet.cpp::clientAdvertise`）：**只接受 `encoding == "ros1"`**，其它编码直接抛 `ClientChannelError`。
+- 桥侧解析客户端 advertise 时**只要四个键**：`id`、`topic`、`encoding`、`schemaName`（`websocket_server.hpp` 的解析里没有 `schema`/`schemaEncoding`）——**类型是桥拿 `schemaName` 去 ROS master 查出来的**，不需要客户端传 `.msg` 文本。所以 APP 计划里的 `schemaEncoding:"ros1msg"` + `.msg` 文本**不必要**（传了也无害）。
+- `topic` 仍需过桥的 client topic 白名单（默认 `.*`，未配置限制）。
+- 风险仍成立：真机要确认一次 `/rtk/rtcm` 上行被桥接受并到达设备（走 `ros_babel_fish` 反序列化 + master 取类型）。
+
+### 10.3 服务响应的形状
+- 确认：Foxglove 的服务响应是**响应消息本身（扁平 JSON）**，没有 rosbridge 的 `values` 包装。APP 现有 `optJSONObject("values") ?: response` 的写法能兼容两种。
+- 建议：真机抓一条 `/get_version` 样本存档后，**把 `?: response` 兼容分支删掉**（只留新形状），符合"不留兼容层"。
+
+### 10.4 一条容易误判的验收细节
+- ROS1 桥**会为没有发布者的话题也 advertise 通道**（0.8.4 起）。所以"订阅成功/有通道"≠"有数据"；真机验收要看**数据有没有到**（例如 `/global_cloud_navigation`、`/map` 的空闲态本来就没有帧）。
+
+### 10.5 `setGimbalAngles` 的 `/gimbal/pry_cmd` 是死发布
+- D360 固件仓 `src/` 下**没有任何云台节点**（只有 device_service / faster-lio / lidar_add_rgb / livox_ros_driver2 / oak-camera_driver），全仓对 `gimbal`/`pry_cmd` 零命中 → 该发布没有任何订阅者。建议在 APP 侧直接删除（与"不留死代码"一致）。

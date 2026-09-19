@@ -1,6 +1,11 @@
 # 事实源：D360 rosbridge 端口职责（前端/后端 ↔ ROS 的 protected 边界）
 # 状态取值：CONFIRMED / NEEDS_CONFIRMATION / UNKNOWN / TODO
 # 来源：2026-08-19 Jetson 运行核验；架构决策见 decisions/ADR-0002-d360-dual-rosbridge-ports.md
+# ⚠️ 2026-09-19 更新：9090 上的 rosbridge 已被 **Foxglove 桥**取代（ROS1 版 foxglove_bridge，通道编码 ros1 二进制；服务调用仍 JSON），
+#    rosbridge 及其 cbor/cbor-raw 手改补丁已删除；视频已迁到相机节点独立 HTTP 端点 5010（`/api/camera/preview.ts`）。
+#    下方 rosbridge 端口/补丁/主题清单属**历史记录**；现行客户端契约见
+#    `tasks/d360-foxglove-link-2026-09-19.md` 与 `handoff/APP-FOXGLOVE-LINK-HANDOFF-2026-09-19.md`。
+#    19090（nav 容器内部 roslibpy）未变。
 
 rosbridge:
   package: rosbridge_server
@@ -149,8 +154,8 @@ rosbridge:
     - core 9090 当前有未持久化的 CBOR 兼容 live patch；不得把探针通过等同于 APP UI 联调通过。
 
   topics:
-    - { name: /rtk/gga, msg_type: std_msgs/String, note: NMEA GPGGA }
-    - { name: /rtcm/data, msg_type: std_msgs/UInt8MultiArray, note: RTCM 差分数据 }
+    - { name: /rtk/gga, msg_type: std_msgs/String, note: NMEA GPGGA（设备发布，源：ntrip_rtk_ros_service.py:116） }
+    - { name: /rtk/rtcm, msg_type: std_msgs/UInt8MultiArray, note: "RTCM 差分数据：设备订阅（:117），手机模式由 APP 上行；设备模式设备自己也发布（:271）。2026-09-19 从源码核实，旧的 /rtcm/data 记录作废" }
     - { name: /cmd_vel_web, msg_type: geometry_msgs/Twist, note: APP 25 Hz 手动遥控输入 }
     - { name: /cmd_vel, msg_type: geometry_msgs/Twist, note: FastAPI teleop 50 Hz 输出到底盘 }
     - { name: /map, msg_type: nav_msgs/OccupancyGrid, note: map_server 静态 latched 地图 }
